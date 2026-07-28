@@ -1,26 +1,164 @@
 # RepoForge
 
-> **AI-powered repository automation platform.**
+## Autonomous AI Repository Engineering Platform
 
-RepoForge is an AI-powered automation platform that streamlines software development and repository management by integrating multiple AI models through a unified interface. It automates common development tasks such as project scaffolding, code generation, documentation, repository organization, and workflow execution, enabling developers to build and maintain software more efficiently.
+RepoForge is an AI-powered platform that analyzes software repositories, understands code architecture, creates improvement strategies, executes engineering actions, validates changes, and generates reports.
 
-## Features
+---
 
-* Multi-model AI integration
-* Repository automation
-* Project scaffolding
-* Code generation
-* Documentation generation
-* Code refactoring
-* Repository organization
-* Development workflow automation
-* Extensible architecture
-* API-based provider support
+# Overview
 
-## Architecture
+```text
+Repository
+    |
+    v
+Scanner
+    |
+    v
+Intelligence Engine
+    |
+    v
+AI Strategy
+    |
+    v
+Action Execution
+    |
+    v
+Validation
+    |
+    v
+Report
+```
 
-RepoForge follows a modular architecture that separates AI providers, automation services, and repository management into independent components. This design allows new AI models and automation modules to be integrated with minimal changes to the core system.
+---
 
-## Vision
+# Features
 
-RepoForge aims to provide a unified platform for AI-assisted software development, reducing repetitive engineering tasks while improving developer productivity and project quality.
+| Component           | Purpose                                  |
+| ------------------- | ---------------------------------------- |
+| Repository Scanner  | Analyzes files, languages, and structure |
+| Intelligence Engine | Evaluates repository quality             |
+| Difficulty Engine   | Estimates project complexity             |
+| AI Strategist       | Creates improvement plans                |
+| AI Orchestrator     | Executes AI workflows                    |
+| Action Runner       | Applies changes                          |
+| Validator           | Checks safety                            |
+| Reporter            | Generates reports                        |
+
+---
+
+# Installation
+
+Requirements:
+
+* Python 3.10+
+* Git
+
+Install:
+
+```bash
+pip install -e .
+```
+
+---
+
+# Usage
+
+```bash
+python -m repoforge forge <repository> "<task>"
+```
+
+Example:
+
+```bash
+python -m repoforge forge ../FastAPI-Test "Analyze architecture and improve quality"
+```
+
+---
+
+# Example Output
+
+```text
+Repository Analysis
+
+Files:
+3109
+
+Lines:
+654379
+
+Languages:
+Python
+JavaScript
+HTML
+CSS
+
+
+Intelligence
+
+Quality Score:
+87/100
+
+Grade:
+B
+
+
+Actions:
+Completed
+
+
+Validation:
+Passed
+
+
+Git:
+Checkpoint Created
+```
+
+---
+
+# Tested Repositories
+
+| Repository        | Type              | Result |
+| ----------------- | ----------------- | ------ |
+| LangChain         | AI Framework      | Passed |
+| FastAPI           | Backend Framework | Passed |
+| Personal Projects | Applications      | Passed |
+
+---
+
+# Reports
+
+RepoForge generates reports:
+
+```text
+.repoforge/
+
+├── reports/
+└── backups/
+```
+
+Reports contain:
+
+* Repository analysis
+* Quality score
+* AI strategy
+* Completed actions
+* Validation results
+
+---
+
+# Roadmap
+
+| Version | Focus                             |
+| ------- | --------------------------------- |
+| V3      | Autonomous repository engineering |
+| V4      | Advanced intelligence             |
+| V5      | Multi-agent workflows             |
+| V6      | Autonomous software engineering   |
+
+---
+
+# Vision
+
+RepoForge aims to become an autonomous AI engineering platform that helps developers understand, improve, and maintain complex software systems.
