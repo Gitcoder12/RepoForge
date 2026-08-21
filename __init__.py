@@ -1,20 +1,32 @@
-from .analyzer import CodeAnalyzer
-from .metrics import MetricsEngine
-from .repository_map import RepositoryMap
-from .dependency_graph import DependencyGraph
-from .intelligence_engine import IntelligenceEngine
+from .base import BaseProvider
+from .mock import MockProvider
+from .factory import ProviderFactory, get_provider, PROVIDER_DEFS, PROVIDER_MAP
+from .compatible import CompatibleProvider
 
+try:
+    from .openai import OpenAIProvider
+except Exception:
+    OpenAIProvider = None
+
+try:
+    from .anthropic import AnthropicProvider
+except Exception:
+    AnthropicProvider = None
+
+try:
+    from .deepseek import DeepSeekProvider
+except Exception:
+    DeepSeekProvider = None
 
 __all__ = [
-
-    "CodeAnalyzer",
-
-    "MetricsEngine",
-
-    "RepositoryMap",
-
-    "DependencyGraph",
-
-    "IntelligenceEngine",
-
+    "BaseProvider",
+    "MockProvider",
+    "CompatibleProvider",
+    "OpenAIProvider",
+    "AnthropicProvider",
+    "DeepSeekProvider",
+    "ProviderFactory",
+    "get_provider",
+    "PROVIDER_DEFS",
+    "PROVIDER_MAP",
 ]
