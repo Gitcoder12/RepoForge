@@ -1,0 +1,9 @@
+
+---
+
+### **2. Core Package Structure**
+
+**`src/repoforge/__init__.py`**
+```python
+"""RepoForge - AI Orchestration Platform"""
+__version__ = "0.1.0"
