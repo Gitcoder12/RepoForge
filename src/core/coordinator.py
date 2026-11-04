@@ -1,69 +1,53 @@
 """
-Agent Coordinator – runs all agents, normalizes outputs, returns combined analysis.
+Agent Coordinator – runs all agents asynchronously.
 """
 
-from typing import Dict, Any, List, Optional
+import asyncio
 import logging
-from .base_agent import BaseAgent
+from typing import Dict, Any, List, Optional
+from .base import BaseAgent
 
 logger = logging.getLogger(__name__)
 
-
 class AgentCoordinator:
-    """
-    Executes all registered agents on the same context and aggregates their results.
-    """
-
     def __init__(self, agents: Optional[List[BaseAgent]] = None):
         self.agents = agents or []
 
     def register(self, agent: BaseAgent) -> None:
         self.agents.append(agent)
+        logger.info(f"Registered agent: {agent.name}")
 
     def register_all(self, agent_list: List[BaseAgent]) -> None:
         self.agents.extend(agent_list)
+        logger.info(f"Registered {len(agent_list)} agents.")
 
-    def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Returns:
-        {
-            "agents_run": list of agent names,
-            "findings": list of dicts with agent, suggestion, confidence,
-            "suggestions": list of strings (for backward compatibility),
-            "confidence": average confidence across all suggestions
-        }
-        """
+    async def run(self, context: Dict[str, Any]) -> Dict[str, Any]:
         if not self.agents:
             logger.warning("No agents registered.")
-            return {"agents_run": [], "findings": [], "suggestions": [], "confidence": 0.0}
+            return {"agents_run": [], "findings": [], "confidence": 0.0}
 
         findings = []
         total_conf = 0.0
         count = 0
 
-        for agent in self.agents:
-            try:
-                result = agent.run(context)
-                suggestions = result.get("suggestions", [])
-                confidence = result.get("confidence", 0.5)
-                for suggestion in suggestions:
-                    findings.append({
-                        "agent": agent.name,
-                        "suggestion": suggestion,
-                        "confidence": confidence,
-                        "summary": result.get("summary", "")
-                    })
-                    total_conf += confidence
-                    count += 1
-            except Exception as e:
-                logger.error(f"Agent {agent.name} failed: {e}")
+        # Execute all agents concurrently
+        tasks = [agent.analyze(context) for agent in self.agents]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for agent, result in zip(self.agents, results):
+            if isinstance(result, Exception):
+                logger.error(f"Agent {agent.name} failed: {result}")
+                continue
+                
+            if result: # Assuming result is a Proposal object
+                findings.append(result)
+                total_conf += result.confidence_score
+                count += 1
 
         avg_conf = total_conf / count if count > 0 else 0.0
-        suggestions_list = [f["suggestion"] for f in findings]
 
         return {
             "agents_run": [a.name for a in self.agents],
             "findings": findings,
-            "suggestions": suggestions_list,
             "confidence": round(avg_conf, 4),
         }
