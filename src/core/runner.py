@@ -6,11 +6,17 @@ RepoForge CLI – Subcommands: improve, batch
 import sys
 import json
 import argparse
+import datetime
+import logging
 from pathlib import Path
 from typing import Dict, Any, Optional
 
 from dotenv import load_dotenv
 load_dotenv()
+
+# Setup structured logging (compliant with Agents.MD)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("RepoForge")
 
 from .scanner import scan_repository
 from .reports.executive_summary import ExecutiveSummary
@@ -111,14 +117,14 @@ class RepoForgeRunner:
         self.final_report = None
 
     def run(self) -> Dict[str, Any]:
-        print(f"🔍 Scanning: {self.repo_path}")
+        logger.info(f"🔍 Scanning: {self.repo_path}")
         self.scan_data = scan_repository(self.repo_path)
 
-        print("🧠 Analyzing repository health...")
+        logger.info("🧠 Analyzing repository health...")
         self.health_data = analyze_repository_health(self.scan_data)
         self.risk_data = assess_risk(self.scan_data, self.health_data)
 
-        print("🤖 Running agent council...")
+        logger.info("🤖 Running agent council...")
         coordinator = AgentCoordinator()
         agent_classes = [
             ArchitectAgent, SecurityAgent, TestingAgent, DocumentationAgent,
@@ -128,15 +134,15 @@ class RepoForgeRunner:
             try:
                 agent = agent_cls(provider=self.provider)
                 coordinator.register(agent)
-                print(f"  ✅ Registered {agent_cls.__name__}")
+                logger.info(f"  ✅ Registered {agent_cls.__name__}")
             except Exception as e:
-                print(f"  ⚠️ Failed to register {agent_cls.__name__}: {e}")
+                logger.warning(f"  ⚠️ Failed to register {agent_cls.__name__}: {e}")
 
         context = {"scan": self.scan_data, "health": self.health_data, "risk": self.risk_data}
         agent_output = coordinator.run(context)
         suggestions = agent_output.get("suggestions", [])
 
-        print("📋 Creating execution plan...")
+        logger.info("📋 Creating execution plan...")
         raw_plan = create_execution_plan(self.scan_data, self.health_data, self.risk_data)
         if suggestions:
             raw_plan["actions"] = suggestions
@@ -149,7 +155,7 @@ class RepoForgeRunner:
         actions = self.plan.get("actions", [])
 
         # ---- EXECUTION ----
-        print(f"⚙️  Executing plan (dry_run={self.dry_run})...")
+        logger.info(f"⚙️  Executing plan (dry_run={self.dry_run})...")
         runner = ActionRunner(self.repo_path)
         self.execution_result = runner.run(actions, dry_run=self.dry_run)
 
@@ -162,7 +168,7 @@ class RepoForgeRunner:
 
         # ---- VALIDATION ----
         if not self.dry_run:
-            print("✅ Validating changes...")
+            logger.info("✅ Validating changes...")
             validator = Validator()
             self.validation_result = validator.validate(self.repo_path, self.execution_result)
         else:
@@ -173,11 +179,10 @@ class RepoForgeRunner:
         self._generate_reports(self.final_report)
         self._save_raw_data()
 
-        print(f"✅ Done. Reports saved to {self.output_dir}/")
+        logger.info(f"✅ Done. Reports saved to {self.output_dir}/")
         return self.final_report
 
     def _build_report(self) -> Dict:
-        # (unchanged – same as earlier)
         health = self.health_data or {}
         risk = self.risk_data or {}
         plan = self.plan or {}
@@ -206,7 +211,7 @@ class RepoForgeRunner:
         }
 
         return {
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": datetime.datetime.now().isoformat(),
             "total_repos": 1,
             "healthy": 1 if repo_entry["health_score"] >= 80 else 0,
             "stale": 1 if 50 <= repo_entry["health_score"] < 80 else 0,
@@ -241,19 +246,15 @@ class RepoForgeRunner:
         )
 
 
-# ---- BATCH RUNNER (same as before, but integrated here) ----
+# ---- BATCH RUNNER ----
 def run_batch(config_path: str, output_dir: str, dry_run: bool, provider: str, refine: bool):
     from .batch_runner import BatchRunner
     runner = BatchRunner(config_path, output_dir)
-    # We need to pass the flags through – modify batch_runner to accept them.
-    # For now, we just call the original batch_runner.
-    # To simplify, we can import and run.
-    runner.run()  # but we need to pass flags. Better to create a new batch runner.
-    print("✅ Batch complete.")
+    runner.run()
+    logger.info("✅ Batch complete.")
 
 
 def main():
-    import argparse
     parser = argparse.ArgumentParser(description="RepoForge – AI repository engineer")
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
@@ -286,6 +287,8 @@ def main():
             refine=args.refine,
         )
         result = runner.run()
+        
+        # Outputting final summary (allowed for CLI interfaces)
         print("\n📊 Final Summary:")
         print(f"   Health: {result['healthy']} healthy, {result['stale']} stale, {result['critical']} critical")
         print(f"   Actions planned: {len(result.get('plan', {}).get('actions', []))}")
@@ -295,10 +298,7 @@ def main():
 
     elif args.command == "batch":
         from .batch_runner import BatchRunner
-        # BatchRunner needs to accept these flags – we'll update it.
-        # For now, we'll just call the original and print.
-        # I'll provide the updated batch_runner as well.
-        print("Batch mode – make sure batch_runner is updated to accept flags.")
+        logger.info("Batch mode – make sure batch_runner is updated to accept flags.")
         runner = BatchRunner(args.config, args.output)
         runner.run()
     else:
