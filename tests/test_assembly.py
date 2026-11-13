@@ -73,11 +73,10 @@ def test_pipeline_persists_state_across_instances(tmp_path: Path) -> None:
 
 def test_pipeline_requires_all_prior_stages_to_be_approved(tmp_path: Path) -> None:
     pipeline = make_pipeline(tmp_path)
-    pipeline.state["stages"]["blueprint"]["status"] = "approved"
-    pipeline.state["stages"]["foundation"]["status"] = "approved"
-    pipeline.state["stages"]["engine"]["status"] = "approved"
-    pipeline.state["stages"]["shield"]["status"] = "approved"
-    pipeline._save()
+    for stage in STAGES[:4]:
+        assert pipeline.current_stage() == stage
+        pipeline.submit_output(f"{stage} artifact")
+        pipeline.approve_current()
 
     assert pipeline.current_stage() == "deployment"
     assert len(STAGES) == 5
