@@ -18,7 +18,7 @@
 - GitHub Actions run: [43408948188](https://github.com/Gitcoder12/RepoForge/actions/runs/43408948188).
 - Python 3.10, 3.11, 3.12, 3.13: editable package install passed.
 - Ruff check and Ruff format check passed on all four versions.
-- Pytest: 11 passed on each version.
+- Pytest: 13 passed on each version.
 - Installed CLI `repoforge --help` and `repoforge version` passed on all four versions.
 
 ### Explicit limitations / follow-up
