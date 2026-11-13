@@ -251,7 +251,7 @@ class WorkflowEngine:
             "provider": provider,
             "reason": reason,
         }
-        print(f"  🎯 Model routing: {provider}  ({reason})")
+        print(f"   Model routing: {provider}  ({reason})")
 
         # ============================================================
         # Intelligence
@@ -300,7 +300,7 @@ class WorkflowEngine:
         }
 
         if plan_issues:
-            print(f"  📋 Audit plan: {len(plan_issues)} prioritized issue(s) to address")
+            print(f"   Audit plan: {len(plan_issues)} prioritized issue(s) to address")
             for idx, iss in enumerate(plan_issues[:5], 1):
                 print(f"     {idx}. [{iss.get('type')}] {str(iss.get('description', ''))[:70]}")
 
