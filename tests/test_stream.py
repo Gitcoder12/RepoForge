@@ -65,7 +65,6 @@ def test_stream_snapshot_is_json_serializable(tmp_path) -> None:
     assert json.loads(target.read_text(encoding="utf-8"))["tasks"][0]["name"] == "task"
 
 
-
 def test_concurrent_task_additions_have_consistent_snapshots() -> None:
     stream = StreamManager()
 
