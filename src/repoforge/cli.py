@@ -31,7 +31,17 @@ def validate(
     result = asyncio.run(Validator(str(repo_path)).validate())
     if result.get("passed"):
         typer.echo("Validation passed.")
-    else:
-        typer.echo(f"Validation failed: {result.get('reason')}")
-    if not result.get("passed"):
-        raise typer.Exit(code=1)
+        return
+
+    typer.echo(f"Validation failed: {result.get('reason')}", err=True)
+    for key in ("results", "invalid_paths"):
+        for item in result.get(key, []):
+            if isinstance(item, dict):
+                location = item.get("file", item.get("path", "unknown"))
+                detail = item.get("error", item.get("reason", "validation failed"))
+                typer.echo(f"  {location}: {detail}", err=True)
+    output = result.get("output")
+    if isinstance(output, str) and output.strip():
+        typer.echo("Test output:", err=True)
+        typer.echo(output[-8000:], err=True)
+    raise typer.Exit(code=1)
