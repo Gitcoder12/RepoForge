@@ -1,4 +1,4 @@
-"""Thread-safe task progress stream with deterministic snapshots."""
+"""Thread-safe task progress stream with consistent snapshots and counters."""
 
 from __future__ import annotations
 
@@ -114,69 +114,111 @@ class StreamManager:
         self._transition(name, TaskStatus.FAILED, error, error=error)
 
     def finish(self) -> None:
-        self.finished = time.perf_counter()
+        with self.lock:
+            self.finished = time.perf_counter()
 
     def register_callback(self, callback: Callable[[StreamEvent, StreamTask], None]) -> None:
-        self.callbacks.append(callback)
+        with self.lock:
+            self.callbacks.append(callback)
 
     def emit(self, event: StreamEvent, task: StreamTask) -> None:
-        for callback in tuple(self.callbacks):
+        with self.lock:
+            callbacks = tuple(self.callbacks)
+        for callback in callbacks:
             callback(event, task)
 
     @property
     def total_tasks(self) -> int:
-        return len(self.tasks)
+        with self.lock:
+            return len(self.tasks)
 
     @property
     def completed_tasks(self) -> int:
-        return sum(task.status == TaskStatus.COMPLETED for task in self.tasks.values())
+        with self.lock:
+            return sum(task.status == TaskStatus.COMPLETED for task in self.tasks.values())
 
     @property
     def failed_tasks(self) -> int:
-        return sum(task.status == TaskStatus.FAILED for task in self.tasks.values())
+        with self.lock:
+            return sum(task.status == TaskStatus.FAILED for task in self.tasks.values())
 
     @property
     def running_tasks(self) -> int:
-        return sum(task.status == TaskStatus.RUNNING for task in self.tasks.values())
+        with self.lock:
+            return sum(task.status == TaskStatus.RUNNING for task in self.tasks.values())
 
     @property
     def pending_tasks(self) -> int:
-        return sum(task.status == TaskStatus.PENDING for task in self.tasks.values())
+        with self.lock:
+            return sum(task.status == TaskStatus.PENDING for task in self.tasks.values())
 
     @property
     def progress(self) -> float:
-        if not self.total_tasks:
-            return 0.0
-        return 100.0 * (self.completed_tasks + self.failed_tasks) / self.total_tasks
+        with self.lock:
+            total = len(self.tasks)
+            if not total:
+                return 0.0
+            terminal = sum(
+                task.status in (TaskStatus.COMPLETED, TaskStatus.FAILED)
+                for task in self.tasks.values()
+            )
+            return 100.0 * terminal / total
 
     def elapsed(self) -> float:
-        return max(0.0, (self.finished or time.perf_counter()) - self.started)
+        with self.lock:
+            return max(0.0, (self.finished or time.perf_counter()) - self.started)
 
     def snapshot(self) -> dict[str, Any]:
-        return {
-            "progress": self.progress,
-            "elapsed": self.elapsed(),
-            "tasks": [
+        with self.lock:
+            tasks = list(self.tasks.values())
+            total = len(tasks)
+            completed = sum(task.status == TaskStatus.COMPLETED for task in tasks)
+            failed = sum(task.status == TaskStatus.FAILED for task in tasks)
+            running = sum(task.status == TaskStatus.RUNNING for task in tasks)
+            pending = sum(task.status == TaskStatus.PENDING for task in tasks)
+            progress = 0.0 if not total else 100.0 * (completed + failed) / total
+            elapsed = max(0.0, (self.finished or time.perf_counter()) - self.started)
+            task_snapshots = [
                 {**asdict(task), "status": task.status.value, "duration": task.duration()}
-                for task in self.tasks.values()
-            ],
-        }
+                for task in tasks
+            ]
+            return {
+                "total_tasks": total,
+                "progress": progress,
+                "elapsed": elapsed,
+                "tasks": task_snapshots,
+                "statistics": {
+                    "total": total,
+                    "completed": completed,
+                    "failed": failed,
+                    "running": running,
+                    "pending": pending,
+                },
+            }
 
     def statistics(self) -> dict[str, int | float]:
-        return {
-            "total": self.total_tasks,
-            "completed": self.completed_tasks,
-            "failed": self.failed_tasks,
-            "running": self.running_tasks,
-            "pending": self.pending_tasks,
-            "progress": self.progress,
-        }
+        with self.lock:
+            total = len(self.tasks)
+            completed = sum(task.status == TaskStatus.COMPLETED for task in self.tasks.values())
+            failed = sum(task.status == TaskStatus.FAILED for task in self.tasks.values())
+            running = sum(task.status == TaskStatus.RUNNING for task in self.tasks.values())
+            pending = sum(task.status == TaskStatus.PENDING for task in self.tasks.values())
+            progress = 0.0 if not total else 100.0 * (completed + failed) / total
+            return {
+                "total": total,
+                "completed": completed,
+                "failed": failed,
+                "running": running,
+                "pending": pending,
+                "progress": progress,
+            }
 
     def summary(self) -> str:
-        return (
-            f"{self.completed_tasks} completed, {self.failed_tasks} failed, "
-            f"{self.pending_tasks} pending"
-        )
+        with self.lock:
+            completed = sum(task.status == TaskStatus.COMPLETED for task in self.tasks.values())
+            failed = sum(task.status == TaskStatus.FAILED for task in self.tasks.values())
+            pending = sum(task.status == TaskStatus.PENDING for task in self.tasks.values())
+            return f"{completed} completed, {failed} failed, {pending} pending"
 
     def to_dict(self) -> dict[str, Any]:
         return self.snapshot()
