@@ -1,3 +1,5 @@
+from unittest.mock import AsyncMock, patch
+
 from typer.testing import CliRunner
 
 from repoforge import __version__
@@ -91,3 +93,23 @@ def test_validator_rejects_self_referential_python_symlink(tmp_path) -> None:
     assert result["passed"] is False
     assert result["reason"] == "invalid_paths"
     assert result["invalid_paths"][0]["file"] == "loop.py"
+
+
+
+def test_cli_shows_validation_diagnostics(tmp_path) -> None:
+    result_data = {
+        "passed": False,
+        "reason": "pytest_failed",
+        "results": [{"file": "src/example.py", "error": "syntax error"}],
+        "invalid_paths": [],
+        "output": "1 failed",
+    }
+    with patch(
+        "repoforge.cli.Validator.validate",
+        new=AsyncMock(return_value=result_data),
+    ):
+        result = CliRunner().invoke(app, ["validate", str(tmp_path)])
+
+    assert result.exit_code == 1
+    assert "src/example.py: syntax error" in result.output
+    assert "1 failed" in result.output
