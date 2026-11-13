@@ -114,7 +114,7 @@ def resolve_repository(
     root = root.resolve()
     destination = root / f"{owner}-{repo}"
 
-    if destination.exists():
+    if destination.exists() or destination.is_symlink():
         if destination.is_symlink():
             raise ValueError(f"Cached workspace must not be a symlink: {destination}")
         if not (destination / ".git").exists():
