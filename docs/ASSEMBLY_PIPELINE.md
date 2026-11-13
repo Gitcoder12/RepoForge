@@ -25,7 +25,7 @@ repoforge pipeline init \
   --edge-cases "Concurrent requests, timeouts, malformed input"
 ```
 
-The default state file is `.repoforge/assembly.json`. It contains the project brief and every submitted stage artifact. Keep it out of public repositories and do not include credentials or private data in prompts or artifacts.
+The default state file is `~/.repoforge/assembly.json`, outside the project workspace. It contains the project brief and every submitted stage artifact. Keep it out of public repositories and do not include credentials or private data in prompts or artifacts.
 
 ## Work through the stages
 
