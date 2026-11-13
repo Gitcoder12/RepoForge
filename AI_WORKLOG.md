@@ -14,7 +14,7 @@
 - Updated README commands to match the CLI that actually exists.
 
 ### Validation
-- Exact validated code/worklog head: `381c9ec090e6069aed44d2574aae1ae8378fb5f7`.
+- Exact validated code head: `381c9ec090e6069aed44d2574aae1ae8378fb5f7`.
 - GitHub Actions run: [43410398990](https://github.com/Gitcoder12/RepoForge/actions/runs/43410398990).
 - Python 3.10, 3.11, 3.12, 3.13: editable package install passed.
 - Ruff check and Ruff format check passed on all four versions.
