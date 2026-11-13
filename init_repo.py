@@ -44,5 +44,5 @@ with open("src/repoforge/cli.py", "w", encoding="utf-8") as f:
     f.write("if __name__ == '__main__':\n")
     f.write("    app()\n")
 
-print("✅ Clean setup complete!")
+print(" Clean setup complete!")
 print("Next: Run 'pip install -e .'")
