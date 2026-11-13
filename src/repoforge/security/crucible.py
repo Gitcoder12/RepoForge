@@ -33,7 +33,7 @@ class Crucible(BaseProvider):
         sanitized = text
         for pattern, secret_name in self.secret_patterns:
             if re.search(pattern, sanitized):
-                logger.critical(f"🔥 CRUCIBLE: Leaked {secret_name} detected! Incinerating.")
+                logger.critical(f" CRUCIBLE: Leaked {secret_name} detected! Incinerating.")
                 sanitized = re.sub(pattern, "[REDACTED_BY_CRUCIBLE]", sanitized)
         return sanitized
 
@@ -41,16 +41,16 @@ class Crucible(BaseProvider):
         if not text: return True
         for pattern in self.malicious_response_patterns:
             if re.search(pattern, text, re.IGNORECASE):
-                logger.critical(f"🛑 CRUCIBLE: LLM attempted to return malicious payload: '{pattern}'. Dropping response.")
+                logger.critical(f" CRUCIBLE: LLM attempted to return malicious payload: '{pattern}'. Dropping response.")
                 return False
         return True
 
     def generate(self, prompt: str, system_prompt: str = "", **kwargs) -> str:
-        logger.info("🛡️ Crucible: Inspecting outbound prompt...")
+        logger.info(" Crucible: Inspecting outbound prompt...")
         safe_prompt = self._sanitize_outbound(prompt)
         response = self.wrapped.generate(safe_prompt, system_prompt, **kwargs)
         
-        logger.info("🛡️ Crucible: Inspecting inbound response...")
+        logger.info(" Crucible: Inspecting inbound response...")
         if not self._inspect_inbound(response):
             return "ERROR: Response blocked by RepoForge Crucible due to malicious content."
         return response
