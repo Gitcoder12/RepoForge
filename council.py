@@ -34,7 +34,7 @@ class AgentCouncil:
             provider_name, _ = self.router.select(prompt=task_category)
             llm = self.router.instantiate(provider_name)
             
-            logger.info(f"⚔️ {agent_name} armed with {provider_name.upper()}")
+            logger.info(f" {agent_name} armed with {provider_name.upper()}")
             self.agents.append(agent_cls(provider=llm))
 
     def _map_agent_to_task(self, agent_name: str) -> str:
@@ -58,13 +58,13 @@ class AgentCouncil:
                     return 
                 except Exception as e:
                     wait_time = (2 ** attempt) + random.uniform(0, 1)
-                    logger.warning(f"⚠️ {agent_name} failed: {e}. Retrying in {wait_time:.2f}s")
+                    logger.warning(f" {agent_name} failed: {e}. Retrying in {wait_time:.2f}s")
                     await asyncio.sleep(wait_time)
-            logger.error(f"❌ {agent_name} failed after {max_retries} attempts.")
+            logger.error(f" {agent_name} failed after {max_retries} attempts.")
 
     async def _summon_governor(self, tied_proposals: List[Proposal]) -> Proposal:
         """The Governor (Super-Model) breaks the deadlock."""
-        logger.critical("👑 DEADLOCK. Summoning the Governor.")
+        logger.critical(" DEADLOCK. Summoning the Governor.")
         governor_llm = self.router.instantiate("anthropic") # Or OpenAI GPT-4o
         
         # In a real implementation, you'd prompt the LLM here:
@@ -78,7 +78,7 @@ class AgentCouncil:
         return winner
 
     async def convene(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        logger.info(f"🏛️ CONVENING SENATE ({len(self.agents)} agents)...")
+        logger.info(f" CONVENING SENATE ({len(self.agents)} agents)...")
         
         # 1. Deploy agents
         tasks = [self._consult_agent_with_retry(agent, context) for agent in self.agents]
@@ -95,7 +95,7 @@ class AgentCouncil:
         if veto:
             has_second = any(p.agent_name in ["ArchitectAgent", "TestingAgent", "ReviewAgent"] for p in self.consensus.proposals if p.target_file == veto.target_file)
             if has_second:
-                logger.critical("🚨 SECURITY VETO SECONDED! Code blocked.")
+                logger.critical(" SECURITY VETO SECONDED! Code blocked.")
                 return self._format_winner(veto, status="SECURITY_VETO")
 
         # 4. Governor Intervention
