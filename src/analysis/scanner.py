@@ -97,7 +97,7 @@ class RepoScanner:
             logger.error(f"Path not found: {self.repo_path}")
             raise FileNotFoundError(f"Path not found: {self.repo_path}")
 
-        logger.info(f"🔍 Scanning repository (Night Vision Active): {self.repo_path}")
+        logger.info(f" Scanning repository (Night Vision Active): {self.repo_path}")
 
         for root, dirs, files in os.walk(self.repo_path):
             dirs[:] = [d for d in dirs if not any(fnmatch.fnmatch(d, p) for p in self.IGNORE_DIRS)]
@@ -112,11 +112,11 @@ class RepoScanner:
                 try:
                     self._process_file(fp, rp)
                 except (OSError, PermissionError, UnicodeDecodeError) as e:
-                    logger.warning(f"⚠️ Skipped {rp}: {e}")
+                    logger.warning(f" Skipped {rp}: {e}")
                     continue
 
         self._finalize()
-        logger.info(f"✅ Scan complete: {self.stats['total_files']} files, {self.stats['total_lines']} lines. Threats found: {len(self.threats)}")
+        logger.info(f" Scan complete: {self.stats['total_files']} files, {self.stats['total_lines']} lines. Threats found: {len(self.threats)}")
         
         return ScanResult(
             repo_path=str(self.repo_path),
