@@ -136,33 +136,38 @@ Extreme
 * Python 3.10+
 * Git
 
-Install:
+Install the core package and developer tools:
 
 ```bash
-pip install -e .
+python -m pip install -e ".[dev]"
 ```
 
-Verify:
+Verify the installed entry point:
 
 ```bash
-python -m repoforge --help
+repoforge --help
+repoforge version
 ```
+
+Optional model-provider SDKs are installed with `python -m pip install -e ".[providers]"`. Core package installation and CLI help do not require API credentials.
 
 ---
 
 # Usage
 
-Run RepoForge:
+Validate a repository:
 
 ```bash
-python -m repoforge forge <repository> "<task>"
+repoforge validate <repository>
 ```
 
 Example:
 
 ```bash
-python -m repoforge forge ../FastAPI-Test "Analyze architecture and improve quality"
+repoforge validate ../FastAPI-Test
 ```
+
+The current stable CLI exposes package version and validation commands. The older multi-agent `forge` workflow is not yet wired into this canonical CLI; do not rely on the legacy command shown in older releases.
 
 ---
 
