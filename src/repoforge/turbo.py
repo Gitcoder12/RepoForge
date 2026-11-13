@@ -119,14 +119,17 @@ def propose_edit(
     if len(response) > MAX_RESPONSE_CHARS:
         raise ValueError("Model response exceeds the configured size limit")
 
-    proposed = response.strip()
-    if proposed.startswith("```") and proposed.endswith("```"):
-        first_newline = proposed.find("\n")
+    proposed = response
+    stripped_response = response.strip()
+    if stripped_response.startswith("```") and stripped_response.endswith("```"):
+        first_newline = stripped_response.find("\n")
         if first_newline < 0:
             raise ValueError("Model returned an invalid code fence")
-        proposed = proposed[first_newline + 1 : -3].rstrip("\n")
+        proposed = stripped_response[first_newline + 1 : -3]
     if not proposed.strip():
         raise ValueError("Model returned an empty file")
+    trailing_newlines = len(original) - len(original.rstrip("\n"))
+    proposed = proposed.rstrip("\n") + ("\n" * trailing_newlines)
     if proposed == original:
         diff = ""
     else:
