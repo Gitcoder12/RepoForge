@@ -32,6 +32,13 @@ def _parse_review(payload: str) -> dict[str, Any]:
     if not isinstance(findings, list):
         findings = ["Reviewer findings must be a list"]
         status = "FAIL"
+    if status == "PASS" and findings:
+        status = "FAIL"
+    required_tests = parsed.get("required_tests", [])
+    if not isinstance(required_tests, list):
+        required_tests = ["Reviewer required_tests must be a list"]
+        status = "FAIL"
+    parsed["required_tests"] = required_tests
     parsed["status"] = status
     parsed["findings"] = findings
     return parsed
