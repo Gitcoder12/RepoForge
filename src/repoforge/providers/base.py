@@ -13,7 +13,9 @@ class BaseProvider(ABC):
     def generate(self, prompt: str, system_prompt: str = "", **kwargs: Any) -> str:
         raise NotImplementedError
 
-    async def stream(self, prompt: str, system_prompt: str = "", **kwargs: Any) -> AsyncIterator[str]:
+    async def stream(
+        self, prompt: str, system_prompt: str = "", **kwargs: Any
+    ) -> AsyncIterator[str]:
         yield self.generate(prompt, system_prompt, **kwargs)
 
     def available(self) -> bool:
