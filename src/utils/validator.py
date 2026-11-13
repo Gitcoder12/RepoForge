@@ -104,16 +104,21 @@ class Validator:
             for target in target_files:
                 try:
                     resolved = self._resolve_target(target)
-                except (TypeError, ValueError) as exc:
+                except (OSError, RuntimeError, TypeError, ValueError) as exc:
                     invalid_paths.append({"file": str(target), "error": str(exc)})
                     continue
                 if resolved.suffix == ".py" and resolved.is_file():
                     candidates.append(resolved)
         else:
-            candidates = [
-                path for path in self.repo_path.rglob("*.py")
-                if not any(part in self.IGNORE_DIRS for part in path.relative_to(self.repo_path).parts)
-            ]
+            candidates = []
+            for path in self.repo_path.rglob("*.py"):
+                relative = path.relative_to(self.repo_path)
+                if any(part in self.IGNORE_DIRS for part in relative.parts):
+                    continue
+                try:
+                    candidates.append(self._resolve_target(str(relative)))
+                except (OSError, RuntimeError, TypeError, ValueError) as exc:
+                    invalid_paths.append({"file": str(relative), "error": str(exc)})
 
         for file_path in candidates:
             results.append(self._check_syntax(file_path))
