@@ -310,3 +310,14 @@ Reports contain:
 RepoForge aims to become an autonomous AI engineering platform that helps developers understand, improve, and maintain complex software systems.
 
 The goal is to reduce repetitive engineering work while improving software quality and developer productivity.
+
+---
+
+## Project handbook
+
+- [Activity log](ACTIVITY_LOG.md)
+- [Feature upgrade plan](FEATURE_UPGRADE_PLAN.md)
+- [Company and team fit](COMPANY_FIT.md)
+- [Beginner and technical README draft](README_ADDENDUM_DRAFT.md)
+- [README quality checklist](README_QUALITY_CHECKLIST.md)
+- [Contribution workflow](CONTRIBUTING.md)
