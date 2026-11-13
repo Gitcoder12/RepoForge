@@ -311,25 +311,14 @@ RepoForge aims to become an autonomous AI engineering platform that helps develo
 
 The goal is to reduce repetitive engineering work while improving software quality and developer productivity.
 
+
 ---
 
-## Project handbook
+## AI-maintained project notes (secondary — 2026-11-13)
 
-- [Activity log](ACTIVITY_LOG.md)
-- [Feature upgrade plan](FEATURE_UPGRADE_PLAN.md)
-- [Company and team fit](COMPANY_FIT.md)
-- [Beginner and technical README draft](README_ADDENDUM_DRAFT.md)
-- [README quality checklist](README_QUALITY_CHECKLIST.md)
-- [Contribution workflow](CONTRIBUTING.md)
+This section supplements the maintainer-authored README above; it does not replace or certify the original claims.
 
-## Understanding the project
-
-### In plain language
-
-A tool intended to inspect software repositories, identify engineering issues, plan improvements and safely validate proposed changes.
-
-### Technical and research view
-
-Explain the actual package layout, core modules, inputs, outputs, algorithms, external dependencies and execution path here. Link architecture or experiment notes and describe failure handling.
-
-For future work, see [FEATURE_UPGRADE_PLAN.md](FEATURE_UPGRADE_PLAN.md), [ACTIVITY_LOG.md](ACTIVITY_LOG.md), [COMPANY_FIT.md](COMPANY_FIT.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
+- The current source tree, runtime data and tests are the implementation source of truth. Draft PRs and roadmap items are not shipped features.
+- Preserve real and maintainer-provided data. Never silently substitute synthetic or placeholder records; isolate and label test fixtures.
+- Verify installation, execution, tests and claims against the exact current commit before presenting the project to recruiters, researchers or professors.
+- See [MODEL_AUDIT_ROUTER.md](MODEL_AUDIT_ROUTER.md) for independent review instructions and the merge gate.
