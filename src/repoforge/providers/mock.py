@@ -17,9 +17,7 @@ class MockProvider(BaseProvider):
         self.client = self
 
     def generate(self, prompt: str, system_prompt: str = "", **kwargs: Any) -> str:
-        self.calls.append(
-            {"prompt": prompt, "system_prompt": system_prompt, "kwargs": kwargs}
-        )
+        self.calls.append({"prompt": prompt, "system_prompt": system_prompt, "kwargs": kwargs})
         return self.response
 
     async def stream(
