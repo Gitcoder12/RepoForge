@@ -117,14 +117,14 @@ class RepoForgeRunner:
         self.final_report = None
 
     def run(self) -> Dict[str, Any]:
-        logger.info(f"🔍 Scanning: {self.repo_path}")
+        logger.info(f" Scanning: {self.repo_path}")
         self.scan_data = scan_repository(self.repo_path)
 
-        logger.info("🧠 Analyzing repository health...")
+        logger.info(" Analyzing repository health...")
         self.health_data = analyze_repository_health(self.scan_data)
         self.risk_data = assess_risk(self.scan_data, self.health_data)
 
-        logger.info("🤖 Running agent council...")
+        logger.info(" Running agent council...")
         coordinator = AgentCoordinator()
         agent_classes = [
             ArchitectAgent, SecurityAgent, TestingAgent, DocumentationAgent,
@@ -134,15 +134,15 @@ class RepoForgeRunner:
             try:
                 agent = agent_cls(provider=self.provider)
                 coordinator.register(agent)
-                logger.info(f"  ✅ Registered {agent_cls.__name__}")
+                logger.info(f"   Registered {agent_cls.__name__}")
             except Exception as e:
-                logger.warning(f"  ⚠️ Failed to register {agent_cls.__name__}: {e}")
+                logger.warning(f"   Failed to register {agent_cls.__name__}: {e}")
 
         context = {"scan": self.scan_data, "health": self.health_data, "risk": self.risk_data}
         agent_output = coordinator.run(context)
         suggestions = agent_output.get("suggestions", [])
 
-        logger.info("📋 Creating execution plan...")
+        logger.info(" Creating execution plan...")
         raw_plan = create_execution_plan(self.scan_data, self.health_data, self.risk_data)
         if suggestions:
             raw_plan["actions"] = suggestions
@@ -155,7 +155,7 @@ class RepoForgeRunner:
         actions = self.plan.get("actions", [])
 
         # ---- EXECUTION ----
-        logger.info(f"⚙️  Executing plan (dry_run={self.dry_run})...")
+        logger.info(f"  Executing plan (dry_run={self.dry_run})...")
         runner = ActionRunner(self.repo_path)
         self.execution_result = runner.run(actions, dry_run=self.dry_run)
 
@@ -168,7 +168,7 @@ class RepoForgeRunner:
 
         # ---- VALIDATION ----
         if not self.dry_run:
-            logger.info("✅ Validating changes...")
+            logger.info(" Validating changes...")
             validator = Validator()
             self.validation_result = validator.validate(self.repo_path, self.execution_result)
         else:
@@ -179,7 +179,7 @@ class RepoForgeRunner:
         self._generate_reports(self.final_report)
         self._save_raw_data()
 
-        logger.info(f"✅ Done. Reports saved to {self.output_dir}/")
+        logger.info(f" Done. Reports saved to {self.output_dir}/")
         return self.final_report
 
     def _build_report(self) -> Dict:
@@ -251,7 +251,7 @@ def run_batch(config_path: str, output_dir: str, dry_run: bool, provider: str, r
     from .batch_runner import BatchRunner
     runner = BatchRunner(config_path, output_dir)
     runner.run()
-    logger.info("✅ Batch complete.")
+    logger.info(" Batch complete.")
 
 
 def main():
@@ -289,7 +289,7 @@ def main():
         result = runner.run()
         
         # Outputting final summary (allowed for CLI interfaces)
-        print("\n📊 Final Summary:")
+        print("\n Final Summary:")
         print(f"   Health: {result['healthy']} healthy, {result['stale']} stale, {result['critical']} critical")
         print(f"   Actions planned: {len(result.get('plan', {}).get('actions', []))}")
         print(f"   Actions executed: {len(result.get('execution_result', {}).get('executed', []))}")
