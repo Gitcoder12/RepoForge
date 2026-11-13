@@ -22,3 +22,24 @@ def test_offline_provider_orchestration() -> None:
 
     assert orchestrator.generate("hello") == "offline result"
     assert provider.calls[0]["prompt"] == "hello"
+
+
+
+def test_crucible_uses_the_same_provider_contract_and_redacts_secrets() -> None:
+    from repoforge.security.crucible import Crucible
+
+    wrapped = MockProvider("safe response")
+    guarded = Crucible(wrapped)
+    result = guarded.generate("token sk-abcdefghijklmnopqrstuvwxyz0123456789 is present")
+
+    assert result == "safe response"
+    assert wrapped.calls[0]["prompt"] == (
+        "token [REDACTED_BY_CRUCIBLE] is present"
+    )
+
+
+def test_crucible_blocks_dangerous_provider_output() -> None:
+    from repoforge.security.crucible import Crucible
+
+    guarded = Crucible(MockProvider("rm -rf /"))
+    assert guarded.generate("write a harmless summary").startswith("ERROR: Response blocked")
