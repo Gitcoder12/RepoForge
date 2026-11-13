@@ -1,19 +1,27 @@
+from pathlib import Path
+
 from repoforge.logger import RepoForgeLogger
 
-logger = RepoForgeLogger()
 
-logger.start_session()
+def test_logger_writes_metadata_and_execution_id(tmp_path: Path) -> None:
+    logger = RepoForgeLogger(log_directory=tmp_path, console=False, file=True)
+    logger.set_execution_id("run-123")
+    logger.info("TEST", "hello", count=2)
+    logger.close()
 
-logger.info("TEST", "Hello RepoForge!")
+    output = (tmp_path / "repoforge.log").read_text(encoding="utf-8")
+    assert "TEST" in output
+    assert "hello" in output
+    assert "run-123" in output
+    assert '"count": 2' in output
 
-logger.warning("TEST", "This is a warning.")
 
-logger.error("TEST", "Something went wrong.")
+def test_logger_timer_records_elapsed_time(tmp_path: Path) -> None:
+    logger = RepoForgeLogger(log_directory=tmp_path, console=False, file=True)
+    with logger.timer("TEST", "operation"):
+        pass
+    logger.close()
 
-with logger.timer("TEST", "Sleeping"):
-    import time
-    time.sleep(1)
-
-logger.end_session()
-
-logger.close()
+    output = (tmp_path / "repoforge.log").read_text(encoding="utf-8")
+    assert "operation completed" in output
+    assert "elapsed_seconds" in output
