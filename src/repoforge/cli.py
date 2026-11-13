@@ -29,6 +29,9 @@ def validate(
     import asyncio
 
     result = asyncio.run(Validator(str(repo_path)).validate())
-    typer.echo("Validation passed." if result.get("passed") else f"Validation failed: {result.get('reason')}")
+    if result.get("passed"):
+        typer.echo("Validation passed.")
+    else:
+        typer.echo(f"Validation failed: {result.get('reason')}")
     if not result.get("passed"):
         raise typer.Exit(code=1)
