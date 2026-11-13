@@ -107,20 +107,20 @@ class RepoBenchmark:
 
         if value > 20:
 
-            return "Major improvement 🚀"
+            return "Major improvement "
 
 
         if value > 0:
 
-            return "Improved ✅"
+            return "Improved "
 
 
         if value == 0:
 
-            return "No change ⚠️"
+            return "No change "
 
 
-        return "Regression ❌"
+        return "Regression "
 
 
 

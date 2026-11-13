@@ -48,7 +48,7 @@ class Validator:
             visitor = ThreatVisitor()
             visitor.visit(tree)
             if visitor.threats:
-                logger.critical(f"🚨 MALWARE DETECTED in {file_path.name}: {visitor.threats}")
+                logger.critical(f" MALWARE DETECTED in {file_path.name}: {visitor.threats}")
                 return {"file": str(file_path.relative_to(self.repo_path)), "passed": False, "threats": visitor.threats}
                 
             return {"file": str(file_path.relative_to(self.repo_path)), "passed": True}
@@ -60,7 +60,7 @@ class Validator:
             return {"file": str(file_path.relative_to(self.repo_path)), "passed": True, "warning": str(e)}
 
     async def validate(self, target_files: List[str] = None) -> Dict[str, Any]:
-        logger.info(f"🛡️ Deploying The Shield... (Targets: {len(target_files) if target_files else 'All'})")
+        logger.info(f" Deploying The Shield... (Targets: {len(target_files) if target_files else 'All'})")
         
         results = []
         syntax_errors = 0
@@ -85,14 +85,14 @@ class Validator:
                     else: syntax_errors += 1
 
         if malware_threats > 0:
-            logger.critical(f"🛑 QUARANTINE INITIATED! {malware_threats} malicious threats found.")
+            logger.critical(f" QUARANTINE INITIATED! {malware_threats} malicious threats found.")
             return {"passed": False, "reason": "malware_detected", "results": results}
 
         if syntax_errors > 0:
-            logger.error(f"❌ Validation FAILED: {syntax_errors} syntax errors.")
+            logger.error(f" Validation FAILED: {syntax_errors} syntax errors.")
             return {"passed": False, "reason": "syntax_errors", "results": results}
 
-        logger.info("🏃 Running pytest suite...")
+        logger.info(" Running pytest suite...")
         try:
             process = await asyncio.create_subprocess_exec(
                 "pytest", "--tb=short", "-q", cwd=str(self.repo_path),
@@ -100,12 +100,12 @@ class Validator:
             )
             stdout, _ = await process.communicate()
             if process.returncode != 0:
-                logger.error("❌ Tests FAILED.")
+                logger.error(" Tests FAILED.")
                 return {"passed": False, "reason": "test_failures", "output": stdout.decode()[:500]}
         except FileNotFoundError:
             logger.warning("Pytest not found. Skipping test execution.")
 
-        logger.info("✅ SHIELD ACTIVATED: Code is secure.")
+        logger.info(" SHIELD ACTIVATED: Code is secure.")
         return {"passed": True, "results": results}
 
 RepoValidator = Validator

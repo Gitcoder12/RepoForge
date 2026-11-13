@@ -9,4 +9,4 @@ ACTIVE = CONFIG / "active_provider.txt"
 
 def run_use(provider: str):
     ACTIVE.write_text(provider)
-    typer.echo(f"✅ Active provider set to: {provider}")
+    typer.echo(f" Active provider set to: {provider}")

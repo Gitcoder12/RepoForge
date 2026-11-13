@@ -25,7 +25,7 @@ class ActionRunner:
     def run(self, actions: List[str], dry_run: bool = False) -> Dict[str, Any]:
         if not actions:
             return {"status": "no_actions", "executed": [], "errors": []}
-        print(f"  📂 Executing {len(actions)} actions in {self.repo_path}")
+        print(f"   Executing {len(actions)} actions in {self.repo_path}")
         for action in actions:
             try:
                 self._execute_action(action, dry_run)
@@ -64,29 +64,29 @@ class ActionRunner:
             self._create_file("Dockerfile", dry_run, "FROM python:3.11\\nWORKDIR /app\\nCOPY . .\\nCMD [\\"python\\", \\"main.py\\"]"); return
         if "dependency manifest" in action.lower():
             self._create_file("requirements.txt", dry_run, "# Dependencies go here"); return
-        print(f"    ⚠️ Unknown action: {action}")
+        print(f"     Unknown action: {action}")
         self.executed.append({"action": action, "status": "unknown"})
 
     def _create_file(self, filepath: str, dry_run: bool, content: str = ""):
         full_path = self.repo_path / filepath
         if dry_run:
-            print(f"    📄 Would create: {full_path}")
+            print(f"     Would create: {full_path}")
             self.executed.append({"action": f"Create {filepath}", "status": "dry_run"})
             return
         full_path.parent.mkdir(parents=True, exist_ok=True)
         with open(full_path, 'w', encoding='utf-8') as f:
             f.write(content)
-        print(f"    ✅ Created: {full_path}")
+        print(f"     Created: {full_path}")
         self.executed.append({"action": f"Create {filepath}", "status": "created"})
 
     def _create_directory(self, dirname: str, dry_run: bool):
         full_path = self.repo_path / dirname
         if dry_run:
-            print(f"    📁 Would create directory: {full_path}")
+            print(f"     Would create directory: {full_path}")
             self.executed.append({"action": f"Create directory {dirname}", "status": "dry_run"})
             return
         full_path.mkdir(parents=True, exist_ok=True)
-        print(f"    ✅ Created directory: {full_path}")
+        print(f"     Created directory: {full_path}")
         self.executed.append({"action": f"Create directory {dirname}", "status": "created"})
 '''
 
@@ -114,7 +114,7 @@ class Refiner:
         self.provider = provider
 
     def refine(self, initial_actions: List[str]) -> Dict[str, Any]:
-        print("🔧 Running refinement pass...")
+        print(" Running refinement pass...")
         scan_data = scan_repository(str(self.repo_path))
         coordinator = AgentCoordinator()
         for agent_cls in [ArchitectAgent, SecurityAgent, TestingAgent, DocumentationAgent,
@@ -130,7 +130,7 @@ class Refiner:
         remaining = [s for s in new_suggestions if s not in initial_actions]
         if not remaining:
             return {"status": "no_more_improvements", "executed": []}
-        print(f"  🔄 Found {len(remaining)} additional improvements")
+        print(f"   Found {len(remaining)} additional improvements")
         runner = ActionRunner(str(self.repo_path))
         result = runner.run(remaining, dry_run=False)
         return {"status": "refined", "executed": result.get("executed", []), "errors": result.get("errors", [])}
@@ -141,4 +141,4 @@ class Refiner:
 # Also create __init__.py in execution if missing
 (execution_dir / "__init__.py").write_text("", encoding='utf-8')
 
-print("✅ Files recreated cleanly. Run the test command now.")
+print(" Files recreated cleanly. Run the test command now.")

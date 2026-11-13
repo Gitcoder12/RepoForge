@@ -31,8 +31,8 @@ try:
     print(response.choices[0].message.content)
 
 except RateLimitError:
-    print("❌ OpenAI unavailable: insufficient quota.")
+    print(" OpenAI unavailable: insufficient quota.")
 
 except Exception as e:
-    print(f"❌ OpenAI error: {e}")
+    print(f" OpenAI error: {e}")
  

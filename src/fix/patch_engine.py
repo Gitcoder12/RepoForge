@@ -94,7 +94,7 @@ class PatchEngine:
 
 
         print(
-            "🤖 Generating AI fix..."
+            " Generating AI fix..."
         )
 
 
@@ -140,7 +140,7 @@ class PatchEngine:
 
 
         print(
-            "💾 Creating backup..."
+            " Creating backup..."
         )
 
 
@@ -165,7 +165,7 @@ class PatchEngine:
 
 
             print(
-                "🧪 Validating..."
+                " Validating..."
             )
 
 
@@ -179,7 +179,7 @@ class PatchEngine:
 
 
                 print(
-                    "❌ Validation failed. Rolling back..."
+                    " Validation failed. Rolling back..."
                 )
 
 
@@ -201,7 +201,7 @@ class PatchEngine:
 
 
             print(
-                "✅ Validation passed"
+                " Validation passed"
             )
 
 

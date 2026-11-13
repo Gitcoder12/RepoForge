@@ -51,7 +51,7 @@ class TimelineReport:
 
             all_names = set(prev_map.keys()) | set(curr_map.keys())
 
-            lines.append("## 📈 Summary of Changes")
+            lines.append("##  Summary of Changes")
             lines.append("")
 
             improved = []
@@ -77,15 +77,15 @@ class TimelineReport:
                         declined.append((name, diff))
 
             if new:
-                lines.append(f"🆕 **New Repos:** {', '.join(new)}")
+                lines.append(f" **New Repos:** {', '.join(new)}")
             if removed:
-                lines.append(f"🗑️ **Removed Repos:** {', '.join(removed)}")
+                lines.append(f" **Removed Repos:** {', '.join(removed)}")
             if improved:
-                lines.append(f"📈 **Improved:**")
+                lines.append(f" **Improved:**")
                 for name, diff in improved[:5]:
                     lines.append(f"   - {name}: +{diff} points")
             if declined:
-                lines.append(f"📉 **Declined:**")
+                lines.append(f" **Declined:**")
                 for name, diff in declined[:5]:
                     lines.append(f"   - {name}: {diff} points")
 
@@ -94,7 +94,7 @@ class TimelineReport:
             lines.append("")
 
         # Show recent commit activity from current repos
-        lines.append("## 📝 Recent Commit Activity")
+        lines.append("##  Recent Commit Activity")
         lines.append("")
         lines.append("| Repo | Branch | Last Commit | Days Ago |")
         lines.append("|------|--------|-------------|----------|")
@@ -123,17 +123,17 @@ class TimelineReport:
             healthy_prev = self.history.get("healthy", 0)
             healthy_curr = self.current.get("healthy", 0)
 
-            lines.append("## 📊 Health Trend")
+            lines.append("##  Health Trend")
             lines.append("")
             lines.append(f"Total Repos: {total_prev} → {total_curr}")
             lines.append(f"Healthy:     {healthy_prev} → {healthy_curr}")
 
             if healthy_curr > healthy_prev:
-                lines.append("✅ Overall health is improving.")
+                lines.append(" Overall health is improving.")
             elif healthy_curr < healthy_prev:
-                lines.append("⚠️ Overall health is declining. Review critical repos.")
+                lines.append(" Overall health is declining. Review critical repos.")
             else:
-                lines.append("➖ Overall health is stable.")
+                lines.append(" Overall health is stable.")
 
             lines.append("")
 

@@ -37,7 +37,7 @@ class BatchRunner:
         results = {}
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
-        print(f"🚀 Scanning {len(self.repos)} repos...")
+        print(f" Scanning {len(self.repos)} repos...")
         
         with ThreadPoolExecutor(max_workers=4) as executor:
             futures = {}
@@ -50,10 +50,10 @@ class BatchRunner:
                 try:
                     result = future.result()
                     results[repo] = result
-                    print(f"✅ {Path(repo).name}")
+                    print(f" {Path(repo).name}")
                 except Exception as e:
                     results[repo] = {"error": str(e)}
-                    print(f"❌ {Path(repo).name}: {e}")
+                    print(f" {Path(repo).name}: {e}")
         
         # Write aggregate summary
         summary_path = self.output_dir / "batch_summary.json"

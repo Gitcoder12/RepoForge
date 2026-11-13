@@ -159,10 +159,10 @@ def print_audit(report: Dict[str, Any]) -> None:
 
     print("")
     print("=" * 60)
-    print("📋 RepoForge Audit")
+    print(" RepoForge Audit")
     print("=" * 60)
-    print(f"📂 Repository : {report['repository']}")
-    print(f"⭐ Quality    : {q.get('score')}/100  Grade {q.get('grade')}")
+    print(f" Repository : {report['repository']}")
+    print(f" Quality    : {q.get('score')}/100  Grade {q.get('grade')}")
     print("")
     print("── Architecture ──")
     print(f"  Language    : {arch.get('primary_language')}")

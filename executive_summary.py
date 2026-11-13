@@ -36,15 +36,15 @@ class ExecutiveSummary:
         lines.append(f"  Generated: {self.generated}")
         lines.append("=" * 60)
         lines.append(f"  Total Repositories : {self.total}")
-        lines.append(f"  🟢 Healthy          : {self.healthy}")
-        lines.append(f"  🟡 Stale/Warning    : {self.stale}")
-        lines.append(f"  🔴 Critical         : {self.critical}")
+        lines.append(f"   Healthy          : {self.healthy}")
+        lines.append(f"   Stale/Warning    : {self.stale}")
+        lines.append(f"   Critical         : {self.critical}")
         lines.append("=" * 60)
 
         # Critical list (if any)
         critical_repos = [r for r in self.repos if r.get("health_score", 100) < 50]
         if critical_repos:
-            lines.append("\n⚠️  CRITICAL REPOS (Needs Immediate Attention):")
+            lines.append("\n  CRITICAL REPOS (Needs Immediate Attention):")
             for r in critical_repos[:5]:  # Limit to top 5
                 lines.append(f"   - {r.get('name', 'Unknown')} (Score: {r.get('health_score', 0)})")
             if len(critical_repos) > 5:
@@ -53,12 +53,12 @@ class ExecutiveSummary:
         # Stale list (if any)
         stale_repos = [r for r in self.repos if 50 <= r.get("health_score", 0) < 80]
         if stale_repos:
-            lines.append("\n📌  STALE REPOS (Needs Review):")
+            lines.append("\n  STALE REPOS (Needs Review):")
             for r in stale_repos[:3]:
                 lines.append(f"   - {r.get('name', 'Unknown')} ({r.get('status_message', 'Idle')})")
 
         if self.total == 0:
-            lines.append("\n📭  No repositories analyzed.")
+            lines.append("\n  No repositories analyzed.")
 
         lines.append("\n" + "=" * 60)
         return "\n".join(lines)
@@ -66,20 +66,20 @@ class ExecutiveSummary:
     def generate_markdown(self) -> str:
         """Returns a markdown summary for READMEs or PR comments."""
         md = []
-        md.append("# 📊 RepoForge Executive Summary")
+        md.append("#  RepoForge Executive Summary")
         md.append(f"**Generated:** {self.generated}")
         md.append("")
         md.append("| Status | Count |")
         md.append("|--------|-------|")
-        md.append(f"| 🟢 Healthy | {self.healthy} |")
-        md.append(f"| 🟡 Stale | {self.stale} |")
-        md.append(f"| 🔴 Critical | {self.critical} |")
+        md.append(f"|  Healthy | {self.healthy} |")
+        md.append(f"|  Stale | {self.stale} |")
+        md.append(f"|  Critical | {self.critical} |")
         md.append(f"| **Total** | **{self.total}** |")
         md.append("")
 
         critical_repos = [r for r in self.repos if r.get("health_score", 100) < 50]
         if critical_repos:
-            md.append("## ⚠️ Critical Repositories")
+            md.append("##  Critical Repositories")
             for r in critical_repos:
                 md.append(f"- **{r.get('name')}**: Score {r.get('health_score')} – {r.get('status_message', 'Unstable')}")
             md.append("")

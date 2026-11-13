@@ -131,7 +131,7 @@ class AIRouter:
     def route_task(self, task_type: str) -> List[str]:
         return self.routes.get(task_type, self.routes["default"])
 
-    # 🚀 THIS IS THE NEW MAGIC METHOD:
+    #  THIS IS THE NEW MAGIC METHOD:
     def instantiate(self, provider_name: str, **kwargs) -> Any:
         """
         Takes the string name from select() and returns the actual class object.

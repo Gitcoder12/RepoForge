@@ -19,7 +19,7 @@ class ActionRunner:
         if not actions:
             return {"status": "no_actions", "executed": [], "errors": [], "completed": 0}
 
-        logger.info(f"📂 Executing {len(actions)} actions (dry_run={dry_run})")
+        logger.info(f" Executing {len(actions)} actions (dry_run={dry_run})")
 
         for action in actions:
             try:
@@ -51,13 +51,13 @@ class ActionRunner:
     def _write_file(self, filepath: str, content: str, dry_run: bool):
         full_path = self.repo_path / filepath
         if dry_run:
-            logger.info(f"📄 [DRY RUN] Would write: {full_path}")
+            logger.info(f" [DRY RUN] Would write: {full_path}")
             self.executed.append({"action": f"Write {filepath}", "status": "dry_run"})
             return
         
         full_path.parent.mkdir(parents=True, exist_ok=True)
         full_path.write_text(content, encoding="utf-8")
-        logger.info(f"✅ Wrote: {full_path}")
+        logger.info(f" Wrote: {full_path}")
         self.executed.append({"action": f"Write {filepath}", "status": "created"})
 
     def _delete_file(self, filepath: str, dry_run: bool):
@@ -65,10 +65,10 @@ class ActionRunner:
         if not full_path.exists():
             return
         if dry_run:
-            logger.info(f"🗑️ [DRY RUN] Would delete: {full_path}")
+            logger.info(f" [DRY RUN] Would delete: {full_path}")
             self.executed.append({"action": f"Delete {filepath}", "status": "dry_run"})
             return
         
         full_path.unlink()
-        logger.info(f"🗑️ Deleted: {full_path}")
+        logger.info(f" Deleted: {full_path}")
         self.executed.append({"action": f"Delete {filepath}", "status": "ok"})

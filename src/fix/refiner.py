@@ -19,7 +19,7 @@ class Refiner:
         self.provider = provider
 
     def refine(self, initial_actions: List[str]) -> Dict[str, Any]:
-        print("🔧 Running refinement pass...")
+        print(" Running refinement pass...")
         scan_data = scan_repository(str(self.repo_path))
         coordinator = AgentCoordinator()
         for agent_cls in [ArchitectAgent, SecurityAgent, TestingAgent, DocumentationAgent,
@@ -35,7 +35,7 @@ class Refiner:
         remaining = [s for s in new_suggestions if s not in initial_actions]
         if not remaining:
             return {"status": "no_more_improvements", "executed": []}
-        print(f"  🔄 Found {len(remaining)} additional improvements")
+        print(f"   Found {len(remaining)} additional improvements")
         runner = ActionRunner(str(self.repo_path))
         result = runner.run(remaining, dry_run=False)
         return {"status": "refined", "executed": result.get("executed", []), "errors": result.get("errors", [])}

@@ -31,7 +31,7 @@ def app():
         result = asyncio.run(pipeline.run(prompt=args.prompt))
         
         print("\n" + "="*40)
-        print("🏆 FORGE COMPLETE")
+        print(" FORGE COMPLETE")
         print("="*40)
         print(f"Status: {result['status']}")
         

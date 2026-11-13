@@ -14,7 +14,7 @@ def clone_repository(url: str) -> Path:
     """
 
     if shutil.which("git") is None:
-        typer.echo("❌ Git is not installed.")
+        typer.echo(" Git is not installed.")
         raise typer.Exit()
 
     temp_dir = Path(
@@ -24,7 +24,7 @@ def clone_repository(url: str) -> Path:
     )
 
     typer.echo(
-        f"⬇️ Cloning {url}"
+        f" Cloning {url}"
     )
 
     result = subprocess.run(
@@ -67,7 +67,7 @@ def display_result(result: dict):
     )
 
     typer.echo(
-        "🚀 RepoForge Analysis"
+        " RepoForge Analysis"
     )
 
     typer.echo(
@@ -106,7 +106,7 @@ def run_scan(path: str = "."):
 
         if "github.com" not in path:
             typer.echo(
-                "❌ Only GitHub repositories supported."
+                " Only GitHub repositories supported."
             )
             raise typer.Exit()
 
@@ -127,7 +127,7 @@ def run_scan(path: str = "."):
     if not target.exists():
 
         typer.echo(
-            f"❌ Path not found: {target}"
+            f" Path not found: {target}"
         )
 
         raise typer.Exit()
@@ -136,7 +136,7 @@ def run_scan(path: str = "."):
     if not target.is_dir():
 
         typer.echo(
-            "❌ Repository must be a directory."
+            " Repository must be a directory."
         )
 
         raise typer.Exit()
