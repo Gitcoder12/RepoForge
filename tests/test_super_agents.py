@@ -34,6 +34,7 @@ class SequenceProvider(BaseProvider):
     def models(self) -> list[str]:
         return ["sequence"]
 
+
 def test_coding_agent_runs_architect_coder_and_reviewer() -> None:
     provider = SequenceProvider(
         [
@@ -48,6 +49,7 @@ def test_coding_agent_runs_architect_coder_and_reviewer() -> None:
     assert result["execution_verified"] is False
     assert result["review_attempts"] == 1
     assert len(provider.calls) == 3
+
 
 def test_coding_agent_revises_after_failed_review() -> None:
     provider = SequenceProvider(
@@ -65,6 +67,7 @@ def test_coding_agent_revises_after_failed_review() -> None:
     assert result["review_passed"] is True
     assert result["review_attempts"] == 2
 
+
 def test_coding_agent_fails_closed_on_invalid_review_json() -> None:
     provider = SequenceProvider(["Plan", "Code", "not json"])
     result = CodingSuperAgent(provider).build_feature("Implement feature", max_revisions=0)
@@ -72,16 +75,19 @@ def test_coding_agent_fails_closed_on_invalid_review_json() -> None:
     assert result["review_passed"] is False
     assert result["review"]["status"] == "FAIL"
 
+
 def test_coding_agent_rejects_excessive_revisions() -> None:
     provider = MockProvider()
     with pytest.raises(ValueError, match="max_revisions"):
         CodingSuperAgent(provider).build_feature("Task", max_revisions=6)
+
 
 def test_research_agent_requires_cited_source_records() -> None:
     provider = MockProvider()
     agent = ResearchSuperAgent(provider)
     with pytest.raises(ValueError, match="source_id, text, and citation"):
         agent.generate_paper([{"source_id": "S1", "text": "Evidence"}], "Topic")
+
 
 def test_research_agent_withholds_latex_when_audit_fails() -> None:
     provider = SequenceProvider(
@@ -99,6 +105,7 @@ def test_research_agent_withholds_latex_when_audit_fails() -> None:
     assert result["citation_audit_passed"] is False
     assert result["latex"] is None
     assert len(provider.calls) == 3
+
 
 def test_research_agent_formats_only_after_audit_passes() -> None:
     provider = SequenceProvider(
@@ -118,6 +125,7 @@ def test_research_agent_formats_only_after_audit_passes() -> None:
     assert result["latex"].startswith("\\documentclass")
     assert result["publication_verified"] is False
 
+
 def test_super_agent_orchestrator_routes_by_task_type() -> None:
     provider = MockProvider('{"status":"PASS","findings":[],"required_tests":[]}')
     orchestrator = SuperAgentOrchestrator(provider)
@@ -127,6 +135,7 @@ def test_super_agent_orchestrator_routes_by_task_type() -> None:
     assert result["review_passed"] is True
     with pytest.raises(ValueError, match="task_type"):
         orchestrator.run("unknown")
+
 
 def test_coding_agent_rejects_pass_with_blocking_findings() -> None:
     provider = SequenceProvider(
@@ -140,6 +149,7 @@ def test_coding_agent_rejects_pass_with_blocking_findings() -> None:
 
     assert result["review_passed"] is False
     assert result["review"]["status"] == "FAIL"
+
 
 def test_research_agent_rejects_pass_with_invalid_citations() -> None:
     provider = SequenceProvider(
