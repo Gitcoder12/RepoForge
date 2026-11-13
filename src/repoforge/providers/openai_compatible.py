@@ -66,15 +66,13 @@ class OpenAICompatibleProvider(BaseProvider):
     def generate(self, prompt: str, system_prompt: str = "", **kwargs: Any) -> str:
         if not prompt.strip():
             raise ValueError("prompt must not be empty")
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
         response = self.client.chat.completions.create(
             model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt} if system_prompt else None,
-                {"role": "user", "content": prompt},
-            ][-1:] if not system_prompt else [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ],
+            messages=messages,
             temperature=kwargs.pop("temperature", 0.1),
             max_tokens=kwargs.pop("max_tokens", 4096),
             **kwargs,
