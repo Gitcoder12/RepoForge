@@ -55,7 +55,8 @@ def inspect(
 
     typer.echo(f"Repository: {context['repository_name']}")
     typer.echo(f"Path: {target.path}")
-    typer.echo(f"Source: {'cloned from ' + (target.remote_url or '') if target.cloned else 'local'}")
+    source_label = f"cloned from {target.remote_url}" if target.cloned else "local"
+    typer.echo(f"Source: {source_label}")
     typer.echo(f"Files discovered: {context['file_count']}")
     typer.echo(f"Languages: {', '.join(context['languages']) or 'not detected'}")
     typer.echo(f"Context files included: {len(context['files'])}")
@@ -113,7 +114,8 @@ def forge(
         "execution_verified": False,
         "applied": False,
     }
-    proposal_path.write_text(json.dumps(artifact, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    serialized = json.dumps(artifact, indent=2, ensure_ascii=False) + "\n"
+    proposal_path.write_text(serialized, encoding="utf-8")
     typer.echo(f"Repository: {target.path}")
     typer.echo(f"Review passed: {result['review_passed']}")
     typer.echo("Execution verified: no (this command generates a proposal only)")
