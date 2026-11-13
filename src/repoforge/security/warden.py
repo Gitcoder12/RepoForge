@@ -29,23 +29,23 @@ class Warden(BaseAgent):
         ]
 
     async def analyze(self, context: Dict[str, Any]) -> Proposal:
-        logger.info("🛡️ Warden is scanning for rogue behavior and prompt injections...")
+        logger.info(" Warden is scanning for rogue behavior and prompt injections...")
         
         scan_data = context.get("scan", {})
         threats = scan_data.get("threats", [])
         
         for threat in threats:
             if threat["category"] == "dangerous_functions" or threat["severity"] == "CRITICAL":
-                logger.critical(f"🚨 ROGUE AI DETECTED: {threat['description']} in {threat['file']}")
+                logger.critical(f" ROGUE AI DETECTED: {threat['description']} in {threat['file']}")
                 return self._generate_veto(threat['file'], threat['description'])
 
         prompt = context.get("prompt", "").lower()
         for sig in self.rogue_signatures:
             if re.search(sig, prompt):
-                logger.critical(f"🚨 PROMPT INJECTION DETECTED: '{sig}'")
+                logger.critical(f" PROMPT INJECTION DETECTED: '{sig}'")
                 return self._generate_veto("prompt_injection.md", f"Malicious prompt signature: {sig}")
 
-        logger.info("✅ Warden found no threats.")
+        logger.info(" Warden found no threats.")
         return Proposal(
             agent_name=self.name, action_type=ActionType.MODIFY, target_file="none",
             proposed_code="", confidence_score=0.0, reasoning="No threats detected."
