@@ -1,4 +1,5 @@
 import json
+import threading
 
 import pytest
 
@@ -62,3 +63,37 @@ def test_stream_snapshot_is_json_serializable(tmp_path) -> None:
     target = tmp_path / "nested" / "stream.json"
     stream.save(target)
     assert json.loads(target.read_text(encoding="utf-8"))["tasks"][0]["name"] == "task"
+
+
+
+def test_concurrent_task_additions_have_consistent_snapshots() -> None:
+    stream = StreamManager()
+
+    def add_tasks() -> None:
+        for index in range(500):
+            stream.add_task(f"task-{index}")
+
+    writer = threading.Thread(target=add_tasks)
+    writer.start()
+    while writer.is_alive():
+        snapshot = stream.snapshot()
+        statistics = snapshot["statistics"]
+        assert len(snapshot["tasks"]) == snapshot["total_tasks"]
+        assert (
+            statistics["completed"]
+            + statistics["failed"]
+            + statistics["running"]
+            + statistics["pending"]
+            == statistics["total"]
+        )
+        live_statistics = stream.statistics()
+        assert (
+            live_statistics["completed"]
+            + live_statistics["failed"]
+            + live_statistics["running"]
+            + live_statistics["pending"]
+            == live_statistics["total"]
+        )
+    writer.join()
+
+    assert stream.total_tasks == 500
