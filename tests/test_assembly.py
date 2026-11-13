@@ -30,7 +30,10 @@ def test_pipeline_requires_human_approval_before_advancing(tmp_path: Path) -> No
 
     pipeline.submit_output("Approved architecture proposal")
     with pytest.raises(ApprovalRequired):
-        pipeline.current_stage()
+        pipeline.prompt_for_current_stage()
+
+    with pytest.raises(ApprovalRequired):
+        pipeline.submit_output("replacement")
 
     pipeline.approve_current("Architecture reviewed")
     assert pipeline.current_stage() == "foundation"
@@ -97,9 +100,13 @@ def test_pipeline_rejects_empty_brief_and_artifacts(tmp_path: Path) -> None:
 
 def test_pipeline_rejects_unapproved_or_missing_stage_progress(tmp_path: Path) -> None:
     pipeline = make_pipeline(tmp_path)
-    with pytest.raises(PipelineError, match="awaiting human approval"):
-        pipeline.state["stages"]["blueprint"]["status"] = "awaiting_approval"
-        pipeline.state["stages"]["blueprint"]["artifact"] = "architecture"
-        pipeline._save()
-        pipeline.current_stage()
+    pipeline.state["stages"]["blueprint"]["status"] = "awaiting_approval"
+    pipeline.state["stages"]["blueprint"]["artifact"] = "architecture"
+    pipeline._save()
+    with pytest.raises(ApprovalRequired, match="awaiting human approval"):
+        pipeline.prompt_for_current_stage()
+    with pytest.raises(ApprovalRequired, match="awaiting human approval"):
+        pipeline.submit_output("replacement")
+    pipeline.approve_current()
+    assert pipeline.current_stage() == "foundation"
 
