@@ -36,7 +36,6 @@ def test_validator_fails_closed_on_syntax_error(tmp_path: Path) -> None:
     assert "error" in result
 
 
-
 def test_validator_scan_rejects_symlink_escape(tmp_path: Path) -> None:
     import asyncio
 
