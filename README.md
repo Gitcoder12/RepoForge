@@ -50,6 +50,20 @@ python -m repoforge --help
 
 The validation command checks Python syntax and selected risky AST patterns, then invokes pytest in the target repository. It returns a failure if pytest is unavailable or tests fail.
 
+## Five-stage project assembly
+
+RepoForge can generate a provider-neutral prompt for each project stage and keep the five-stage workflow gated by explicit human approval.
+
+```bash
+repoforge pipeline init --project-name "Example Service" --description "A service that solves a defined problem" --target-environment "Docker on AWS" --stack "Python 3.12, FastAPI, PostgreSQL" --edge-cases "Concurrency, timeouts, malformed input"
+repoforge pipeline prompt
+repoforge pipeline submit --artifact-file blueprint.txt
+repoforge pipeline approve --note "Architecture reviewed"
+repoforge pipeline status
+```
+
+The stages are Blueprint, Foundation, Engine, Shield, and Deployment. Rejected artifacts can be revised with recorded feedback. The workflow stores artifacts locally and does not execute generated code or certify production readiness. See [ASSEMBLY_PIPELINE.md](docs/ASSEMBLY_PIPELINE.md) for the complete process.
+
 ## Package layout
 
 ```text
