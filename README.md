@@ -310,3 +310,15 @@ Reports contain:
 RepoForge aims to become an autonomous AI engineering platform that helps developers understand, improve, and maintain complex software systems.
 
 The goal is to reduce repetitive engineering work while improving software quality and developer productivity.
+
+
+---
+
+## AI-maintained project notes (secondary — 2026-11-13)
+
+This section supplements the maintainer-authored README above; it does not replace or certify the original claims.
+
+- The current source tree, runtime data and tests are the implementation source of truth. Draft PRs and roadmap items are not shipped features.
+- Preserve real and maintainer-provided data. Never silently substitute synthetic or placeholder records; isolate and label test fixtures.
+- Verify installation, execution, tests and claims against the exact current commit before presenting the project to recruiters, researchers or professors.
+- See [MODEL_AUDIT_ROUTER.md](MODEL_AUDIT_ROUTER.md) for independent review instructions and the merge gate.
