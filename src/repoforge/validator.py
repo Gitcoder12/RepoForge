@@ -112,7 +112,10 @@ class Validator:
         else:
             candidates = [
                 path for path in self.repo_path.rglob("*.py")
-                if not any(part in self.IGNORE_DIRS for part in path.relative_to(self.repo_path).parts)
+                if not any(
+                    part in self.IGNORE_DIRS
+                    for part in path.relative_to(self.repo_path).parts
+                )
             ]
 
         for file_path in candidates:
