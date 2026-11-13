@@ -130,7 +130,7 @@ class Validator:
                 try:
                     resolved = path.resolve(strict=True)
                     resolved.relative_to(self.repo_path)
-                except (OSError, ValueError):
+                except (OSError, ValueError, RuntimeError):
                     invalid_paths.append(
                         {
                             "file": str(relative),
