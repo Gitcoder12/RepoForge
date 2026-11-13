@@ -135,3 +135,35 @@ def test_super_agent_orchestrator_routes_by_task_type() -> None:
     assert result["review_passed"] is True
     with pytest.raises(ValueError, match="task_type"):
         orchestrator.run("unknown")
+
+
+
+def test_coding_agent_rejects_pass_with_blocking_findings() -> None:
+    provider = SequenceProvider(
+        [
+            "Plan",
+            "Code",
+            '{"status":"PASS","findings":["Critical security issue"],"required_tests":[]}',
+        ]
+    )
+    result = CodingSuperAgent(provider).build_feature("Implement feature", max_revisions=0)
+
+    assert result["review_passed"] is False
+    assert result["review"]["status"] == "FAIL"
+
+
+def test_research_agent_rejects_pass_with_invalid_citations() -> None:
+    provider = SequenceProvider(
+        [
+            "Extracted evidence",
+            "Draft",
+            '{"status":"PASS","unsupported_claims":[],"invalid_citations":["UNKNOWN"]}',
+        ]
+    )
+    result = ResearchSuperAgent(provider).generate_paper(
+        [{"source_id": "S1", "text": "Observed result", "citation": "Author (2025)"}],
+        "A research topic",
+    )
+
+    assert result["citation_audit_passed"] is False
+    assert result["latex"] is None
