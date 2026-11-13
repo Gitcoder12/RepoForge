@@ -27,7 +27,6 @@ def test_logger_timer_records_elapsed_time(tmp_path: Path) -> None:
     assert "elapsed_seconds" in output
 
 
-
 def test_logger_close_preserves_handlers_owned_by_host_application() -> None:
     import io
     import logging
