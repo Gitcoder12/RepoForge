@@ -32,7 +32,10 @@ class Warden(BaseAgent):
     async def analyze(self, context: dict[str, Any]) -> Proposal:
         scan_data = context.get("scan", {})
         for threat in scan_data.get("threats", []):
-            if threat.get("category") == "dangerous_functions" or threat.get("severity") == "CRITICAL":
+            if (
+                threat.get("category") == "dangerous_functions"
+                or threat.get("severity") == "CRITICAL"
+            ):
                 return self._generate_veto(
                     str(threat.get("file", "unknown")),
                     str(threat.get("description", "Critical threat")),
