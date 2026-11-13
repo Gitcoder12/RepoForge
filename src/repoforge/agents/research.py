@@ -151,7 +151,7 @@ class ResearchSuperAgent:
             "publication_verified": False,
             "limitations": [
                 "The workflow only evaluates the source records supplied by the caller.",
-                "Citation audit is model-assisted and is not an external bibliographic verification.",
+                "Citation audit is model-assisted, not external bibliographic verification.",
                 "Human review and reproducible evidence checks are required before submission.",
             ],
         }
