@@ -33,9 +33,7 @@ def test_crucible_uses_the_same_provider_contract_and_redacts_secrets() -> None:
     result = guarded.generate("token sk-abcdefghijklmnopqrstuvwxyz0123456789 is present")
 
     assert result == "safe response"
-    assert wrapped.calls[0]["prompt"] == (
-        "token [REDACTED_BY_CRUCIBLE] is present"
-    )
+    assert wrapped.calls[0]["prompt"] == ("token [REDACTED_BY_CRUCIBLE] is present")
 
 
 def test_crucible_blocks_dangerous_provider_output() -> None:
