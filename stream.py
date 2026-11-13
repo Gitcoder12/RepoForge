@@ -452,7 +452,7 @@ class StreamManager:
             return
 
         print("\n" + "=" * 70)
-        print("🚀 RepoForge Live Execution")
+        print(" RepoForge Live Execution")
         print("=" * 70)
 
         for index, task in enumerate(
@@ -461,16 +461,16 @@ class StreamManager:
         ):
 
             if task.status == TaskStatus.COMPLETED:
-                icon = "✅"
+                icon = ""
 
             elif task.status == TaskStatus.RUNNING:
-                icon = "🔄"
+                icon = ""
 
             elif task.status == TaskStatus.FAILED:
-                icon = "❌"
+                icon = ""
 
             else:
-                icon = "⏳"
+                icon = ""
 
             duration = f"{task.duration():.2f}s"
 
@@ -526,7 +526,7 @@ class StreamManager:
         print()
 
         print("=" * 70)
-        print("📊 RepoForge Summary")
+        print(" RepoForge Summary")
         print("=" * 70)
 
         print(f"Total Tasks : {self.total_tasks}")
