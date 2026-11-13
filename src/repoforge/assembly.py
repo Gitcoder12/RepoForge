@@ -108,8 +108,6 @@ class AssemblyPipeline:
                 continue
             if index and self.state["stages"][STAGES[index - 1]]["status"] != "approved":
                 raise PipelineError(f"Stage {STAGES[index - 1]} must be approved first")
-            if status == "awaiting_approval":
-                raise ApprovalRequired(f"Stage {stage} is awaiting human approval")
             return stage
         return None
 
@@ -120,6 +118,8 @@ class AssemblyPipeline:
         stage = self.current_stage()
         if stage is None:
             raise PipelineError("All five stages have been approved")
+        if self.state["stages"][stage]["status"] == "awaiting_approval":
+            raise ApprovalRequired(f"Stage {stage} is awaiting human approval")
         project = json.dumps(self.state["project"], indent=2, ensure_ascii=False)
         prior = {
             name: self.state["stages"][name]["artifact"]
@@ -213,6 +213,8 @@ class AssemblyPipeline:
         if stage is None:
             raise PipelineError("All five stages have been approved")
         item = self.state["stages"][stage]
+        if item["status"] == "awaiting_approval":
+            raise ApprovalRequired(f"Stage {stage} is awaiting human approval")
         item["artifact"] = artifact
         item["status"] = "awaiting_approval"
         item["feedback"] = None
