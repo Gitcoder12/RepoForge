@@ -4,12 +4,13 @@ import pytest
 from typer.testing import CliRunner
 
 from repoforge.assembly import (
+    STAGES,
     ApprovalRequired,
     AssemblyPipeline,
     PipelineError,
-    STAGES,
 )
 from repoforge.cli import app
+
 
 def make_pipeline(tmp_path: Path) -> AssemblyPipeline:
     return AssemblyPipeline.create(
