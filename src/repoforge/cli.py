@@ -71,7 +71,7 @@ def forge(
     architect_model: str | None = typer.Option(None, "--architect-model"),
     coder_provider: str = typer.Option("openrouter", "--coder-provider"),
     coder_model: str | None = typer.Option(None, "--coder-model"),
-    reviewer_provider: str = typer.Option("anthropic", "--reviewer-provider"),
+    reviewer_provider: str = typer.Option("openrouter", "--reviewer-provider"),
     reviewer_model: str | None = typer.Option(None, "--reviewer-model"),
     cache_dir: Path | None = typer.Option(None, "--cache-dir"),
     max_revisions: int = typer.Option(1, "--max-revisions", min=0, max=5),
@@ -90,7 +90,7 @@ def forge(
             coder_provider=coder,
             reviewer_provider=reviewer,
         ).build_feature(task, context=context, max_revisions=max_revisions)
-    except (OSError, ValueError, RuntimeError) as exc:
+    except Exception as exc:
         typer.echo(f"Forge failed: {exc}", err=True)
         raise typer.Exit(code=1) from exc
 
@@ -135,7 +135,7 @@ def turbo(
         target = resolve_repository(repository, cache_dir=cache_dir)
         provider = create_provider(provider_name, model=model)
         proposal = propose_edit(target.path, file_path, instruction, provider)
-    except (OSError, ValueError, RuntimeError) as exc:
+    except Exception as exc:
         typer.echo(f"Turbo failed: {exc}", err=True)
         raise typer.Exit(code=1) from exc
 
