@@ -26,3 +26,22 @@
 - OpenAI/Anthropic/Google provider adapters remain optional and need isolated integration tests with explicit credentials or local provider services.
 - The package does not yet claim autonomous repository-editing capability from the new CLI.
 - The separate security PR #1 remains independent and unmerged; this PR does not merge it.
+
+
+## 2026-11-13 — Coding and research super-agent foundation
+
+### Completed
+- Added provider-agnostic Architect, Coder, and Reviewer workflow for coding tasks.
+- Added evidence extraction, research synthesis, citation audit, and LaTeX formatting workflow.
+- Added role-based provider routing so different models can handle architecture, implementation, review, extraction, synthesis, auditing, and formatting.
+- Added bounded revision loops and fail-closed handling for malformed or contradictory reviewer output.
+- Prevented LaTeX generation when the citation audit fails.
+- Explicitly report that model review is not test execution and model-assisted citation review is not external bibliographic verification.
+- Added offline unit tests for workflow ordering, revision handling, malformed output, audit gates, and provider routing.
+- Removed emoji glyphs from the RepoForge agent protocol, skill definitions, and legacy action-runner source.
+
+### Validation status
+- Source files and tests were added to the isolated branch `ai-upgrade-2026-11-13`.
+- Full Ruff and pytest execution remains pending because this environment cannot clone the GitHub repository.
+- The new workflow does not modify repositories, execute generated code, commit changes, or merge pull requests automatically.
+- The multi-agent upgrade is stacked on `fix/canonical-package-layout`; the canonical package recovery PR must land before this branch can be merged into `main`.
