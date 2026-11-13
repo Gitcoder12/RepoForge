@@ -77,6 +77,8 @@ class OpenAICompatibleProvider(BaseProvider):
             max_tokens=kwargs.pop("max_tokens", 4096),
             **kwargs,
         )
+        if not response.choices:
+            raise RuntimeError("The model returned no completion choices")
         message = response.choices[0].message
         content = message.content
         if not isinstance(content, str) or not content.strip():
