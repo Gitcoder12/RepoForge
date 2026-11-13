@@ -80,7 +80,7 @@ def test_context_limits_are_enforced(tmp_path: Path) -> None:
         repository, max_files=1, max_file_chars=20, max_total_chars=30
     )
     assert len(context["files"]) <= 1
-    assert sum(len(value) for value in context["files"].values()) <= 60
+    assert sum(len(value) for value in context["files"].values()) <= 30
 
 
 def test_openrouter_factory_uses_openrouter_endpoint_and_model(monkeypatch) -> None:
