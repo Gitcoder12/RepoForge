@@ -11,7 +11,6 @@ from repoforge.assembly import (
 )
 from repoforge.cli import app
 
-
 def make_pipeline(tmp_path: Path) -> AssemblyPipeline:
     return AssemblyPipeline.create(
         tmp_path / "assembly.json",
@@ -21,7 +20,6 @@ def make_pipeline(tmp_path: Path) -> AssemblyPipeline:
         stack_requirements="Python 3.12, FastAPI, PostgreSQL",
         edge_cases="Concurrent requests, provider timeouts, malformed input",
     )
-
 
 def test_pipeline_requires_human_approval_before_advancing(tmp_path: Path) -> None:
     pipeline = make_pipeline(tmp_path)
@@ -41,7 +39,6 @@ def test_pipeline_requires_human_approval_before_advancing(tmp_path: Path) -> No
     assert pipeline.current_stage() == "foundation"
     assert "Approved architecture proposal" in pipeline.prompt_for_current_stage()
 
-
 def test_pipeline_rejects_stage_and_includes_feedback(tmp_path: Path) -> None:
     pipeline = make_pipeline(tmp_path)
     pipeline.submit_output("Incomplete architecture")
@@ -53,7 +50,6 @@ def test_pipeline_rejects_stage_and_includes_feedback(tmp_path: Path) -> None:
 
     pipeline.submit_output("Revised architecture")
     assert pipeline.status()["stages"]["blueprint"]["attempts"] == 2
-
 
 def test_pipeline_persists_state_across_instances(tmp_path: Path) -> None:
     path = tmp_path / "assembly.json"
@@ -72,7 +68,6 @@ def test_pipeline_persists_state_across_instances(tmp_path: Path) -> None:
     assert restored.current_stage() == "foundation"
     assert restored.status()["stages"]["blueprint"]["status"] == "approved"
 
-
 def test_pipeline_requires_all_prior_stages_to_be_approved(tmp_path: Path) -> None:
     pipeline = make_pipeline(tmp_path)
     for stage in STAGES[:4]:
@@ -82,7 +77,6 @@ def test_pipeline_requires_all_prior_stages_to_be_approved(tmp_path: Path) -> No
 
     assert pipeline.current_stage() == "deployment"
     assert len(STAGES) == 5
-
 
 def test_pipeline_rejects_empty_brief_and_artifacts(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="description"):
@@ -98,7 +92,6 @@ def test_pipeline_rejects_empty_brief_and_artifacts(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="must not be empty"):
         pipeline.submit_output(" ")
 
-
 def test_pipeline_rejects_unapproved_or_missing_stage_progress(tmp_path: Path) -> None:
     pipeline = make_pipeline(tmp_path)
     pipeline.state["stages"]["blueprint"]["status"] = "awaiting_approval"
@@ -110,9 +103,6 @@ def test_pipeline_rejects_unapproved_or_missing_stage_progress(tmp_path: Path) -
         pipeline.submit_output("replacement")
     pipeline.approve_current()
     assert pipeline.current_stage() == "foundation"
-
-
-
 
 def test_pipeline_cli_initializes_and_reports_state(tmp_path: Path) -> None:
     state_file = tmp_path / "assembly.json"
@@ -147,7 +137,6 @@ def test_pipeline_cli_initializes_and_reports_state(tmp_path: Path) -> None:
     status = runner.invoke(app, ["pipeline", "status", "--state-file", str(state_file)])
     assert status.exit_code == 0
     assert '"blueprint"' in status.stdout
-
 
 def test_pipeline_rejects_corrupted_out_of_order_state(tmp_path: Path) -> None:
     pipeline = make_pipeline(tmp_path)
