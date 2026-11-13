@@ -45,3 +45,21 @@
 - Full Ruff and pytest execution remains pending because this environment cannot clone the GitHub repository.
 - The new workflow does not modify repositories, execute generated code, commit changes, or merge pull requests automatically.
 - The multi-agent upgrade is stacked on `fix/canonical-package-layout`; the canonical package recovery PR must land before this branch can be merged into `main`.
+
+
+## 2026-11-13 — Five-stage assembly pipeline
+
+### Completed
+- Added a provider-neutral Blueprint, Foundation, Engine, Shield, and Deployment prompt assembly workflow.
+- Added persisted stage artifacts with explicit human approval before advancing.
+- Added rejection and revision feedback so a stage can be improved without losing its earlier submission.
+- Added state validation that rejects out-of-order approvals and missing stage artifacts.
+- Added CLI commands to initialize a project, generate the next prompt, submit an output file, approve or reject a stage, and inspect pipeline state.
+- Stored the default pipeline state outside the project workspace in the user's home directory.
+- Added documentation and offline tests for stage order, approvals, rejection, persistence, CLI behavior, and invalid state.
+
+### Quality boundaries
+- The pipeline generates prompts and manages artifacts; it does not claim to execute generated code or automatically modify project repositories.
+- Human approval is a workflow gate, not proof of technical correctness.
+- A completed five-stage sequence is not a production-readiness certificate.
+- New tests and formatting checks have not been executed in this environment. The repository clone could not be fetched because network access from the execution environment was unavailable.
