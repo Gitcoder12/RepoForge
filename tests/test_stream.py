@@ -1,62 +1,64 @@
-from repoforge.stream import StreamManager
+import json
+
+import pytest
+
+from repoforge.stream import StreamEvent, StreamManager, TaskStatus
 
 
-def main():
-
+def test_task_lifecycle_and_progress() -> None:
     stream = StreamManager()
-
-    # Register tasks
-    stream.add_task("Architecture", model="qwen")
-    stream.add_task("Backend", model="gpt")
-    stream.add_task("Frontend", model="claude")
-
-    print("Initial")
-    print(stream.statistics())
-    print()
-
-    # Architecture
-    stream.start_task("Architecture", "Planning...")
-    stream.complete_task("Architecture", "Done")
-
-    # Backend
-    stream.start_task("Backend", "Generating API...")
-    stream.update_task("Backend", "Creating routes...")
-    stream.complete_task("Backend", "Done")
-
-    # Frontend
-    stream.start_task("Frontend", "Generating UI...")
-    stream.fail_task("Frontend", "Model timeout")
-
+    events = []
+    stream.register_callback(lambda event, task: events.append((event, task.name)))
+    stream.add_task("build")
+    stream.start_task("build", "starting")
+    stream.update_task("build", "compiling")
+    stream.complete_task("build", "done")
     stream.finish()
 
-    print("Render")
-    stream.render()
-
-    print()
-
-    print("Summary")
-    stream.summary()
-
-    print()
-
-    print("Snapshot")
-    print(stream.snapshot())
-
-    print()
-
-    print("Statistics")
-    print(stream.statistics())
-
-    print()
-
-    print("JSON")
-    print(stream.to_json())
-
-    stream.save("logs/stream.json")
-
-    print()
-    print("Saved logs/stream.json")
+    assert stream.tasks["build"].status is TaskStatus.COMPLETED
+    assert stream.completed_tasks == 1
+    assert stream.progress == 100.0
+    assert events == [
+        (StreamEvent.START, "build"),
+        (StreamEvent.UPDATE, "build"),
+        (StreamEvent.COMPLETE, "build"),
+    ]
 
 
-if __name__ == "__main__":
-    main()
+def test_failed_and_pending_tasks_are_counted() -> None:
+    stream = StreamManager()
+    stream.add_task("first")
+    stream.add_task("second")
+    stream.start_task("first")
+    stream.fail_task("first", "timeout")
+
+    assert stream.failed_tasks == 1
+    assert stream.pending_tasks == 1
+    assert stream.progress == 50.0
+    assert stream.summary() == "0 completed, 1 failed, 1 pending"
+
+
+def test_stream_rejects_invalid_transitions() -> None:
+    stream = StreamManager()
+    with pytest.raises(ValueError, match="does not exist"):
+        stream.start_task("missing")
+    stream.add_task("task")
+    with pytest.raises(ValueError, match="Only running"):
+        stream.update_task("task", "not started")
+    stream.start_task("task")
+    stream.complete_task("task")
+    with pytest.raises(ValueError, match="terminal"):
+        stream.fail_task("task", "late failure")
+
+
+def test_stream_snapshot_is_json_serializable(tmp_path) -> None:
+    stream = StreamManager()
+    stream.add_task("task", model="mock")
+    stream.start_task("task")
+    stream.complete_task("task", "ok")
+    snapshot = stream.snapshot()
+    assert json.loads(stream.to_json())["progress"] == snapshot["progress"]
+
+    target = tmp_path / "nested" / "stream.json"
+    stream.save(target)
+    assert json.loads(target.read_text(encoding="utf-8"))["tasks"][0]["name"] == "task"
