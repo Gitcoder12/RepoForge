@@ -6,8 +6,8 @@ import json
 import re
 from typing import Any
 
-from repoforge.base import BaseProvider
 from repoforge.agents.base import RoleAgent
+from repoforge.base import BaseProvider
 
 
 def _parse_review(payload: str) -> dict[str, Any]:
@@ -28,15 +28,17 @@ def _parse_review(payload: str) -> dict[str, Any]:
     status = str(parsed.get("status", "FAIL")).upper()
     if status not in {"PASS", "FAIL"}:
         status = "FAIL"
-    findings = parsed.get("findings", [])
-    if not isinstance(findings, list):
-        findings = ["Reviewer findings must be a list"]
+    findings = parsed.get("findings")
+    if not isinstance(findings, list) or any(not isinstance(item, str) for item in findings):
+        findings = ["Reviewer findings must be a list of strings"]
         status = "FAIL"
     if status == "PASS" and findings:
         status = "FAIL"
-    required_tests = parsed.get("required_tests", [])
-    if not isinstance(required_tests, list):
-        required_tests = ["Reviewer required_tests must be a list"]
+    required_tests = parsed.get("required_tests")
+    if not isinstance(required_tests, list) or any(
+        not isinstance(item, str) for item in required_tests
+    ):
+        required_tests = ["Reviewer required_tests must be a list of strings"]
         status = "FAIL"
     parsed["required_tests"] = required_tests
     parsed["status"] = status
@@ -122,5 +124,9 @@ class CodingSuperAgent:
             "review_passed": review["status"] == "PASS",
             "review_attempts": attempts,
             "execution_verified": False,
-            "verification_required": ["Apply the proposed change", "Run the repository test suite", "Inspect the final diff"],
+            "verification_required": [
+                "Apply the proposed change",
+                "Run the repository test suite",
+                "Inspect the final diff",
+            ],
         }
