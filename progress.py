@@ -88,7 +88,7 @@ class ProgressManager:
 
                 completed=100,
 
-                description="🚀 RepoForge Complete"
+                description=" RepoForge Complete"
 
             )
 
