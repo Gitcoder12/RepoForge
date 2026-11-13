@@ -12,7 +12,13 @@ from typing import Any, Iterator
 
 
 class RepoForgeLogger:
-    def __init__(self, name: str = "RepoForge", log_directory: str | Path = "logs", console: bool = True, file: bool = False):
+    def __init__(
+        self,
+        name: str = "RepoForge",
+        log_directory: str | Path = "logs",
+        console: bool = True,
+        file: bool = False,
+    ):
         self._logger = logging.getLogger(name)
         self._logger.setLevel(logging.INFO)
         self._logger.propagate = False
@@ -75,7 +81,8 @@ class RepoForgeLogger:
         try:
             yield
         finally:
-            self.info(module, f"{operation} completed", elapsed_seconds=round(time.perf_counter() - start, 4))
+            elapsed = round(time.perf_counter() - start, 4)
+            self.info(module, f"{operation} completed", elapsed_seconds=elapsed)
 
     def measure(self, func: Any, *args: Any, **kwargs: Any) -> tuple[Any, float]:
         start = time.perf_counter()
