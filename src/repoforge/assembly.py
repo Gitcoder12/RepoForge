@@ -144,7 +144,9 @@ class AssemblyPipeline:
         revision = ""
         if previous["status"] == "rejected":
             revision = (
-                "\nThe previous submission was rejected. Correct it using this reviewer feedback:\n"
+                "\nThe previous submission was rejected. Revise this submission:\n"
+                + str(previous.get("artifact") or "")
+                + "\nReviewer feedback:\n"
                 + str(previous.get("feedback") or "No feedback supplied")
                 + "\nPreserve valid material and return the complete revised stage deliverable.\n"
             )
