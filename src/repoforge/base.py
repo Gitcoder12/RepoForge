@@ -25,7 +25,9 @@ class BaseProvider(ABC):
         pass
 
     @abstractmethod
-    async def stream(self, prompt: str, system_prompt: str = "", **kwargs) -> AsyncGenerator[str, None]:
+    async def stream(
+        self, prompt: str, system_prompt: str = "", **kwargs
+    ) -> AsyncGenerator[str, None]:
         pass
 
     @abstractmethod
