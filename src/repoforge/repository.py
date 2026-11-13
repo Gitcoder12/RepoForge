@@ -115,6 +115,8 @@ def resolve_repository(
     destination = root / f"{owner}-{repo}"
 
     if destination.exists():
+        if destination.is_symlink():
+            raise ValueError(f"Cached workspace must not be a symlink: {destination}")
         if not (destination / ".git").exists():
             raise FileExistsError(
                 f"Workspace path exists but is not a Git repository: {destination}"
@@ -130,7 +132,12 @@ def resolve_repository(
         expected_remote = remote.removesuffix(".git").lower()
         if result.returncode != 0 or existing_remote != expected_remote:
             raise ValueError(f"Cached workspace origin does not match {remote}")
-        return RepositoryTarget(reference, destination.resolve(), True, remote)
+        resolved_destination = destination.resolve(strict=True)
+        try:
+            resolved_destination.relative_to(root)
+        except ValueError as exc:
+            raise ValueError("Cached workspace resolves outside the cache directory") from exc
+        return RepositoryTarget(reference, resolved_destination, True, remote)
 
     try:
         subprocess.run(
@@ -193,7 +200,13 @@ def collect_repository_context(
         if path.is_absolute() or ".." in path.parts or any(part in _SKIP_DIRS for part in path.parts):
             continue
         name = path.name.lower()
-        if name in _SECRET_NAMES or "secret" in name or "credential" in name:
+        if (
+            name.startswith(".env")
+            or name in _SECRET_NAMES
+            or "secret" in name
+            or "credential" in name
+            or name in {".npmrc", ".pypirc", ".netrc"}
+        ):
             continue
         if path.suffix.lower() in _SKIP_SUFFIXES or name.endswith((".min.js", ".min.css")):
             continue
