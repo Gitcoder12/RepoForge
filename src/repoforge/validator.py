@@ -35,7 +35,13 @@ class ThreatVisitor(ast.NodeVisitor):
                     f"REVIEW: Network operation '{root}.{attribute}' at line {node.lineno}"
                 )
             if root in ("os", "subprocess", "shutil") and attribute in (
-                "system", "popen", "call", "run", "remove", "rmtree", "unlink"
+                "system",
+                "popen",
+                "call",
+                "run",
+                "remove",
+                "rmtree",
+                "unlink",
             ):
                 self.threats.append(
                     f"REVIEW: Potentially destructive operation "
@@ -47,8 +53,14 @@ class ThreatVisitor(ast.NodeVisitor):
 
 class Validator:
     IGNORE_DIRS = {
-        ".git", ".repoforge", "__pycache__", "node_modules",
-        "venv", ".venv", "dist", "build",
+        ".git",
+        ".repoforge",
+        "__pycache__",
+        "node_modules",
+        "venv",
+        ".venv",
+        "dist",
+        "build",
     }
 
     def __init__(self, repo_path: str = ".") -> None:
@@ -111,10 +123,10 @@ class Validator:
                     candidates.append(resolved)
         else:
             candidates = [
-                path for path in self.repo_path.rglob("*.py")
+                path
+                for path in self.repo_path.rglob("*.py")
                 if not any(
-                    part in self.IGNORE_DIRS
-                    for part in path.relative_to(self.repo_path).parts
+                    part in self.IGNORE_DIRS for part in path.relative_to(self.repo_path).parts
                 )
             ]
 
@@ -133,7 +145,9 @@ class Validator:
         logger.info("Running pytest suite...")
         try:
             process = await asyncio.create_subprocess_exec(
-                "pytest", "--tb=short", "-q",
+                "pytest",
+                "--tb=short",
+                "-q",
                 cwd=str(self.repo_path),
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
