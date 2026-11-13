@@ -42,7 +42,6 @@ def test_crucible_blocks_dangerous_provider_output() -> None:
     assert guarded.generate("write a harmless summary").startswith("ERROR: Response blocked")
 
 
-
 def test_validator_rejects_symlink_escape(tmp_path) -> None:
     import asyncio
 
