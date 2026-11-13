@@ -51,8 +51,9 @@ REPOFORGE_MODEL=your-model-id
 ```
 
 For a local gateway that does not require authentication, the provider adapter
-uses a placeholder API-key value only for SDK initialization. No key is sent
-unless the gateway itself requires it.
+uses a placeholder API-key value because the SDK requires one. The SDK sends
+that placeholder in its Authorization header; configure the local gateway to
+ignore it if authentication is disabled.
 
 Check configuration without printing secrets:
 
