@@ -3,13 +3,13 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from repoforge.cli import app
 from repoforge.assembly import (
     ApprovalRequired,
     AssemblyPipeline,
     PipelineError,
     STAGES,
 )
+from repoforge.cli import app
 
 
 def make_pipeline(tmp_path: Path) -> AssemblyPipeline:
