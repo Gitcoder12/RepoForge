@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "repoforge"
 version = "0.6.0"
-description = "Autonomous AI Repository Engineering Platform"
+description = "Early-stage repository validation and agent-safety toolkit"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
