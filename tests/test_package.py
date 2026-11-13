@@ -58,3 +58,36 @@ def test_validator_rejects_symlink_escape(tmp_path) -> None:
     assert result["passed"] is False
     assert result["reason"] == "invalid_paths"
     assert result["invalid_paths"][0]["file"] == "escape.py"
+
+
+
+def test_orchestrator_requires_explicit_choice_when_multiple_providers_are_enabled() -> None:
+    import pytest
+
+    orchestrator = AIOrchestrator()
+    orchestrator.register("first", MockProvider("first result"))
+    orchestrator.register("second", MockProvider("second result"))
+    orchestrator.pm.enable("first")
+    orchestrator.pm.enable("second")
+
+    with pytest.raises(ValueError, match="Specify a provider"):
+        orchestrator.generate("hello")
+
+    assert orchestrator.generate("hello", provider="second") == "second result"
+
+
+def test_validator_rejects_self_referential_python_symlink(tmp_path) -> None:
+    import asyncio
+
+    from repoforge.validator import Validator
+
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    loop = repository / "loop.py"
+    loop.symlink_to(loop)
+
+    result = asyncio.run(Validator(str(repository)).validate())
+
+    assert result["passed"] is False
+    assert result["reason"] == "invalid_paths"
+    assert result["invalid_paths"][0]["file"] == "loop.py"
