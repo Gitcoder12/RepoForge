@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, ai-upgrade-2026-11-13]
   pull_request:
     branches: [main]
 
