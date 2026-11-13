@@ -40,8 +40,7 @@ class Crucible(BaseProvider):
 
     def _inspect_inbound(self, text: str) -> bool:
         return not any(
-            re.search(pattern, text, re.IGNORECASE)
-            for pattern in self.malicious_response_patterns
+            re.search(pattern, text, re.IGNORECASE) for pattern in self.malicious_response_patterns
         )
 
     def generate(self, prompt: str, system_prompt: str = "", **kwargs: Any) -> str:
