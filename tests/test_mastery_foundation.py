@@ -77,7 +77,7 @@ def test_context_limits_are_enforced(tmp_path: Path) -> None:
     repository = init_repo(tmp_path / "project")
     (repository / "large.py").write_text("x = 1\n" * 100, encoding="utf-8")
     context = collect_repository_context(
-        repository, max_files=1, max_file_chars=20, max_total_chars=30
+        repository, max_files=1, max_file_chars=200, max_total_chars=30
     )
     assert len(context["files"]) <= 1
     assert sum(len(value) for value in context["files"].values()) <= 30
