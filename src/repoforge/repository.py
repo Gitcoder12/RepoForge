@@ -237,8 +237,9 @@ def collect_repository_context(
         if remaining <= 0:
             break
         excerpt = text[: min(max_file_chars, remaining)]
-        if len(text) > len(excerpt):
-            excerpt += "\n[context excerpt truncated]"
+        marker = "\n[context excerpt truncated]"
+        if len(text) > len(excerpt) and len(excerpt) + len(marker) <= remaining:
+            excerpt += marker
         files[relative] = excerpt
         total_chars += len(excerpt)
 
@@ -249,5 +250,5 @@ def collect_repository_context(
         "languages": dict(sorted(languages.items())),
         "file_tree": safe_paths[:200],
         "files": files,
-        "context_truncated": len(files) < min(len(selected), len(safe_paths)),
+        "context_truncated": len(files) < len(safe_paths) or total_chars >= max_total_chars,
     }
