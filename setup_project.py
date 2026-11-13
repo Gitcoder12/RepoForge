@@ -67,7 +67,7 @@ console = Console()
 
 @app.command()
 def hello():
-    console.print('[bold green]RepoForge is alive! 🚀[/bold green]')
+    console.print('[bold green]RepoForge is alive! [/bold green]')
 
 if __name__ == "__main__":
     app()
@@ -80,4 +80,4 @@ for path, content in files.items():
         f.write(content)
     print(f"Created: {path}")
 
-print("\\n✅ Done! Now run: pip install -e .")
+print("\\n Done! Now run: pip install -e .")
