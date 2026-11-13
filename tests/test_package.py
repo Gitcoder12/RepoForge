@@ -62,7 +62,6 @@ def test_validator_rejects_symlink_escape(tmp_path) -> None:
     assert result["invalid_paths"][0]["file"] == "escape.py"
 
 
-
 def test_orchestrator_requires_explicit_choice_when_multiple_providers_are_enabled() -> None:
     import pytest
 
