@@ -88,10 +88,19 @@ class AssemblyPipeline:
             raise PipelineError("Assembly state has no valid stages")
         if set(self.state["stages"]) != set(STAGES):
             raise PipelineError("Assembly state must contain exactly five known stages")
-        for stage in STAGES:
+        for index, stage in enumerate(STAGES):
             item = self.state["stages"][stage]
-            if item.get("status") not in VALID_STATUSES:
+            status = item.get("status")
+            if status not in VALID_STATUSES:
                 raise PipelineError(f"Invalid status for stage {stage}")
+            if status != "pending":
+                for prerequisite in STAGES[:index]:
+                    if self.state["stages"][prerequisite]["status"] != "approved":
+                        raise PipelineError(
+                            f"Stage {stage} cannot progress before {prerequisite} is approved"
+                        )
+                if not isinstance(item.get("artifact"), str) or not item["artifact"].strip():
+                    raise PipelineError(f"Stage {stage} requires a non-empty artifact")
 
     def _save(self) -> None:
         self._validate_state()
