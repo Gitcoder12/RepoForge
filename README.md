@@ -322,3 +322,13 @@ This section supplements the maintainer-authored README above; it does not repla
 - Preserve real and maintainer-provided data. Never silently substitute synthetic or placeholder records; isolate and label test fixtures.
 - Verify installation, execution, tests and claims against the exact current commit before presenting the project to recruiters, researchers or professors.
 - See [MODEL_AUDIT_ROUTER.md](MODEL_AUDIT_ROUTER.md) for independent review instructions and the merge gate.
+
+
+### Proposed implementation changes — not merged as of 2026-11-13
+
+The following work is in open pull requests and must not be presented as current default-branch functionality until merged and re-tested:
+
+- [PR #3](https://github.com/Gitcoder12/RepoForge/pull/3) proposes recovery of the canonical installable `src/repoforge` package, a `repoforge` CLI for version/help/repository validation, offline mock-provider primitives, structured logging, and stricter CI. Its branch README explicitly says the legacy autonomous `forge` command is not yet wired into the canonical CLI and that provider integrations are not yet exposed.
+- [PR #5](https://github.com/Gitcoder12/RepoForge/pull/5) proposes coding/research/reviewer agents and a five-stage, human-approved prompt assembly workflow. Its worklog states that branch test/format verification is pending and that this workflow does not automatically modify repositories or certify production readiness.
+
+Review each PR's exact head and CI before relying on these features. The original maintainer-authored README above is retained for historical continuity; claims about the scanner, quality scoring, tested repositories, and autonomous execution must be checked against the actual default-branch code before recruiters or users are told those features work.
