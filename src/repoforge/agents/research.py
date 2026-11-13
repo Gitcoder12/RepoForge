@@ -34,6 +34,8 @@ def _parse_audit(payload: str) -> dict[str, Any]:
             status = "FAIL"
         else:
             parsed.setdefault(key, [])
+    if status == "PASS" and (parsed["unsupported_claims"] or parsed["invalid_citations"]):
+        status = "FAIL"
     parsed["status"] = status
     return parsed
 
