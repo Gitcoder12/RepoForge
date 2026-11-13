@@ -36,7 +36,12 @@ class AIOrchestrator:
     def generate(self, prompt: str, provider: str | None = None, **kwargs: Any) -> str:
         selected = provider
         if selected is None:
-            selected = next(iter(self.pm.enabled), None)
-        if selected is None or selected not in self.providers:
-            raise RuntimeError("No provider is enabled; register and enable a provider first")
+            enabled = sorted(self.pm.enabled)
+            if len(enabled) > 1:
+                raise ValueError(
+                    "Specify a provider when more than one provider is enabled"
+                )
+            selected = enabled[0] if enabled else None
+        if selected is None or selected not in self.providers or selected not in self.pm.enabled:
+            raise RuntimeError("No enabled provider selected; register and enable a provider first")
         return self.providers[selected].generate(prompt, **kwargs)
