@@ -38,9 +38,9 @@ class GitManager:
         if not commit_res["success"] and "nothing to commit" not in commit_res.get("error", "").lower():
             return {"success": False, "message": commit_res.get("error")}
 
-        logger.info(f"✅ Git Checkpoint: {message}")
+        logger.info(f" Git Checkpoint: {message}")
         return {"success": True, "message": "Checkpoint created"}
 
     def rollback(self):
-        logger.warning("⏪ Rolling back git HEAD")
+        logger.warning(" Rolling back git HEAD")
         return self.run_git("reset", "--hard", "HEAD")
