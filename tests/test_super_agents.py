@@ -4,6 +4,7 @@ from repoforge.agents import CodingSuperAgent, ResearchSuperAgent, SuperAgentOrc
 from repoforge.base import BaseProvider
 from repoforge.providers.mock import MockProvider
 
+
 class SequenceProvider(BaseProvider):
     def __init__(self, responses: list[str]) -> None:
         self.responses = list(responses)
