@@ -33,7 +33,7 @@ class MarkdownReport:
         lines = []
 
         # Header
-        lines.append("# 📊 RepoForge Health Report")
+        lines.append("#  RepoForge Health Report")
         lines.append("")
         lines.append(f"**Generated:** `{self.generated}`")
         lines.append("")
@@ -41,18 +41,18 @@ class MarkdownReport:
         lines.append("")
 
         # Summary Table
-        lines.append("## 📈 Overall Summary")
+        lines.append("##  Overall Summary")
         lines.append("")
         lines.append("| Status | Count | Percentage |")
         lines.append("|--------|-------|------------|")
-        lines.append(f"| 🟢 Healthy | {self.healthy} | {self._pct(self.healthy)} |")
-        lines.append(f"| 🟡 Stale / Warning | {self.stale} | {self._pct(self.stale)} |")
-        lines.append(f"| 🔴 Critical | {self.critical} | {self._pct(self.critical)} |")
+        lines.append(f"|  Healthy | {self.healthy} | {self._pct(self.healthy)} |")
+        lines.append(f"|  Stale / Warning | {self.stale} | {self._pct(self.stale)} |")
+        lines.append(f"|  Critical | {self.critical} | {self._pct(self.critical)} |")
         lines.append(f"| **Total** | **{self.total}** | **100%** |")
         lines.append("")
 
         # Detailed repo table
-        lines.append("## 📋 Repository Details")
+        lines.append("##  Repository Details")
         lines.append("")
         lines.append("| Repo | Branch | Health Score | Status | Last Commit |")
         lines.append("|------|--------|--------------|--------|-------------|")
@@ -70,7 +70,7 @@ class MarkdownReport:
         # Critical section
         critical_repos = [r for r in self.repos if r.get("health_score", 100) < 50]
         if critical_repos:
-            lines.append("## 🚨 Critical Repositories (Urgent)")
+            lines.append("##  Critical Repositories (Urgent)")
             lines.append("")
             for r in critical_repos:
                 lines.append(f"- **{r.get('name')}** (Score: {r.get('health_score')})")
@@ -84,7 +84,7 @@ class MarkdownReport:
         # Check if first repo has language stats to show aggregate
         first_repo = self.repos[0] if self.repos else {}
         if "languages" in first_repo:
-            lines.append("## 🧠 Language Distribution (First repo sample)")
+            lines.append("##  Language Distribution (First repo sample)")
             lines.append("")
             lines.append("| Language | Files | Lines |")
             lines.append("|----------|-------|-------|")
