@@ -29,7 +29,7 @@ class AnthropicProvider(BaseProvider):
 
     def _initialize(self) -> None:
         try:
-            from anthropic import AsyncAnthropic, Anthropic
+            from anthropic import Anthropic, AsyncAnthropic
         except ImportError as exc:
             raise RuntimeError(
                 "Anthropic support requires the optional 'anthropic' dependency. "
