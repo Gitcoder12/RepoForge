@@ -34,3 +34,20 @@ def test_validator_fails_closed_on_syntax_error(tmp_path: Path) -> None:
 
     assert result["passed"] is False
     assert "error" in result
+
+
+
+def test_validator_scan_rejects_symlink_escape(tmp_path: Path) -> None:
+    import asyncio
+
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    outside = tmp_path / "outside.py"
+    outside.write_text("print('outside')\n", encoding="utf-8")
+    (repository / "escape.py").symlink_to(outside)
+
+    result = asyncio.run(Validator(str(repository)).validate())
+
+    assert result["passed"] is False
+    assert result["reason"] == "invalid_paths"
+    assert result["invalid_paths"][0]["file"] == "escape.py"
