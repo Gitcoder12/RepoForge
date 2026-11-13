@@ -177,7 +177,8 @@ class AssemblyPipeline:
             "shield": (
                 "You are an SRE and application security auditor. Threat-model "
                 "the actual system "
-                "and write tests for normal behavior, boundary conditions, failures, and abuse cases. "
+                "and write tests for normal behavior, boundary conditions, failures, "
+                "and abuse cases. "
                 "Add only applicable controls such as authentication, authorization, rate limits, "
                 "CORS, input limits, secret handling, and safe logging. Mock external services in "
                 "unit tests. Never call a system hack-proof or claim that "
@@ -192,7 +193,8 @@ class AssemblyPipeline:
                 "supported runtime matrix. Document configuration and reproducible local startup. "
                 "Do not claim production readiness until the stated checks "
                 "have actually passed. "
-                "Return complete file contents with exact paths and a release verification checklist."
+                "Return complete file contents with exact paths and a release "
+                "verification checklist."
             ),
         }
         constraints = (
