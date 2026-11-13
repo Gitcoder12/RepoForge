@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, ai-upgrade-2026-11-13]
+    branches: [main, ai-upgrade-2026-11-13, feat/repoforge-mastery-foundation]
   pull_request:
-    branches: [main]
+    branches: [main, ai-upgrade-2026-11-13]
 
 permissions:
   contents: read
