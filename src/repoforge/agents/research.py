@@ -6,8 +6,8 @@ import json
 import re
 from typing import Any
 
-from repoforge.base import BaseProvider
 from repoforge.agents.base import RoleAgent
+from repoforge.base import BaseProvider
 
 
 def _parse_audit(payload: str) -> dict[str, Any]:
@@ -29,11 +29,12 @@ def _parse_audit(payload: str) -> dict[str, Any]:
     if status not in {"PASS", "FAIL"}:
         status = "FAIL"
     for key in ("unsupported_claims", "invalid_citations"):
-        if not isinstance(parsed.get(key, []), list):
-            parsed[key] = [f"{key} must be a list"]
+        values = parsed.get(key)
+        if not isinstance(values, list) or any(not isinstance(item, str) for item in values):
+            parsed[key] = [f"{key} must be a list of strings"]
             status = "FAIL"
         else:
-            parsed.setdefault(key, [])
+            parsed[key] = values
     if status == "PASS" and (parsed["unsupported_claims"] or parsed["invalid_citations"]):
         status = "FAIL"
     parsed["status"] = status
@@ -91,9 +92,18 @@ class ResearchSuperAgent:
             raise ValueError("At least one source record is required")
         normalized: list[dict[str, str]] = []
         for index, source in enumerate(sources):
-            source_id = source.get("source_id", "").strip()
-            text = source.get("text", "").strip()
-            citation = source.get("citation", "").strip()
+            if not isinstance(source, dict):
+                raise ValueError(f"Source at index {index} must be an object")
+            source_id = source.get("source_id")
+            text = source.get("text")
+            citation = source.get("citation")
+            if not all(isinstance(value, str) for value in (source_id, text, citation)):
+                raise ValueError(
+                    f"Source at index {index} requires string source_id, text, and citation"
+                )
+            source_id = source_id.strip()
+            text = text.strip()
+            citation = citation.strip()
             if not source_id or not text or not citation:
                 raise ValueError(
                     f"Source at index {index} requires source_id, text, and citation"
