@@ -105,7 +105,7 @@ class ResearchSuperAgent:
             text = text.strip()
             citation = citation.strip()
             if not source_id or not text or not citation:
-                raise ValueError(f"Source at index {index} requires source_id, text, and citation)
+                raise ValueError(f"Source at index {index} requires source_id, text, and citation")
             normalized.append(
                 {
                     "source_id": source_id,
