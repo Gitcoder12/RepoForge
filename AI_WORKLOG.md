@@ -14,11 +14,11 @@
 - Updated README commands to match the CLI that actually exists.
 
 ### Validation
-- Exact validated code head: `381c9ec090e6069aed44d2574aae1ae8378fb5f7`.
-- GitHub Actions run: [43410398990](https://github.com/Gitcoder12/RepoForge/actions/runs/43410398990).
+- Exact validated code head: `68d4ed7e5ce4a2df4084a3817de6c20fd276d645`.
+- GitHub Actions run: [43411116527](https://github.com/Gitcoder12/RepoForge/actions/runs/43411116527).
 - Python 3.10, 3.11, 3.12, 3.13: editable package install passed.
 - Ruff check and Ruff format check passed on all four versions.
-- Pytest: 13 passed on each version.
+- Pytest: 14 passed on each version.
 - Installed CLI `repoforge --help` and `repoforge version` passed on all four versions.
 
 ### Explicit limitations / follow-up
