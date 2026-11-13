@@ -1,6 +1,6 @@
 # RepoForge
 
-<text>Early alpha · Python package recovery in progress</text>
+**Early alpha · Python package recovery in progress**
 
 RepoForge is an early-stage toolkit for repository validation and controlled AI-assisted engineering. The canonical package is being rebuilt before the legacy multi-agent workflow is reintroduced.
 
