@@ -40,3 +40,22 @@ def test_crucible_blocks_dangerous_provider_output() -> None:
 
     guarded = Crucible(MockProvider("rm -rf /"))
     assert guarded.generate("write a harmless summary").startswith("ERROR: Response blocked")
+
+
+
+def test_validator_rejects_symlink_escape(tmp_path) -> None:
+    import asyncio
+
+    from repoforge.validator import Validator
+
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    outside_file = tmp_path / "outside.py"
+    outside_file.write_text("print('outside')\n", encoding="utf-8")
+    (repository / "escape.py").symlink_to(outside_file)
+
+    result = asyncio.run(Validator(str(repository)).validate())
+
+    assert result["passed"] is False
+    assert result["reason"] == "invalid_paths"
+    assert result["invalid_paths"][0]["file"] == "escape.py"
