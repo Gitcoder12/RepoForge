@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlparse
 
-
 _SKIP_DIRS = {
     ".git", ".hg", ".svn", ".venv", "venv", "env", "node_modules",
     "__pycache__", ".mypy_cache", ".pytest_cache", ".ruff_cache",
@@ -197,7 +196,11 @@ def collect_repository_context(
     safe_paths: list[str] = []
     for relative in candidates:
         path = Path(relative)
-        if path.is_absolute() or ".." in path.parts or any(part in _SKIP_DIRS for part in path.parts):
+        if (
+            path.is_absolute()
+            or ".." in path.parts
+            or any(part in _SKIP_DIRS for part in path.parts)
+        ):
             continue
         name = path.name.lower()
         if (
