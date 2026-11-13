@@ -3,7 +3,6 @@
 import json
 from pathlib import Path
 
-
 import typer
 
 from repoforge import __version__
@@ -106,7 +105,13 @@ def pipeline_prompt(
 
 @pipeline_app.command("submit")
 def pipeline_submit(
-    artifact_file: Path = typer.Option(..., "--artifact-file", exists=True, file_okay=True, readable=True),
+    artifact_file: Path = typer.Option(
+        ...,
+        "--artifact-file",
+        exists=True,
+        file_okay=True,
+        readable=True,
+    ),
     state_file: Path = typer.Option(Path(".repoforge/assembly.json"), "--state-file"),
 ) -> None:
     pipeline = _load_pipeline(state_file)
