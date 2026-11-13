@@ -12,7 +12,7 @@ load_dotenv()
 
 def run_doctor():
     print("")
-    print("🩺 RepoForge Doctor")
+    print(" RepoForge Doctor")
     print("=" * 50)
 
     print(f"Python        : {sys.version.split()[0]}")
@@ -44,10 +44,10 @@ def run_doctor():
         val = os.getenv(env_name)
         if val:
             masked = val[:6] + "..." + val[-4:] if len(val) > 12 else "***"
-            print(f"  ✅ {label:<16} {env_name} = {masked}")
+            print(f"   {label:<16} {env_name} = {masked}")
             found += 1
         else:
-            print(f"  ⚪ {label:<16} {env_name} (not set)")
+            print(f"   {label:<16} {env_name} (not set)")
 
     print("")
     print(f"Keys found    : {found}")
@@ -64,9 +64,9 @@ def run_doctor():
     try:
         p = factory.get("mock")
         out = p.generate("ping")
-        print(f"  ✅ Mock provider responded ({len(out)} chars)")
+        print(f"   Mock provider responded ({len(out)} chars)")
     except Exception as e:
-        print(f"  ❌ Mock failed: {e}")
+        print(f"   Mock failed: {e}")
 
     print("")
     print("Doctor finished.")
