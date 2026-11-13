@@ -19,7 +19,7 @@ class Display:
     def header():
         console.print(
             Panel(
-                "🔥 RepoForge Engine\n"
+                " RepoForge Engine\n"
                 "Autonomous AI Software Engineering Platform",
                 expand=False,
                 style="bold cyan"
@@ -50,7 +50,7 @@ class Display:
     @staticmethod
     def multi_repo_table(projects: list):
         """Render a table of multiple repositories with health scores."""
-        table = Table(title="📊 Multi‑Repo Dashboard")
+        table = Table(title=" Multi‑Repo Dashboard")
         table.add_column("Repository", style="cyan")
         table.add_column("Health", justify="center")
         table.add_column("Issues", justify="center")
@@ -75,14 +75,14 @@ class Display:
             stages = result.get("stages", {})
             Display.progress_bars(stages)
 
-        console.print("\n🎯 Task")
+        console.print("\n Task")
         console.print(result.get("prompt", ""))
 
         stages = result.get("stages", {})
 
         # Repository Analysis
         scan = stages.get("scan", {})
-        table = Table(title="🔍 Repository Analysis")
+        table = Table(title=" Repository Analysis")
         table.add_column("Metric")
         table.add_column("Value")
         stats = scan.get("statistics", {})
@@ -99,7 +99,7 @@ class Display:
         # Intelligence
         intelligence = stages.get("intelligence", {})
         quality = intelligence.get("quality_score", {})
-        console.print("\n🧠 Intelligence")
+        console.print("\n Intelligence")
         if isinstance(quality, dict):
             console.print(f"Quality Score: {quality.get('score', 0)}/100")
             console.print(f"Grade: {quality.get('grade', 'N/A')}")
@@ -114,7 +114,7 @@ class Display:
         # V4 Improvement Intelligence
         v4 = stages.get("v4_analysis", {})
         if v4:
-            console.print("\n🧠 V4 Improvement Intelligence")
+            console.print("\n V4 Improvement Intelligence")
             raw_issues = v4.get("raw_issues", [])
             ranked = v4.get("ranked_issues", [])
             selected = v4.get("selected_improvement")
@@ -124,14 +124,14 @@ class Display:
                 for i, issue in enumerate(ranked[:3], 1):
                     console.print(f"     {i}. {issue.get('type')} (score: {issue.get('value_score', 0):.3f})")
             if selected:
-                console.print(f"   ✅ Selected: {selected.get('type')}")
+                console.print(f"    Selected: {selected.get('type')}")
             else:
-                console.print("   ℹ️  No improvement selected")
+                console.print("     No improvement selected")
 
         # V5 Agent Intelligence
         v5 = stages.get("v5_agents", {})
         if v5 and v5.get("enabled", False):
-            console.print("\n🧠 Agent Council")
+            console.print("\n Agent Council")
             coordinated = v5.get("coordinated", {})
             if coordinated:
                 agents = coordinated.get("agents_run", [])
@@ -143,19 +143,19 @@ class Display:
             consensus = v5.get("consensus", {})
             selected_actions = consensus.get("selected_actions", [])
             if selected_actions:
-                console.print("\n   🎯 Selected Action:")
+                console.print("\n    Selected Action:")
                 top = selected_actions[0]
                 console.print(f"      {top['action']}")
                 console.print(f"      Priority: {top['priority']}/3")
                 console.print(f"      Score: {top['score']:.2f}")
                 console.print(f"      Agent: {', '.join(top['agent'])}")
             else:
-                console.print("   ℹ️  No action selected by consensus.")
+                console.print("     No action selected by consensus.")
 
         # Recommendations
         recommendations = intelligence.get("recommendations", [])
         if recommendations:
-            console.print("\n💡 Recommendations")
+            console.print("\n Recommendations")
             for item in recommendations[:5]:
                 if isinstance(item, dict):
                     console.print(f"- {item.get('title', '')}")
@@ -164,7 +164,7 @@ class Display:
 
         # Forge Actions
         forge = stages.get("forge", {})
-        console.print("\n🔨 Forge Actions")
+        console.print("\n Forge Actions")
         forge_table = Table()
         forge_table.add_column("Metric")
         forge_table.add_column("Value")
@@ -181,15 +181,15 @@ class Display:
         # Validation
         validation = stages.get("validation", {})
         syntax = validation.get("syntax", {})
-        console.print("\n🛡 Safety")
-        console.print(f"Validation: {'✅' if syntax.get('passed', False) else '❌'}")
+        console.print("\n Safety")
+        console.print(f"Validation: {'' if syntax.get('passed', False) else ''}")
 
         # Git
         git = stages.get("git", {})
-        console.print("\n📦 Git")
+        console.print("\n Git")
         if isinstance(git, dict):
             console.print(git.get("message", "Checkpoint complete"))
         else:
             console.print("Checkpoint complete")
 
-        console.print("\n🚀 RepoForge Engine finished")
+        console.print("\n RepoForge Engine finished")
