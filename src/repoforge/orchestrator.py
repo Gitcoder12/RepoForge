@@ -38,9 +38,7 @@ class AIOrchestrator:
         if selected is None:
             enabled = sorted(self.pm.enabled)
             if len(enabled) > 1:
-                raise ValueError(
-                    "Specify a provider when more than one provider is enabled"
-                )
+                raise ValueError("Specify a provider when more than one provider is enabled")
             selected = enabled[0] if enabled else None
         if selected is None or selected not in self.providers or selected not in self.pm.enabled:
             raise RuntimeError("No enabled provider selected; register and enable a provider first")
