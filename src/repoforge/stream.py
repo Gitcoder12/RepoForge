@@ -52,7 +52,9 @@ class StreamManager:
         self.started = time.perf_counter()
         self.finished: float | None = None
 
-    def add_task(self, name: str, model: str | None = None, provider: str | None = None) -> StreamTask:
+    def add_task(
+        self, name: str, model: str | None = None, provider: str | None = None
+    ) -> StreamTask:
         with self.lock:
             if name in self.tasks:
                 raise ValueError(f"Task {name!r} already exists")
@@ -60,7 +62,14 @@ class StreamManager:
             self.tasks[name] = task
             return task
 
-    def _transition(self, name: str, status: TaskStatus, message: str = "", response: str | None = None, error: str | None = None) -> StreamTask:
+    def _transition(
+        self,
+        name: str,
+        status: TaskStatus,
+        message: str = "",
+        response: str | None = None,
+        error: str | None = None,
+    ) -> StreamTask:
         with self.lock:
             if name not in self.tasks:
                 raise ValueError(f"Task {name!r} does not exist")
@@ -136,7 +145,9 @@ class StreamManager:
 
     @property
     def progress(self) -> float:
-        return 0.0 if not self.total_tasks else 100.0 * (self.completed_tasks + self.failed_tasks) / self.total_tasks
+        if not self.total_tasks:
+            return 0.0
+        return 100.0 * (self.completed_tasks + self.failed_tasks) / self.total_tasks
 
     def elapsed(self) -> float:
         return max(0.0, (self.finished or time.perf_counter()) - self.started)
@@ -162,7 +173,10 @@ class StreamManager:
         }
 
     def summary(self) -> str:
-        return f"{self.completed_tasks} completed, {self.failed_tasks} failed, {self.pending_tasks} pending"
+        return (
+            f"{self.completed_tasks} completed, {self.failed_tasks} failed, "
+            f"{self.pending_tasks} pending"
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return self.snapshot()
