@@ -33,9 +33,9 @@ The review covered repository structure, execution and validation paths, package
 
 ### Tests and CI — high priority
 
-- No GitHub Actions workflow was present in the inspected RepoForge tree.
+- The existing GitHub Actions workflow runs pytest across the repository but the current suite fails during collection. The exact branch run reported eight collection errors.
 - The existing `tests/test.py` executes a patch operation at module import time and imports `repoforge.patch_engine`, while the inspected patch engine is under `src/fix/patch_engine.py`.
-- A reproducible package install, import smoke test, and clean full-suite run are required before the project can claim CI-backed validation.
+- The exact branch CI run failed because legacy tests import package modules that do not exist in the current source tree (for example `repoforge.providers`, `repoforge.logger`, `repoforge.orchestrator`, and `repoforge.stream`). The OpenAI integration script also constructs a client at import time and fails without credentials. A package migration and test-suite separation are required before a clean full-suite run can be claimed.
 
 ### Security and error handling
 
@@ -51,7 +51,7 @@ The review covered repository structure, execution and validation paths, package
 
 ## Validation status
 
-- Regression tests have been added but have **not** been executed in a local checkout during this review.
+- Regression tests have been added. GitHub Actions did execute the suite on the branch, but collection failed before the tests could run because of the pre-existing import and integration-test problems described above.
 - No passing CI result is claimed for this branch.
 - The next required milestone is to establish one canonical import/package layout, add CI that installs the package and runs the complete suite, and then fix the resulting verified failures.
 
