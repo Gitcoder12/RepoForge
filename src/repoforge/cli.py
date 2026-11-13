@@ -9,6 +9,8 @@ from repoforge import __version__
 from repoforge.assembly import AssemblyPipeline, PipelineError
 from repoforge.validator import Validator
 
+DEFAULT_STATE_FILE = Path.home() / ".repoforge" / "assembly.json"
+
 app = typer.Typer(
     name="repoforge",
     help="Inspect and validate Python repositories.",
@@ -73,7 +75,7 @@ def pipeline_init(
     target_environment: str = typer.Option(..., "--target-environment"),
     stack_requirements: str = typer.Option(..., "--stack"),
     edge_cases: str = typer.Option(..., "--edge-cases"),
-    state_file: Path = typer.Option(Path(".repoforge/assembly.json"), "--state-file"),
+    state_file: Path = typer.Option(DEFAULT_STATE_FILE, "--state-file"),
 ) -> None:
     try:
         pipeline = AssemblyPipeline.create(
@@ -93,7 +95,7 @@ def pipeline_init(
 
 @pipeline_app.command("prompt")
 def pipeline_prompt(
-    state_file: Path = typer.Option(Path(".repoforge/assembly.json"), "--state-file"),
+    state_file: Path = typer.Option(DEFAULT_STATE_FILE, "--state-file"),
 ) -> None:
     pipeline = _load_pipeline(state_file)
     try:
@@ -112,7 +114,7 @@ def pipeline_submit(
         file_okay=True,
         readable=True,
     ),
-    state_file: Path = typer.Option(Path(".repoforge/assembly.json"), "--state-file"),
+    state_file: Path = typer.Option(DEFAULT_STATE_FILE, "--state-file"),
 ) -> None:
     pipeline = _load_pipeline(state_file)
     try:
@@ -127,7 +129,7 @@ def pipeline_submit(
 @pipeline_app.command("approve")
 def pipeline_approve(
     note: str = typer.Option("", "--note"),
-    state_file: Path = typer.Option(Path(".repoforge/assembly.json"), "--state-file"),
+    state_file: Path = typer.Option(DEFAULT_STATE_FILE, "--state-file"),
 ) -> None:
     pipeline = _load_pipeline(state_file)
     try:
@@ -143,7 +145,7 @@ def pipeline_approve(
 @pipeline_app.command("reject")
 def pipeline_reject(
     feedback: str = typer.Option(..., "--feedback"),
-    state_file: Path = typer.Option(Path(".repoforge/assembly.json"), "--state-file"),
+    state_file: Path = typer.Option(DEFAULT_STATE_FILE, "--state-file"),
 ) -> None:
     pipeline = _load_pipeline(state_file)
     try:
@@ -156,7 +158,7 @@ def pipeline_reject(
 
 @pipeline_app.command("status")
 def pipeline_status(
-    state_file: Path = typer.Option(Path(".repoforge/assembly.json"), "--state-file"),
+    state_file: Path = typer.Option(DEFAULT_STATE_FILE, "--state-file"),
 ) -> None:
     pipeline = _load_pipeline(state_file)
     typer.echo(json.dumps(pipeline.status(), indent=2))
