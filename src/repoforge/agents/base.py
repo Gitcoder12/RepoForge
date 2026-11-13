@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from repoforge.base import BaseProvider
@@ -23,7 +24,7 @@ class RoleAgent:
         sections = [task.strip()]
         if context:
             sections.append("Structured context:")
-            sections.append(str(context))
+            sections.append(json.dumps(context, ensure_ascii=False, sort_keys=True, default=str))
         return self.provider.generate(
             "\n\n".join(sections),
             system_prompt=self.system_prompt,
