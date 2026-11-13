@@ -94,7 +94,6 @@ def test_validator_rejects_self_referential_python_symlink(tmp_path) -> None:
     assert result["invalid_paths"][0]["file"] == "loop.py"
 
 
-
 def test_cli_shows_validation_diagnostics(tmp_path) -> None:
     result_data = {
         "passed": False,
