@@ -1,9 +1,9 @@
 # REPOFORGE SKILLS.MD - Agent Tool Definitions
 
-## ⚡ OVERVIEW
+##  OVERVIEW
 This document defines the executable skills (tools) available to the autonomous agents operating within RepoForge. Any LLM (OpenAI, Anthropic, Grok, Local) must strictly adhere to these JSON schemas when invoking a tool.
 
-## 🛠️ 1. FILE SYSTEM SKILLS
+##  1. FILE SYSTEM SKILLS
 
 ### `read_file`
 Reads the contents of a file.
@@ -26,7 +26,7 @@ Lists all files in a given directory.
 
 ---
 
-## 💻 2. CODE EXECUTION & VALIDATION SKILLS
+##  2. CODE EXECUTION & VALIDATION SKILLS
 
 ### `run_pytest`
 Executes the test suite to validate code changes.
@@ -48,7 +48,7 @@ Executes a safe shell command (e.g., `pip install`, `npm run build`).
 
 ---
 
-## 🔄 3. VERSION CONTROL SKILLS
+##  3. VERSION CONTROL SKILLS
 
 ### `git_diff`
 Shows the changes made to the working directory.
@@ -63,7 +63,7 @@ Commits the changes with a Conventional Commit message.
 
 ---
 
-## 🌐 4. EXTERNAL KNOWLEDGE SKILLS
+##  4. EXTERNAL KNOWLEDGE SKILLS
 
 ### `web_search`
 Searches the web for documentation or solutions.
