@@ -11,28 +11,79 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 _SKIP_DIRS = {
-    ".git", ".hg", ".svn", ".venv", "venv", "env", "node_modules",
-    "__pycache__", ".mypy_cache", ".pytest_cache", ".ruff_cache",
-    "dist", "build", "target", ".next", ".nuxt", ".tox",
+    ".git",
+    ".hg",
+    ".svn",
+    ".venv",
+    "venv",
+    "env",
+    "node_modules",
+    "__pycache__",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "dist",
+    "build",
+    "target",
+    ".next",
+    ".nuxt",
+    ".tox",
 }
 _SECRET_NAMES = {
-    ".env", ".env.local", ".env.production", "id_rsa", "id_ed25519",
-    "credentials.json", "secrets.json",
+    ".env",
+    ".env.local",
+    ".env.production",
+    "id_rsa",
+    "id_ed25519",
+    "credentials.json",
+    "secrets.json",
 }
 _SKIP_SUFFIXES = {
-    ".pem", ".key", ".p12", ".pfx", ".keystore", ".jks",
-    ".sqlite", ".db", ".zip", ".gz", ".png", ".jpg", ".jpeg",
-    ".gif", ".webp", ".pdf", ".lock",
+    ".pem",
+    ".key",
+    ".p12",
+    ".pfx",
+    ".keystore",
+    ".jks",
+    ".sqlite",
+    ".db",
+    ".zip",
+    ".gz",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".webp",
+    ".pdf",
+    ".lock",
 }
 _LANGUAGE_BY_SUFFIX = {
-    ".py": "Python", ".js": "JavaScript", ".jsx": "JavaScript",
-    ".ts": "TypeScript", ".tsx": "TypeScript", ".go": "Go",
-    ".rs": "Rust", ".java": "Java", ".kt": "Kotlin",
-    ".cs": "C#", ".cpp": "C++", ".c": "C", ".h": "C/C++",
-    ".rb": "Ruby", ".php": "PHP", ".swift": "Swift",
-    ".html": "HTML", ".css": "CSS", ".scss": "SCSS",
-    ".sql": "SQL", ".sh": "Shell", ".yaml": "YAML", ".yml": "YAML",
-    ".toml": "TOML", ".json": "JSON", ".md": "Markdown",
+    ".py": "Python",
+    ".js": "JavaScript",
+    ".jsx": "JavaScript",
+    ".ts": "TypeScript",
+    ".tsx": "TypeScript",
+    ".go": "Go",
+    ".rs": "Rust",
+    ".java": "Java",
+    ".kt": "Kotlin",
+    ".cs": "C#",
+    ".cpp": "C++",
+    ".c": "C",
+    ".h": "C/C++",
+    ".rb": "Ruby",
+    ".php": "PHP",
+    ".swift": "Swift",
+    ".html": "HTML",
+    ".css": "CSS",
+    ".scss": "SCSS",
+    ".sql": "SQL",
+    ".sh": "Shell",
+    ".yaml": "YAML",
+    ".yml": "YAML",
+    ".toml": "TOML",
+    ".json": "JSON",
+    ".md": "Markdown",
 }
 
 
@@ -59,9 +110,7 @@ def _github_remote(reference: str) -> tuple[str, str] | None:
         owner, repo = ssh_match.groups()
     else:
         candidate = value if "://" in value else ""
-        if not candidate and re.fullmatch(
-            r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", value
-        ):
+        if not candidate and re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", value):
             owner, repo = value.split("/", 1)
         elif candidate:
             parsed = urlparse(candidate)
@@ -186,7 +235,8 @@ def collect_repository_context(
         candidates = []
         for current, dirs, filenames in os.walk(root, followlinks=False):
             dirs[:] = sorted(
-                name for name in dirs
+                name
+                for name in dirs
                 if name not in _SKIP_DIRS and not (Path(current) / name).is_symlink()
             )
             for filename in filenames:
@@ -223,9 +273,18 @@ def collect_repository_context(
         safe_paths.append(path.as_posix())
 
     priority_names = {
-        "readme.md", "pyproject.toml", "package.json", "requirements.txt",
-        "go.mod", "cargo.toml", "pom.xml", "build.gradle", "composer.json",
-        "gemfile", "makefile", "dockerfile",
+        "readme.md",
+        "pyproject.toml",
+        "package.json",
+        "requirements.txt",
+        "go.mod",
+        "cargo.toml",
+        "pom.xml",
+        "build.gradle",
+        "composer.json",
+        "gemfile",
+        "makefile",
+        "dockerfile",
     }
     safe_paths.sort(key=lambda item: (Path(item).name.lower() not in priority_names, item))
     selected = safe_paths[:max_files]
