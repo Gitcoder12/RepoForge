@@ -24,7 +24,6 @@ def test_offline_provider_orchestration() -> None:
     assert provider.calls[0]["prompt"] == "hello"
 
 
-
 def test_crucible_uses_the_same_provider_contract_and_redacts_secrets() -> None:
     from repoforge.security.crucible import Crucible
 
