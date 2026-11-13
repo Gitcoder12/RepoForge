@@ -1,317 +1,89 @@
 # RepoForge
 
-## Autonomous AI Repository Engineering Platform
+<text>Early alpha · Python package recovery in progress</text>
 
-RepoForge is an AI-powered repository engineering platform that analyzes software projects, understands repository structure, creates improvement strategies, executes engineering actions, validates changes, and generates detailed reports.
+RepoForge is an early-stage toolkit for repository validation and controlled AI-assisted engineering. The canonical package is being rebuilt before the legacy multi-agent workflow is reintroduced.
 
-It combines repository analysis, AI workflows, safety validation, and Git checkpointing into a unified development tool.
+## What works today
 
----
+- Installable `repoforge` Python package.
+- `repoforge --help` and `repoforge version`.
+- `repoforge validate PATH`: Python AST checks followed by the target repository's pytest suite.
+- Offline `MockProvider` and explicit provider orchestration.
+- Structured logging and task progress stream.
+- Rule-based Warden and Crucible safety components.
 
-# How It Works
+## Not available yet
 
-```text
-Repository
-    |
-    v
-Repository Scanner
-    |
-    v
-Intelligence Engine
-    |
-    v
-Difficulty Analysis
-    |
-    v
-AI Strategist
-    |
-    v
-AI Orchestrator
-    |
-    v
-Action Runner
-    |
-    v
-Validator
-    |
-    v
-Git Checkpoint
-    |
-    v
-Report
-```
+- The legacy autonomous `forge` workflow is not wired into the canonical CLI.
+- OpenAI, Anthropic, Google and local-model adapters are not yet exposed through the canonical provider package.
+- RepoForge does not automatically edit, commit, or merge repository changes.
+- The static validator is heuristic and is not a complete security scanner or proof of code safety.
 
----
+## Install
 
-# Features
-
-| Component           | Purpose                                             |
-| ------------------- | --------------------------------------------------- |
-| Repository Scanner  | Detects files, languages, and repository statistics |
-| Intelligence Engine | Evaluates repository quality and architecture       |
-| Quality Scoring     | Generates repository health scores                  |
-| Difficulty Engine   | Estimates repository complexity                     |
-| AI Strategist       | Creates execution plans based on repository context |
-| AI Orchestrator     | Coordinates AI operations                           |
-| Action Runner       | Executes repository modifications                   |
-| Validator           | Checks changes before completion                    |
-| Git Manager         | Creates safe checkpoints                            |
-| Reporter            | Generates execution reports                         |
-
----
-
-# Intelligence System
-
-RepoForge analyzes repositories using:
-
-| Metric          | Description                    |
-| --------------- | ------------------------------ |
-| Repository Size | File count and code volume     |
-| Languages       | Detects technology stack       |
-| Documentation   | Checks project documentation   |
-| Testing         | Evaluates testing signals      |
-| Security        | Checks security-related issues |
-| Maintainability | Estimates repository health    |
-
-Example:
-
-```text
-Repository:
-
-FastAPI-Test
-
-Files:
-3109
-
-Lines:
-654379
-
-Languages:
-Python
-JavaScript
-HTML
-CSS
-
-
-Quality Score:
-87/100
-
-Grade:
-B
-```
-
----
-
-# Difficulty Levels
-
-RepoForge automatically estimates repository complexity.
-
-| Level   | Description              |
-| ------- | ------------------------ |
-| Normal  | Small repositories       |
-| Hard    | Medium-sized projects    |
-| Extreme | Large-scale repositories |
-
-Example:
-
-```text
-Cal.com
-
-Files:
-7623
-
-Lines:
-4960332
-
-Difficulty:
-Extreme
-```
-
----
-
-# Installation
-
-## Requirements
-
-* Python 3.10+
-* Git
-
-Install the core package and developer tools:
+Python 3.10–3.13.
 
 ```bash
 python -m pip install -e ".[dev]"
 ```
 
-Verify the installed entry point:
+Optional provider SDKs:
+
+```bash
+python -m pip install -e ".[providers]"
+```
+
+## CLI
 
 ```bash
 repoforge --help
 repoforge version
+repoforge validate /path/to/repository
 ```
 
-Optional model-provider SDKs are installed with `python -m pip install -e ".[providers]"`. Core package installation and CLI help do not require API credentials.
-
----
-
-# Usage
-
-Validate a repository:
+Equivalent module invocation:
 
 ```bash
-repoforge validate <repository>
+python -m repoforge --help
 ```
 
-Example:
+The validation command checks Python syntax and selected risky AST patterns, then invokes pytest in the target repository. It returns a failure if pytest is unavailable or tests fail.
 
-```bash
-repoforge validate ../FastAPI-Test
-```
-
-The current stable CLI exposes package version and validation commands. The older multi-agent `forge` workflow is not yet wired into this canonical CLI; do not rely on the legacy command shown in older releases.
-
----
-
-# Example Execution
+## Package layout
 
 ```text
-Repository Analysis
-
-Files:
-3109
-
-Lines:
-654379
-
-Languages:
-Python
-JavaScript
-HTML
-CSS
-
-
-Intelligence
-
-Quality Score:
-87/100
-
-Grade:
-B
-
-
-Forge Actions:
-Completed
-
-
-Validation:
-Passed
-
-
-Git:
-Checkpoint Created
-
-
-Report:
-Generated
+src/repoforge/
+├── cli.py
+├── base.py
+├── models.py
+├── orchestrator.py
+├── logger.py
+├── stream.py
+├── validator.py
+├── providers/
+│   ├── base.py
+│   └── mock.py
+└── security/
+    ├── warden.py
+    └── crucible.py
 ```
 
----
-
-# Change Tracking
-
-RepoForge creates Git checkpoints after successful execution.
-
-View changed files:
+## Development
 
 ```bash
-git show --name-only HEAD
+python -m pip install -e ".[dev]"
+ruff check src/repoforge tests
+ruff format --check src/repoforge tests
+pytest -q
 ```
 
-View change summary:
+CI validates package installation, lint, formatting, tests and installed CLI commands on Python 3.10, 3.11, 3.12 and 3.13.
 
-```bash
-git show --stat --oneline HEAD
-```
+## Safety notes
 
-View exact changes:
+Warden and Crucible are rule-based guardrails. They can detect selected known patterns but cannot guarantee that prompts, model outputs, dependencies or repository changes are safe. Human review remains required for consequential changes.
 
-```bash
-git show HEAD
-```
+## License
 
-Check uncommitted changes:
-
-```bash
-git status
-```
-
-```bash
-git diff --stat
-```
-
-```bash
-git diff --name-only
-```
-
----
-
-# Reports
-
-RepoForge generates reports inside:
-
-```text
-.repoforge/
-
-├── reports/
-│   └── report_timestamp.json
-│
-└── backups/
-```
-
-Reports contain:
-
-* Repository analysis
-* Intelligence results
-* Quality scores
-* AI strategy
-* Execution details
-* Validation results
-* Git checkpoint information
-
----
-
-# Tested Repositories
-
-| Repository      | Category          | Result |
-| --------------- | ----------------- | ------ |
-| LangChain       | AI Framework      | Passed |
-| FastAPI         | Backend Framework | Passed |
-| Cal.com         | SaaS Platform     | Passed |
-| Custom Projects | Applications      | Passed |
-
----
-
-# Version History
-
-| Version | Focus                                         |
-| ------- | --------------------------------------------- |
-| V1      | Basic AI repository automation                |
-| V2      | Repository intelligence and analysis          |
-| V3      | Autonomous AI repository engineering workflow |
-
----
-
-# Roadmap
-
-| Version | Focus                                           |
-| ------- | ----------------------------------------------- |
-| V4      | Advanced improvement selection and intelligence |
-| V5      | Multi-agent engineering workflows               |
-| V6      | Autonomous software engineering platform        |
-
----
-
-# Vision
-
-RepoForge aims to become an autonomous AI engineering platform that helps developers understand, improve, and maintain complex software systems.
-
-The goal is to reduce repetitive engineering work while improving software quality and developer productivity.
+See [LICENSE](LICENSE).
