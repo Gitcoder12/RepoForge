@@ -1,7 +1,9 @@
 from pathlib import Path
 
 import pytest
+from typer.testing import CliRunner
 
+from repoforge.cli import app
 from repoforge.assembly import (
     ApprovalRequired,
     AssemblyPipeline,
@@ -109,3 +111,47 @@ def test_pipeline_rejects_unapproved_or_missing_stage_progress(tmp_path: Path) -
     pipeline.approve_current()
     assert pipeline.current_stage() == "foundation"
 
+
+
+
+def test_pipeline_cli_initializes_and_reports_state(tmp_path: Path) -> None:
+    state_file = tmp_path / "assembly.json"
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "pipeline",
+            "init",
+            "--project-name",
+            "Example",
+            "--description",
+            "A small API service",
+            "--target-environment",
+            "Docker",
+            "--stack",
+            "Python and FastAPI",
+            "--edge-cases",
+            "Timeouts and malformed requests",
+            "--state-file",
+            str(state_file),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert state_file.is_file()
+
+    prompt = runner.invoke(app, ["pipeline", "prompt", "--state-file", str(state_file)])
+    assert prompt.exit_code == 0
+    assert "Current stage: BLUEPRINT" in prompt.stdout
+
+    status = runner.invoke(app, ["pipeline", "status", "--state-file", str(state_file)])
+    assert status.exit_code == 0
+    assert '"blueprint"' in status.stdout
+
+
+def test_pipeline_rejects_corrupted_out_of_order_state(tmp_path: Path) -> None:
+    pipeline = make_pipeline(tmp_path)
+    pipeline.state["stages"]["foundation"]["status"] = "approved"
+    pipeline.state["stages"]["foundation"]["artifact"] = "Foundation without blueprint"
+    with pytest.raises(PipelineError, match="cannot progress before blueprint"):
+        pipeline._save()
