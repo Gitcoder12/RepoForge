@@ -19,23 +19,25 @@ class RepoForgeLogger:
         console: bool = True,
         file: bool = False,
     ):
-        self._logger = logging.getLogger(name)
+        self._logger = logging.getLogger(f"{name}.{id(self)}")
         self._logger.setLevel(logging.INFO)
         self._logger.propagate = False
         self._lock = threading.RLock()
         self._execution_id: str | None = None
-        self._logger.handlers.clear()
+        self._owned_handlers: list[logging.Handler] = []
         formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
         if console:
             handler = logging.StreamHandler()
             handler.setFormatter(formatter)
             self._logger.addHandler(handler)
+            self._owned_handlers.append(handler)
         if file:
             directory = Path(log_directory)
             directory.mkdir(parents=True, exist_ok=True)
             handler = logging.FileHandler(directory / "repoforge.log", encoding="utf-8")
             handler.setFormatter(formatter)
             self._logger.addHandler(handler)
+            self._owned_handlers.append(handler)
 
     def set_execution_id(self, execution_id: str) -> None:
         self._execution_id = execution_id
@@ -99,14 +101,17 @@ class RepoForgeLogger:
         self.banner("RepoForge Session Finished")
 
     def flush(self) -> None:
-        for handler in self._logger.handlers:
-            handler.flush()
+        with self._lock:
+            for handler in self._owned_handlers:
+                handler.flush()
 
     def close(self) -> None:
-        for handler in self._logger.handlers[:]:
-            handler.flush()
-            handler.close()
-            self._logger.removeHandler(handler)
+        with self._lock:
+            for handler in self._owned_handlers:
+                handler.flush()
+                handler.close()
+                self._logger.removeHandler(handler)
+            self._owned_handlers.clear()
 
     def is_enabled(self, level: int) -> bool:
         return self._logger.isEnabledFor(level)
