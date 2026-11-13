@@ -18,8 +18,13 @@ from repoforge.base import BaseProvider
 MAX_SOURCE_BYTES = 1_000_000
 MAX_RESPONSE_CHARS = 2_000_000
 _BLOCKED_NAMES = {
-    ".env", ".env.local", ".env.production", "id_rsa", "id_ed25519",
-    "credentials.json", "secrets.json",
+    ".env",
+    ".env.local",
+    ".env.production",
+    "id_rsa",
+    "id_ed25519",
+    "credentials.json",
+    "secrets.json",
 }
 
 
