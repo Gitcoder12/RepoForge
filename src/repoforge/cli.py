@@ -41,7 +41,6 @@ def models() -> None:
         typer.echo(f"{item['provider']}: {state} | model: {item['model']}")
 
 
-
 @app.command("models-list")
 def models_list(
     provider: str = typer.Option("openrouter", "--provider"),
