@@ -179,7 +179,12 @@ def test_live_model_catalog_uses_provider_endpoint_and_returns_sorted_ids() -> N
             return type(
                 "Response",
                 (),
-                {"data": [FakeModel("zeta/model", "zeta"), FakeModel("alpha/model", "alpha")]},
+                {
+                    "data": [
+                        FakeModel("zeta/model", "zeta"),
+                        FakeModel("alpha/model", "alpha"),
+                    ]
+                },
             )()
 
     class FakeClient:
