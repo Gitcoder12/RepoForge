@@ -11,6 +11,7 @@ import typer
 
 from repoforge import __version__
 from repoforge.assembly import AssemblyPipeline, PipelineError
+from repoforge.providers.catalog import list_models
 from repoforge.providers.factory import create_provider, provider_status
 from repoforge.repository import collect_repository_context, resolve_repository
 from repoforge.turbo import apply_edit, propose_edit
@@ -38,6 +39,28 @@ def models() -> None:
     for item in provider_status():
         state = "configured" if item["configured"] else "not configured"
         typer.echo(f"{item['provider']}: {state} | model: {item['model']}")
+
+
+
+@app.command("models-list")
+def models_list(
+    provider: str = typer.Option("openrouter", "--provider"),
+    base_url: str | None = typer.Option(None, "--base-url"),
+    limit: int = typer.Option(40, "--limit", min=1, max=500),
+) -> None:
+    """List model IDs exposed by a live provider catalog endpoint."""
+    try:
+        catalog = list_models(provider, base_url=base_url)
+    except Exception as exc:
+        typer.echo(f"Model catalog request failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Models exposed by {provider}: {len(catalog)}")
+    for item in catalog[:limit]:
+        owner = item.get("owned_by") or "unknown owner"
+        typer.echo(f"{item['id']}  ({owner})")
+    if len(catalog) > limit:
+        typer.echo(f"... {len(catalog) - limit} more; increase --limit to display them")
 
 
 @app.command()
