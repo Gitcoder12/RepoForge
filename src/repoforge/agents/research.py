@@ -105,9 +105,7 @@ class ResearchSuperAgent:
             text = text.strip()
             citation = citation.strip()
             if not source_id or not text or not citation:
-                raise ValueError(
-                    f"Source at index {index} requires source_id, text, and citation"
-                )
+                raise ValueError(f"Source at index {index} requires source_id, text, and citation")
             normalized.append(
                 {
                     "source_id": source_id,
@@ -151,7 +149,7 @@ class ResearchSuperAgent:
             "publication_verified": False,
             "limitations": [
                 "The workflow only evaluates the source records supplied by the caller.",
-                "Citation audit is model-assisted and is not an external bibliographic verification.",
+                "Citation audit is model-assisted, not external bibliographic verification.",
                 "Human review and reproducible evidence checks are required before submission.",
             ],
         }

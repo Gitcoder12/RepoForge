@@ -1,19 +1,27 @@
-"""Stable, credential-free command-line entry point."""
+"""RepoForge command-line interface."""
+
+from __future__ import annotations
 
 import json
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 import typer
 
 from repoforge import __version__
 from repoforge.assembly import AssemblyPipeline, PipelineError
+from repoforge.providers.catalog import list_models
+from repoforge.providers.factory import create_provider, provider_status
+from repoforge.repository import collect_repository_context, resolve_repository
+from repoforge.turbo import apply_edit, propose_edit
 from repoforge.validator import Validator
 
 DEFAULT_STATE_FILE = Path.home() / ".repoforge" / "assembly.json"
 
 app = typer.Typer(
     name="repoforge",
-    help="Inspect and validate Python repositories.",
+    help="Multi-model repository engineering with explicit human approval.",
     no_args_is_help=True,
     add_completion=False,
 )
@@ -23,6 +31,154 @@ app = typer.Typer(
 def version() -> None:
     """Print the installed RepoForge version."""
     typer.echo(f"RepoForge {__version__}")
+
+
+@app.command()
+def models() -> None:
+    """Show supported providers and whether their environment is configured."""
+    for item in provider_status():
+        state = "configured" if item["configured"] else "not configured"
+        typer.echo(f"{item['provider']}: {state} | model: {item['model']}")
+
+
+@app.command("models-list")
+def models_list(
+    provider: str = typer.Option("openrouter", "--provider"),
+    base_url: str | None = typer.Option(None, "--base-url"),
+    limit: int = typer.Option(40, "--limit", min=1, max=500),
+) -> None:
+    """List model IDs exposed by a live provider catalog endpoint."""
+    try:
+        catalog = list_models(provider, base_url=base_url)
+    except Exception as exc:
+        typer.echo(f"Model catalog request failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Models exposed by {provider}: {len(catalog)}")
+    for item in catalog[:limit]:
+        owner = item.get("owned_by") or "unknown owner"
+        typer.echo(f"{item['id']}  ({owner})")
+    if len(catalog) > limit:
+        typer.echo(f"... {len(catalog) - limit} more; increase --limit to display them")
+
+
+@app.command()
+def inspect(
+    repository: str = typer.Argument(..., help="Local path, GitHub URL, or owner/repo."),
+    cache_dir: Path | None = typer.Option(None, "--cache-dir"),
+) -> None:
+    """Resolve a repository and show a bounded, secret-filtered context summary."""
+    try:
+        target = resolve_repository(repository, cache_dir=cache_dir)
+        context = collect_repository_context(target.path)
+    except (OSError, ValueError, RuntimeError) as exc:
+        typer.echo(f"Repository intake failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Repository: {context['repository_name']}")
+    typer.echo(f"Path: {target.path}")
+    source_label = f"cloned from {target.remote_url}" if target.cloned else "local"
+    typer.echo(f"Source: {source_label}")
+    typer.echo(f"Files discovered: {context['file_count']}")
+    typer.echo(f"Languages: {', '.join(context['languages']) or 'not detected'}")
+    typer.echo(f"Context files included: {len(context['files'])}")
+    for relative in context["files"]:
+        typer.echo(f"  - {relative}")
+
+
+@app.command()
+def forge(
+    repository: str = typer.Argument(..., help="Local path, GitHub URL, or owner/repo."),
+    task: str = typer.Argument(..., help="Engineering task to plan and implement."),
+    architect_provider: str = typer.Option("openrouter", "--architect-provider"),
+    architect_model: str | None = typer.Option(None, "--architect-model"),
+    coder_provider: str = typer.Option("openrouter", "--coder-provider"),
+    coder_model: str | None = typer.Option(None, "--coder-model"),
+    reviewer_provider: str = typer.Option("openrouter", "--reviewer-provider"),
+    reviewer_model: str | None = typer.Option(None, "--reviewer-model"),
+    cache_dir: Path | None = typer.Option(None, "--cache-dir"),
+    max_revisions: int = typer.Option(1, "--max-revisions", min=0, max=5),
+) -> None:
+    """Run architect/coder/reviewer agents and save a proposal without editing files."""
+    from repoforge.agents.coding import CodingSuperAgent
+
+    try:
+        target = resolve_repository(repository, cache_dir=cache_dir)
+        context = collect_repository_context(target.path)
+        architect = create_provider(architect_provider, model=architect_model)
+        coder = create_provider(coder_provider, model=coder_model)
+        reviewer = create_provider(reviewer_provider, model=reviewer_model)
+        result = CodingSuperAgent(
+            architect_provider=architect,
+            coder_provider=coder,
+            reviewer_provider=reviewer,
+        ).build_feature(task, context=context, max_revisions=max_revisions)
+    except Exception as exc:
+        typer.echo(f"Forge failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    proposal_dir = Path.home() / ".repoforge" / "proposals"
+    proposal_dir.mkdir(parents=True, exist_ok=True)
+    run_id = uuid.uuid4().hex
+    proposal_path = proposal_dir / f"{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}-{run_id}.json"
+    artifact = {
+        "schema_version": 1,
+        "run_id": run_id,
+        "repository": str(target.path),
+        "remote_url": target.remote_url,
+        "task": task,
+        "providers": {
+            "architect": {"name": architect.name, "models": architect.models},
+            "coder": {"name": coder.name, "models": coder.models},
+            "reviewer": {"name": reviewer.name, "models": reviewer.models},
+        },
+        "result": result,
+        "execution_verified": False,
+        "applied": False,
+    }
+    serialized = json.dumps(artifact, indent=2, ensure_ascii=False) + "\n"
+    proposal_path.write_text(serialized, encoding="utf-8")
+    typer.echo(f"Repository: {target.path}")
+    typer.echo(f"Review passed: {result['review_passed']}")
+    typer.echo("Execution verified: no (this command generates a proposal only)")
+    typer.echo(f"Proposal: {proposal_path}")
+    typer.echo("No repository files were changed.")
+
+
+@app.command()
+def turbo(
+    repository: str = typer.Argument(..., help="Local path, GitHub URL, or owner/repo."),
+    file_path: str = typer.Argument(..., help="Repository-relative path to an existing file."),
+    instruction: str = typer.Argument(..., help="Requested change."),
+    provider_name: str = typer.Option("openrouter", "--provider"),
+    model: str | None = typer.Option(None, "--model"),
+    cache_dir: Path | None = typer.Option(None, "--cache-dir"),
+) -> None:
+    """Propose a single-file edit, show a diff, and apply only after confirmation."""
+    try:
+        target = resolve_repository(repository, cache_dir=cache_dir)
+        provider = create_provider(provider_name, model=model)
+        proposal = propose_edit(target.path, file_path, instruction, provider)
+    except Exception as exc:
+        typer.echo(f"Turbo failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    if not proposal.diff:
+        typer.echo("No changes proposed.")
+        return
+    typer.echo(proposal.diff)
+    approval = typer.prompt("Apply this edit? Type 'yes' to continue", default="no")
+    if approval.strip().lower() != "yes":
+        typer.echo("Proposal rejected. No repository files were changed.")
+        return
+    try:
+        backup = apply_edit(proposal)
+    except (OSError, RuntimeError, ValueError) as exc:
+        typer.echo(f"Apply failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"Updated: {proposal.path}")
+    typer.echo(f"Backup: {backup}")
+    typer.echo("No commit, push, or pull request was created.")
 
 
 @app.command()
