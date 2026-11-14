@@ -7,7 +7,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-from repoforge.providers.factory import OPENROUTER_BASE_URL, create_provider
+from repoforge.providers.factory import OPENROUTER_BASE_URL
 
 
 def list_models(
