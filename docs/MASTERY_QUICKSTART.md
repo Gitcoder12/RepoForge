@@ -85,6 +85,24 @@ RepoForge sends bounded text context and excludes common secret files,
 generated directories, symlinks, and large/binary files. Inspect the repository
 and review the context policy before using it with third-party model APIs.
 
+
+## Discover the live model catalog
+
+Use the provider's own model endpoint to list the model IDs visible to your
+configured account:
+
+```bash
+repoforge models-list --provider openrouter --limit 100
+```
+
+You can select a specific model ID for each agent role with the corresponding
+`--architect-model`, `--coder-model`, and `--reviewer-model` options.
+The provider's catalog does not guarantee that every listed model supports
+chat completions, is enabled for your account, or has the same capabilities.
+
+Live catalog discovery requires a configured API key and the optional provider
+SDK. CI uses mocked catalog responses and does not make a billable API call.
+
 ## Multi-model engineering proposal
 
 ```bash
