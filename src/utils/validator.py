@@ -2,110 +2,160 @@ import ast
 import asyncio
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 logger = logging.getLogger("RepoForge.Validator")
 
-class ThreatVisitor(ast.NodeVisitor):
-    """Parses Python AST to find malicious logic (Rogue AI Defense)."""
-    def __init__(self):
-        self.threats = []
 
-    def visit_Call(self, node):
-        # 1. Block Dynamic Execution
-        if isinstance(node.func, ast.Name):
-            if node.func.id in ("eval", "exec", "__import__"):
-                self.threats.append(f"CRITICAL: Rogue execution '{node.func.id}()' at line {node.lineno}")
-        
-        # 2. Block Network Exfiltration (Egress)
-        if isinstance(node.func, ast.Attribute):
-            if isinstance(node.func.value, ast.Name):
-                if node.func.value.id in ("requests", "urllib", "socket", "http"):
-                    self.threats.append(f"CRITICAL: Data exfiltration attempt via '{node.func.value.id}.{node.func.attr}' at line {node.lineno}")
-            
-            # 3. Block Destructive Actions
-            if node.func.value.id in ("os", "subprocess", "shutil"):
-                if node.func.attr in ("system", "popen", "call", "run", "remove", "rmtree", "unlink"):
-                    self.threats.append(f"CRITICAL: Destructive action '{node.func.value.id}.{node.func.attr}()' at line {node.lineno}")
+class ThreatVisitor(ast.NodeVisitor):
+    """Conservative AST checks for dynamic execution and risky operations."""
+
+    def __init__(self) -> None:
+        self.threats: list[str] = []
+
+    @staticmethod
+    def _root_name(node: ast.AST) -> str | None:
+        while isinstance(node, ast.Attribute):
+            node = node.value
+        return node.id if isinstance(node, ast.Name) else None
+
+    def visit_Call(self, node: ast.Call) -> None:
+        function = node.func
+        if isinstance(function, ast.Name):
+            if function.id in ("eval", "exec", "__import__"):
+                self.threats.append(
+                    f"CRITICAL: Dynamic execution '{function.id}()' at line {node.lineno}"
+                )
+
+        elif isinstance(function, ast.Attribute):
+            root = self._root_name(function.value)
+            attribute = function.attr
+            if root in ("requests", "urllib", "socket", "http"):
+                self.threats.append(
+                    f"REVIEW: Network operation '{root}.{attribute}' at line {node.lineno}"
+                )
+            if root in ("os", "subprocess", "shutil") and attribute in (
+                "system", "popen", "call", "run", "remove", "rmtree", "unlink"
+            ):
+                self.threats.append(
+                    f"REVIEW: Potentially destructive operation "
+                    f"'{root}.{attribute}()' at line {node.lineno}"
+                )
 
         self.generic_visit(node)
 
-class Validator:
-    IGNORE_DIRS = {".git", ".repoforge", "__pycache__", "node_modules", "venv", ".venv", "dist", "build"}
 
-    def __init__(self, repo_path: str = "."):
+class Validator:
+    IGNORE_DIRS = {
+        ".git", ".repoforge", "__pycache__", "node_modules",
+        "venv", ".venv", "dist", "build",
+    }
+
+    def __init__(self, repo_path: str = ".") -> None:
         self.repo_path = Path(repo_path).resolve()
 
-    def _check_syntax(self, file_path: Path) -> Dict[str, Any]:
+    def _resolve_target(self, relative_path: str) -> Path:
+        candidate = Path(relative_path)
+        if candidate.is_absolute():
+            raise ValueError("absolute validation paths are not allowed")
+        resolved = (self.repo_path / candidate).resolve()
         try:
-            source = file_path.read_text(encoding="utf-8", errors="ignore")
+            resolved.relative_to(self.repo_path)
+        except ValueError as exc:
+            raise ValueError("validation path escapes repository root") from exc
+        return resolved
+
+    def _check_syntax(self, file_path: Path) -> dict[str, Any]:
+        relative = str(file_path.relative_to(self.repo_path))
+        try:
+            source = file_path.read_text(encoding="utf-8")
             if not source.strip():
-                return {"file": str(file_path.relative_to(self.repo_path)), "passed": True}
-                
+                return {"file": relative, "passed": True}
+
             tree = ast.parse(source)
-            
-            # ROGUE AI BLOCKER
             visitor = ThreatVisitor()
             visitor.visit(tree)
             if visitor.threats:
-                logger.critical(f"🚨 MALWARE DETECTED in {file_path.name}: {visitor.threats}")
-                return {"file": str(file_path.relative_to(self.repo_path)), "passed": False, "threats": visitor.threats}
-                
-            return {"file": str(file_path.relative_to(self.repo_path)), "passed": True}
-        except SyntaxError as e:
-            logger.error(f"Syntax Error in {file_path.name}: line {e.lineno}: {e.msg}")
-            return {"file": str(file_path.relative_to(self.repo_path)), "passed": False, "error": f"line {e.lineno}: {e.msg}"}
-        except Exception as e:
-            logger.warning(f"Could not validate {file_path.name}: {e}")
-            return {"file": str(file_path.relative_to(self.repo_path)), "passed": True, "warning": str(e)}
+                logger.warning("Review-required operations in %s: %s", relative, visitor.threats)
+                return {"file": relative, "passed": False, "threats": visitor.threats}
+            return {"file": relative, "passed": True}
 
-    async def validate(self, target_files: List[str] = None) -> Dict[str, Any]:
-        logger.info(f"🛡️ Deploying The Shield... (Targets: {len(target_files) if target_files else 'All'})")
-        
+        except SyntaxError as exc:
+            logger.error("Syntax error in %s at line %s: %s", relative, exc.lineno, exc.msg)
+            return {
+                "file": relative,
+                "passed": False,
+                "error": f"line {exc.lineno}: {exc.msg}",
+            }
+        except Exception as exc:
+            logger.exception("Could not validate %s", relative)
+            return {"file": relative, "passed": False, "error": str(exc)}
+
+    async def validate(self, target_files: list[str] | None = None) -> dict[str, Any]:
+        logger.info(
+            "Validating Python files (targets=%s)",
+            len(target_files) if target_files is not None else "all",
+        )
         results = []
-        syntax_errors = 0
-        malware_threats = 0
+        invalid_paths = []
 
-        if target_files:
-            for tf in target_files:
-                fp = self.repo_path / tf
-                if fp.exists() and fp.suffix == ".py":
-                    res = self._check_syntax(fp)
-                    results.append(res)
-                    if not res["passed"]:
-                        if "threats" in res: malware_threats += 1
-                        else: syntax_errors += 1
+        if target_files is not None:
+            candidates = []
+            for target in target_files:
+                try:
+                    resolved = self._resolve_target(target)
+                except (OSError, RuntimeError, TypeError, ValueError) as exc:
+                    invalid_paths.append({"file": str(target), "error": str(exc)})
+                    continue
+                if resolved.suffix == ".py" and resolved.is_file():
+                    candidates.append(resolved)
         else:
-            for file in self.repo_path.rglob("*.py"):
-                if any(part in self.IGNORE_DIRS for part in file.parts): continue
-                res = self._check_syntax(file)
-                results.append(res)
-                if not res["passed"]:
-                    if "threats" in res: malware_threats += 1
-                    else: syntax_errors += 1
+            candidates = []
+            for path in self.repo_path.rglob("*.py"):
+                relative = path.relative_to(self.repo_path)
+                if any(part in self.IGNORE_DIRS for part in relative.parts):
+                    continue
+                try:
+                    candidates.append(self._resolve_target(str(relative)))
+                except (OSError, RuntimeError, TypeError, ValueError) as exc:
+                    invalid_paths.append({"file": str(relative), "error": str(exc)})
 
-        if malware_threats > 0:
-            logger.critical(f"🛑 QUARANTINE INITIATED! {malware_threats} malicious threats found.")
-            return {"passed": False, "reason": "malware_detected", "results": results}
+        for file_path in candidates:
+            results.append(self._check_syntax(file_path))
 
-        if syntax_errors > 0:
-            logger.error(f"❌ Validation FAILED: {syntax_errors} syntax errors.")
-            return {"passed": False, "reason": "syntax_errors", "results": results}
+        failed = [item for item in results if not item["passed"]]
+        if invalid_paths or failed:
+            return {
+                "passed": False,
+                "reason": "invalid_paths" if invalid_paths else "validation_failed",
+                "results": results,
+                "invalid_paths": invalid_paths,
+            }
 
-        logger.info("🏃 Running pytest suite...")
+        logger.info("Running pytest suite...")
         try:
             process = await asyncio.create_subprocess_exec(
-                "pytest", "--tb=short", "-q", cwd=str(self.repo_path),
-                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                "pytest", "--tb=short", "-q",
+                cwd=str(self.repo_path),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
-            stdout, _ = await process.communicate()
+            stdout, stderr = await process.communicate()
             if process.returncode != 0:
-                logger.error("❌ Tests FAILED.")
-                return {"passed": False, "reason": "test_failures", "output": stdout.decode()[:500]}
+                return {
+                    "passed": False,
+                    "reason": "test_failures",
+                    "output": (stdout + stderr).decode(errors="replace")[:2000],
+                    "results": results,
+                }
         except FileNotFoundError:
-            logger.warning("Pytest not found. Skipping test execution.")
+            return {
+                "passed": False,
+                "reason": "pytest_unavailable",
+                "results": results,
+            }
 
-        logger.info("✅ SHIELD ACTIVATED: Code is secure.")
         return {"passed": True, "results": results}
+
 
 RepoValidator = Validator
