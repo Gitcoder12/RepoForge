@@ -165,3 +165,53 @@ def test_cli_exposes_repository_first_commands() -> None:
     assert "turbo" in result.stdout
     assert "inspect" in result.stdout
     assert "models" in result.stdout
+
+
+def test_live_model_catalog_uses_provider_endpoint_and_returns_sorted_ids() -> None:
+    class FakeModel:
+        def __init__(self, model_id: str, owner: str) -> None:
+            self.id = model_id
+            self.owned_by = owner
+            self.created = 123
+
+    class FakeModels:
+        def list(self):
+            return type(
+                "Response",
+                (),
+                {"data": [FakeModel("zeta/model", "zeta"), FakeModel("alpha/model", "alpha")]},
+            )()
+
+    class FakeClient:
+        def __init__(self, **kwargs):
+            self.options = kwargs
+            self.models = FakeModels()
+
+    with patch("openai.OpenAI", FakeClient):
+        from repoforge.providers.catalog import list_models
+
+        result = list_models("openrouter", api_key="test-key")
+
+    assert [item["id"] for item in result] == ["alpha/model", "zeta/model"]
+    assert result[0]["owned_by"] == "alpha"
+
+
+def test_live_model_catalog_requires_credentials(monkeypatch) -> None:
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    from repoforge.providers.catalog import list_models
+
+    with pytest.raises(ValueError, match="No API key configured"):
+        list_models("openrouter")
+
+
+def test_live_model_catalog_rejects_unsupported_provider() -> None:
+    from repoforge.providers.catalog import list_models
+
+    with pytest.raises(ValueError, match="Model catalog is supported"):
+        list_models("anthropic")
+
+
+def test_cli_exposes_live_model_catalog_command() -> None:
+    result = CliRunner().invoke(app, ["--help"])
+    assert result.exit_code == 0
+    assert "models-list" in result.stdout
