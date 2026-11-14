@@ -192,7 +192,12 @@ def test_live_model_catalog_uses_provider_endpoint_and_returns_sorted_ids() -> N
             self.options = kwargs
             self.models = FakeModels()
 
-    with patch("openai.OpenAI", FakeClient):
+    import sys
+    from types import ModuleType
+
+    fake_openai = ModuleType("openai")
+    fake_openai.OpenAI = FakeClient
+    with patch.dict(sys.modules, {"openai": fake_openai}):
         from repoforge.providers.catalog import list_models
 
         result = list_models("openrouter", api_key="test-key")
