@@ -24,13 +24,35 @@ def version() -> None:
 @app.command()
 def validate(
     repo_path: Path = typer.Argument(Path("."), exists=True, file_okay=False, readable=True),
+    run_tests: bool = typer.Option(
+        False,
+        "--run-tests",
+        help="Execute the target repository's pytest suite (only for trusted repositories).",
+    ),
+    test_timeout: int = typer.Option(
+        120,
+        "--test-timeout",
+        min=1,
+        max=1800,
+        help="Maximum seconds to wait when --run-tests is enabled.",
+    ),
 ) -> None:
-    """Run static validation and the repository's pytest suite."""
+    """Run static validation; target tests require explicit --run-tests opt-in."""
     import asyncio
 
-    result = asyncio.run(Validator(str(repo_path)).validate())
+    result = asyncio.run(
+        Validator(str(repo_path)).validate(
+            run_tests=run_tests,
+            test_timeout=test_timeout,
+        )
+    )
     if result.get("passed"):
-        typer.echo("Validation passed.")
+        typer.echo("Static validation passed.")
+        test_status = result.get("test_run", {}).get("status")
+        if test_status == "passed":
+            typer.echo("Target test suite passed.")
+        elif test_status == "skipped":
+            typer.echo("Target tests were not executed. Use --run-tests for trusted repositories.")
         return
 
     typer.echo(f"Validation failed: {result.get('reason')}", err=True)
