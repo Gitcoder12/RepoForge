@@ -51,7 +51,7 @@ def test_validator_rejects_symlink_escape(tmp_path) -> None:
     repository = tmp_path / "repository"
     repository.mkdir()
     outside_file = tmp_path / "outside.py"
-    outside_file.write_text("print('outside')\\n", encoding="utf-8")
+    outside_file.write_text("print('outside')\n", encoding="utf-8")
     (repository / "escape.py").symlink_to(outside_file)
 
     result = asyncio.run(Validator(str(repository)).validate())
@@ -114,7 +114,7 @@ def test_cli_shows_validation_diagnostics(tmp_path) -> None:
 def test_validator_does_not_execute_target_tests_by_default(tmp_path, monkeypatch) -> None:
     from repoforge.validator import Validator
 
-    (tmp_path / "safe.py").write_text("VALUE = 1\\n", encoding="utf-8")
+    (tmp_path / "safe.py").write_text("VALUE = 1\n", encoding="utf-8")
     create_process = AsyncMock(side_effect=AssertionError("pytest must not run by default"))
     monkeypatch.setattr(asyncio, "create_subprocess_exec", create_process)
 
@@ -128,7 +128,7 @@ def test_validator_does_not_execute_target_tests_by_default(tmp_path, monkeypatc
 def test_validator_executes_target_tests_only_after_opt_in(tmp_path, monkeypatch) -> None:
     from repoforge.validator import Validator
 
-    (tmp_path / "safe.py").write_text("VALUE = 1\\n", encoding="utf-8")
+    (tmp_path / "safe.py").write_text("VALUE = 1\n", encoding="utf-8")
 
     class FakeProcess:
         returncode = 0
