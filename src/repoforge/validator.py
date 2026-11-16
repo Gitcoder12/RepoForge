@@ -218,7 +218,10 @@ class Validator:
                     process.kill()
                 except ProcessLookupError:
                     pass
-                await process.communicate()
+                try:
+                    await asyncio.wait_for(process.communicate(), timeout=5.0)
+                except asyncio.TimeoutError:
+                    logger.error("Timed out while collecting output after killing pytest")
                 return {
                     "passed": False,
                     "reason": "test_timeout",
