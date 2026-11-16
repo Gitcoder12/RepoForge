@@ -1,3 +1,4 @@
+import asyncio
 from unittest.mock import AsyncMock, patch
 
 from typer.testing import CliRunner
@@ -45,14 +46,12 @@ def test_crucible_blocks_dangerous_provider_output() -> None:
 
 
 def test_validator_rejects_symlink_escape(tmp_path) -> None:
-    import asyncio
-
     from repoforge.validator import Validator
 
     repository = tmp_path / "repository"
     repository.mkdir()
     outside_file = tmp_path / "outside.py"
-    outside_file.write_text("print('outside')\n", encoding="utf-8")
+    outside_file.write_text("print('outside')\\n", encoding="utf-8")
     (repository / "escape.py").symlink_to(outside_file)
 
     result = asyncio.run(Validator(str(repository)).validate())
@@ -78,8 +77,6 @@ def test_orchestrator_requires_explicit_choice_when_multiple_providers_are_enabl
 
 
 def test_validator_rejects_self_referential_python_symlink(tmp_path) -> None:
-    import asyncio
-
     from repoforge.validator import Validator
 
     repository = tmp_path / "repository"
@@ -101,6 +98,7 @@ def test_cli_shows_validation_diagnostics(tmp_path) -> None:
         "results": [{"file": "src/example.py", "error": "syntax error"}],
         "invalid_paths": [],
         "output": "1 failed",
+        "test_run": {"status": "failed"},
     }
     with patch(
         "repoforge.cli.Validator.validate",
@@ -111,3 +109,55 @@ def test_cli_shows_validation_diagnostics(tmp_path) -> None:
     assert result.exit_code == 1
     assert "src/example.py: syntax error" in result.output
     assert "1 failed" in result.output
+
+
+def test_validator_does_not_execute_target_tests_by_default(tmp_path, monkeypatch) -> None:
+    from repoforge.validator import Validator
+
+    (tmp_path / "safe.py").write_text("VALUE = 1\\n", encoding="utf-8")
+    create_process = AsyncMock(side_effect=AssertionError("pytest must not run by default"))
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", create_process)
+
+    result = asyncio.run(Validator(str(tmp_path)).validate())
+
+    assert result["passed"] is True
+    assert result["test_run"]["status"] == "skipped"
+    create_process.assert_not_awaited()
+
+
+def test_validator_executes_target_tests_only_after_opt_in(tmp_path, monkeypatch) -> None:
+    from repoforge.validator import Validator
+
+    (tmp_path / "safe.py").write_text("VALUE = 1\\n", encoding="utf-8")
+
+    class FakeProcess:
+        returncode = 0
+
+        async def communicate(self):
+            return b"2 passed", b""
+
+    create_process = AsyncMock(return_value=FakeProcess())
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", create_process)
+
+    result = asyncio.run(Validator(str(tmp_path)).validate(run_tests=True))
+
+    assert result["passed"] is True
+    assert result["test_run"]["status"] == "passed"
+    create_process.assert_awaited_once()
+    assert create_process.await_args.args[:3] == ("pytest", "--tb=short", "-q")
+
+
+def test_validator_rejects_invalid_target_and_timeout(tmp_path) -> None:
+    import pytest
+
+    from repoforge.validator import Validator
+
+    validator = Validator(str(tmp_path))
+    (tmp_path / "note.txt").write_text("not python", encoding="utf-8")
+
+    invalid_target = asyncio.run(validator.validate(target_files=["note.txt"]))
+    assert invalid_target["passed"] is False
+    assert invalid_target["reason"] == "invalid_paths"
+
+    with pytest.raises(ValueError, match="test_timeout"):
+        asyncio.run(validator.validate(test_timeout=0))
