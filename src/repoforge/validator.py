@@ -52,6 +52,13 @@ class ThreatVisitor(ast.NodeVisitor):
 
 
 class Validator:
+    """Static Python checks with opt-in, time-limited target test execution.
+
+    Target-repository tests are arbitrary code. They are not launched unless
+    the caller explicitly sets run_tests=True. This is an opt-in safeguard,
+    not an operating-system sandbox; only run tests for repositories you trust.
+    """
+
     IGNORE_DIRS = {
         ".git",
         ".repoforge",
@@ -103,24 +110,48 @@ class Validator:
             logger.exception("Could not validate %s", relative)
             return {"file": relative, "passed": False, "error": str(exc)}
 
-    async def validate(self, target_files: list[str] | None = None) -> dict[str, Any]:
+    async def validate(
+        self,
+        target_files: list[str] | None = None,
+        *,
+        run_tests: bool = False,
+        test_timeout: float = 120.0,
+    ) -> dict[str, Any]:
+        """Validate Python syntax; run pytest only after explicit opt-in.
+
+        Args:
+            target_files: Optional repository-relative Python file paths.
+            run_tests: Explicitly allow execution of the target repository's tests.
+            test_timeout: Maximum seconds to wait for pytest when enabled.
+        """
+        if not isinstance(run_tests, bool):
+            raise ValueError("run_tests must be a boolean")
+        if (
+            isinstance(test_timeout, bool)
+            or not isinstance(test_timeout, (int, float))
+            or test_timeout <= 0
+        ):
+            raise ValueError("test_timeout must be a positive number")
+
         logger.info(
             "Validating Python files (targets=%s)",
             len(target_files) if target_files is not None else "all",
         )
-        results = []
-        invalid_paths = []
+        results: list[dict[str, Any]] = []
+        invalid_paths: list[dict[str, str]] = []
 
         if target_files is not None:
-            candidates = []
+            candidates: list[Path] = []
             for target in target_files:
                 try:
                     resolved = self._resolve_target(target)
-                except (TypeError, ValueError) as exc:
-                    invalid_paths.append({"file": str(target), "error": str(exc)})
-                    continue
-                if resolved.suffix == ".py" and resolved.is_file():
+                    if resolved.suffix != ".py":
+                        raise ValueError("validation target must be a Python (.py) file")
+                    if not resolved.is_file():
+                        raise ValueError("validation target does not exist or is not a file")
                     candidates.append(resolved)
+                except (TypeError, ValueError, OSError, RuntimeError) as exc:
+                    invalid_paths.append({"file": str(target), "error": str(exc)})
         else:
             candidates = []
             for path in self.repo_path.rglob("*.py"):
@@ -130,6 +161,8 @@ class Validator:
                 try:
                     resolved = path.resolve(strict=True)
                     resolved.relative_to(self.repo_path)
+                    if not resolved.is_file():
+                        raise ValueError("not a regular file")
                 except (OSError, ValueError, RuntimeError):
                     invalid_paths.append(
                         {
@@ -150,9 +183,23 @@ class Validator:
                 "reason": "invalid_paths" if invalid_paths else "validation_failed",
                 "results": results,
                 "invalid_paths": invalid_paths,
+                "test_run": {"status": "not_started"},
             }
 
-        logger.info("Running pytest suite...")
+        if not run_tests:
+            return {
+                "passed": True,
+                "results": results,
+                "test_run": {
+                    "status": "skipped",
+                    "reason": "target tests execute repository code; pass run_tests=True to opt in",
+                },
+            }
+
+        logger.warning(
+            "Executing tests in %s. This is not a sandbox; run only trusted repositories.",
+            self.repo_path,
+        )
         try:
             process = await asyncio.create_subprocess_exec(
                 "pytest",
@@ -162,22 +209,50 @@ class Validator:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
-            stdout, stderr = await process.communicate()
+            try:
+                stdout, stderr = await asyncio.wait_for(
+                    process.communicate(), timeout=float(test_timeout)
+                )
+            except asyncio.TimeoutError:
+                try:
+                    process.kill()
+                except ProcessLookupError:
+                    pass
+                try:
+                    await asyncio.wait_for(process.communicate(), timeout=5.0)
+                except asyncio.TimeoutError:
+                    logger.error("Timed out while collecting output after killing pytest")
+                return {
+                    "passed": False,
+                    "reason": "test_timeout",
+                    "results": results,
+                    "test_run": {
+                        "status": "timed_out",
+                        "timeout_seconds": float(test_timeout),
+                    },
+                }
+            output = (stdout + stderr).decode(errors="replace")
             if process.returncode != 0:
                 return {
                     "passed": False,
                     "reason": "test_failures",
-                    "output": (stdout + stderr).decode(errors="replace")[:2000],
+                    "output": output[-8000:],
                     "results": results,
+                    "test_run": {"status": "failed"},
                 }
         except FileNotFoundError:
             return {
                 "passed": False,
                 "reason": "pytest_unavailable",
                 "results": results,
+                "test_run": {"status": "unavailable"},
             }
 
-        return {"passed": True, "results": results}
+        return {
+            "passed": True,
+            "results": results,
+            "test_run": {"status": "passed", "output": output[-8000:]},
+        }
 
 
 RepoValidator = Validator
