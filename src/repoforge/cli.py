@@ -200,5 +200,5 @@ def test_command(
         raise typer.Exit(code=2) from exc
 
     typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
-    if execute and result["status"] == "failed":
+    if execute and result["status"] in {"failed", "scan_incomplete"}:
         raise typer.Exit(code=1)
