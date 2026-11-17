@@ -357,7 +357,7 @@ Review each PR's exact head and CI before relying on these features. The origina
 
 ## Real model provider runtime — development PR
 
-The installable `src/repoforge` package now has an explicit OpenAI-compatible provider runtime for DeepSeek, OpenAI, OpenRouter, Groq, and a local Ollama endpoint.
+The installable `src/repoforge` package now has an explicit OpenAI-compatible provider runtime for DeepSeek, OpenAI, OpenRouter, Groq, and a local Ollama endpoint. The DeepSeek default is `deepseek-flash`; the Groq default is `openai/gpt-oss-120b`. Both were checked against their providers' current model documentation on 2026-11-17.
 
 Install the provider SDK:
 
@@ -377,6 +377,6 @@ Send a single prompt to an explicitly selected provider:
 repoforge generate "Review this Python function for correctness and performance" --provider deepseek
 ```
 
-Use `--model`, `--timeout`, and `--max-tokens` to control the request. Provider quota exhaustion, authentication errors, timeouts, and connection failures are reported explicitly. SDK retries are disabled, and RepoForge does not silently substitute mock output or switch to another paid provider. Choose another provider deliberately with `--provider`.
+Use `--model`, `--timeout`, and `--max-tokens` to control the request. For DeepSeek's higher-capability V4-Pro model, select `--model deepseek-v4-pro` explicitly. Provider quota exhaustion, authentication errors, timeouts, and connection failures are reported explicitly. SDK retries are disabled, and RepoForge does not silently substitute mock output or switch to another paid provider. Choose another provider deliberately with `--provider`.
 
 This is a single-request provider runtime, not yet the autonomous repository-editing `forge` workflow. It must pass CI and review before it is treated as part of the released default branch.
