@@ -129,6 +129,23 @@ Extreme
 
 ---
 
+## Blacksmith & Megazords
+
+**Blacksmith** audits a local repository, reports a transparent before/after RepoRank, and previews or applies safe create-only repairs.
+
+```bash
+repoforge blacksmith ../your-repository
+repoforge blacksmith ../your-repository --apply
+```
+
+**Megazords** compares multiple local repositories and suggests complementary combinations with integration patterns and risks—without merging or changing them.
+
+```bash
+repoforge megazords ../ARK ../Overdrive ../Chaos-Control
+```
+
+The current Blacksmith repair adapter is intentionally narrow; arbitrary semantic code repair is not yet implemented. See [docs/BLACKSMITH_MEGazords.md](docs/BLACKSMITH_MEGazords.md) for scoring, safety boundaries and limitations.
+
 # Installation
 
 ## Requirements
