@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0",
+  "dataset_type": "company_product_service_catalogue",
+  "purpose": "A sourced landscape index; not a ranking of company quality or safety.",
+  "entries": [
+    {
+      "company": "OpenAI",
+      "category": "frontier_ai_and_developer_platform",
+      "products_services": [
+        {
+          "name": "GPT-6 model family",
+          "type": "foundation_models",
+          "source_url": "https://developers.openai.com/api/docs"
+        },
+        {
+          "name": "Responses API",
+          "type": "model_api",
+          "source_url": "https://developers.openai.com/api/docs"
+        },
+        {
+          "name": "Agents SDK",
+          "type": "agent_orchestration_sdk",
+          "source_url": "https://developers.openai.com/api/docs"
+        }
+      ]
+    },
+    {
+      "company": "Anthropic",
+      "category": "frontier_ai_and_developer_platform",
+      "products_services": [
+        {
+          "name": "Claude Fable 5.2",
+          "type": "frontier_model",
+          "source_url": "https://www.anthropic.com/claude/fable"
+        },
+        {
+          "name": "Claude Platform API",
+          "type": "model_api",
+          "source_url": "https://www.anthropic.com/claude/api"
+        },
+        {
+          "name": "Claude Code",
+          "type": "coding_agent",
+          "source_url": "https://www.anthropic.com/claude"
+        }
+      ]
+    },
+    {
+      "company": "Google DeepMind",
+      "category": "frontier_ai_and_robotics_models",
+      "products_services": [
+        {
+          "name": "Gemini Robotics 2.5",
+          "type": "vision_language_action_model",
+          "source_url": "https://deepmind.google/models/gemini-robotics/"
+        },
+        {
+          "name": "Gemini Robotics ER 2",
+          "type": "embodied_reasoning_model",
+          "source_url": "https://deepmind.google/models/gemini-robotics/"
+        },
+        {
+          "name": "Gemini Robotics On-Device 2",
+          "type": "on_device_robotics_model",
+          "source_url": "https://deepmind.google/models/gemini-robotics/"
+        }
+      ]
+    },
+    {
+      "company": "NVIDIA",
+      "category": "robotics_compute_and_development_platform",
+      "products_services": [
+        {
+          "name": "Isaac GR00T",
+          "type": "humanoid_robot_foundation_platform",
+          "source_url": "https://developer.nvidia.com/isaac/gr00t"
+        },
+        {
+          "name": "Jetson Thor",
+          "type": "robotics_edge_compute",
+          "source_url": "https://www.nvidia.com/en-us/industries/robotics/isaac-groot/"
+        },
+        {
+          "name": "Isaac Sim and Omniverse workflows",
+          "type": "simulation_and_digital_twin_tooling",
+          "source_url": "https://developer.nvidia.com/isaac/gr00t"
+        }
+      ]
+    },
+    {
+      "company": "Boston Dynamics",
+      "category": "industrial_robotics",
+      "products_services": [
+        {
+          "name": "Atlas",
+          "type": "industrial_humanoid_robot",
+          "source_url": "https://bostondynamics.com/products/atlas"
+        },
+        {
+          "name": "Orbit",
+          "type": "robot_fleet_and_enterprise_intelligence",
+          "source_url": "https://bostondynamics.com/products/atlas"
+        }
+      ]
+    },
+    {
+      "company": "Figure",
+      "category": "humanoid_robotics",
+      "products_services": [
+        {
+          "name": "Figure 03",
+          "type": "general_purpose_humanoid_robot",
+          "source_url": "https://www.figure.ai/figure"
+        },
+        {
+          "name": "Helix",
+          "type": "vision_language_action_robotics_model",
+          "source_url": "https://www.figure.ai/news/introducing-figure-03?id=Figure03"
+        }
+      ]
+    },
+    {
+      "company": "1X",
+      "category": "home_robotics",
+      "products_services": [
+        {
+          "name": "NEO",
+          "type": "home_humanoid_robot",
+          "source_url": "https://www.1x.tech/discover/neo-home-robot"
+        }
+      ]
+    },
+    {
+      "company": "Neuralink",
+      "category": "brain_computer_interface",
+      "products_services": [
+        {
+          "name": "N1 implant and BCI clinical-trial programme",
+          "type": "investigational_brain_computer_interface",
+          "source_url": "https://neuralink.com/trials/"
+        }
+      ]
+    }
+  ],
+  "evidence_rules": [
+    "Catalogue presence does not imply independent verification of product performance.",
+    "Do not infer market leadership, safety certification, clinical efficacy or deployment scale from a company product page.",
+    "Store incidents and adverse findings separately in SafeBreak with source attribution.",
+    "Re-check product names, availability and status before publishing or using this catalogue commercially."
+  ]
+}
