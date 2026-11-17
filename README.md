@@ -332,3 +332,22 @@ The following work is in open pull requests and must not be presented as current
 - [PR #5](https://github.com/Gitcoder12/RepoForge/pull/5) proposes coding/research/reviewer agents and a five-stage, human-approved prompt assembly workflow. Its worklog states that branch test/format verification is pending and that this workflow does not automatically modify repositories or certify production readiness.
 
 Review each PR's exact head and CI before relying on these features. The original maintainer-authored README above is retained for historical continuity; claims about the scanner, quality scoring, tested repositories, and autonomous execution must be checked against the actual default-branch code before recruiters or users are told those features work.
+
+---
+
+## Engineering Audit & Handover — 2026-11-17
+
+**Reviewed commit:** `7fb348b7f0fcde7032ba355d46adc7d5722d11b5` (`main`). Static inspection covered `pipeline.py` and `action_runner.py`; tests were not executed.
+
+### Confirmed findings
+- `ActionRunner` accepts `create`, `modify`, and `delete` actions. The delete path is an available destructive capability and must remain behind explicit, reviewable authorization; a dry-run default alone is not a sufficient production safety boundary.
+- `RepoForgePipeline.run()` attempts a Git checkpoint, but if checkpoint creation fails it logs a warning and continues toward action execution. This weakens the stated rollback/safety guarantee.
+- When non-dry-run validation fails, the pipeline calls rollback; the inspected path does not establish that rollback itself is guaranteed to succeed or that the repository is restored byte-for-byte.
+- The action runner contains repository-root path confinement checks, which are valuable safeguards; retain and test them.
+
+### Next actions
+1. Make checkpoint failure a hard stop for every write-capable run.
+2. Require explicit approval for destructive actions and default to deny deletion; log the exact target and obtain a fresh confirmation.
+3. Test traversal/symlink escapes, dry-run behavior, checkpoint failure, validator failure, rollback failure, and partial action errors.
+
+**Verification status:** static source inspection only; full test suite, live model workflow, rollback behavior, and end-to-end execution remain unverified.
