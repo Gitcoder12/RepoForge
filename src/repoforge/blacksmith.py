@@ -353,6 +353,11 @@ class Blacksmith:
             if relative.is_absolute() or ".." in relative.parts:
                 raise ValueError("repair path must stay inside the repository")
             target = self.repo_path / relative
+            parent = target.parent
+            while parent != self.repo_path:
+                if parent.is_symlink():
+                    raise ValueError(f"refusing to write through symlink directory: {parent}")
+                parent = parent.parent
             target.parent.mkdir(parents=True, exist_ok=True)
             try:
                 target.resolve().relative_to(self.repo_path)
