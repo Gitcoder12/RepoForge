@@ -165,7 +165,6 @@ def test_validator_rejects_invalid_target_and_timeout(tmp_path) -> None:
         asyncio.run(validator.validate(test_timeout=0))
 
 
-
 def test_orchestrator_registers_and_enables_explicit_real_provider():
     orchestrator = AIOrchestrator()
     provider = MockProvider("adapter result")
