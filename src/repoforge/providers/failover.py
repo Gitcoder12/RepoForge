@@ -193,9 +193,7 @@ class StandbyProviderPool:
                     raise ProviderFailoverExhaustedError(tuple(attempts))
                 continue
 
-            attempts.append(
-                ProviderAttempt(provider_name=name, model=model, status="success")
-            )
+            attempts.append(ProviderAttempt(provider_name=name, model=model, status="success"))
             return GenerationResult(
                 text=text,
                 provider_name=name,
