@@ -117,8 +117,7 @@ def test_megazord_finds_complementary_ai_and_evaluation_repositories(tmp_path: P
     suggestion = result["suggestions"][0]
     assert suggestion["fit_score"] > 0
     assert any(
-        "evaluation" in item["capabilities"]
-        and "ai_ml" in item["capabilities"]
+        "evaluation" in item["capabilities"] and "ai_ml" in item["capabilities"]
         for item in suggestion["complementarity"]
     )
     after_files = sorted(str(p.relative_to(tmp_path)) for p in tmp_path.rglob("*"))
