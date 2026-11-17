@@ -33,6 +33,27 @@ class AIOrchestrator:
             raise ValueError("A non-empty provider name and BaseProvider instance are required")
         self.providers[name] = provider
 
+    def register_real_provider(
+        self,
+        provider_name: str,
+        *,
+        model: str | None = None,
+        timeout: float = 45.0,
+    ) -> BaseProvider:
+        """Build, register, and enable only the explicitly selected real provider."""
+        if not isinstance(provider_name, str) or not provider_name.strip():
+            raise ValueError("provider_name must be a non-empty string")
+        name = provider_name.strip().lower()
+        if name in self.providers:
+            raise ValueError(f"Provider {name!r} is already registered")
+
+        from repoforge.providers.factory import ProviderFactory
+
+        selected = ProviderFactory().get(name, model=model, timeout=timeout)
+        self.register(name, selected)
+        self.pm.enable(name)
+        return selected
+
     def generate(self, prompt: str, provider: str | None = None, **kwargs: Any) -> str:
         selected = provider
         if selected is None:
