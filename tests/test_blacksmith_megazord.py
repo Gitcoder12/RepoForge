@@ -141,3 +141,21 @@ def test_megazord_rejects_missing_repository_paths(tmp_path: Path):
     _make_repo(existing, "one", "# Project")
     with pytest.raises(ValueError, match="existing directory"):
         MegazordEngine().suggest([existing, tmp_path / "missing"])
+
+
+
+def test_blacksmith_does_not_mistake_latest_filename_for_test_coverage(tmp_path: Path):
+    (tmp_path / "latest.py").write_text("VALUE = 1\n", encoding="utf-8")
+
+    report = Blacksmith(tmp_path).inspect()
+
+    assert report["signals"]["tests"] is False
+    assert "testing" not in report["capabilities"]
+
+
+def test_blacksmith_scan_limit_is_not_truncated_when_exactly_full(tmp_path: Path):
+    (tmp_path / "one.py").write_text("VALUE = 1\n", encoding="utf-8")
+    report = Blacksmith(tmp_path, max_files=1).inspect()
+
+    assert report["files_scanned"] == 1
+    assert report["scan_truncated"] is False
