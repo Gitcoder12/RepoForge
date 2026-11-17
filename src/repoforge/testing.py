@@ -1,16 +1,18 @@
-"""Fast, explicit test discovery and execution for local repositories.
+"""Fast, explicit test discovery and bounded-output execution for local repositories.
 
 TestForge plans commands without executing repository code by default. Running a
-repository's tests is arbitrary code execution, not a sandbox; use --execute
-only for repositories you trust.
+repository's tests is arbitrary code execution, not a sandbox; use --execute only
+for repositories you trust.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import signal
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -29,43 +31,78 @@ SKIP_DIRS = {
     "target",
     ".next",
 }
+DEFAULT_MAX_FILES = 20_000
+MAX_OUTPUT_BYTES = 8_000
 
 
 class TestForge:
     """Detect conventional test runners and execute them only after opt-in."""
 
-    def __init__(self, repo_path: str | Path = ".") -> None:
+    def __init__(
+        self, repo_path: str | Path = ".", *, max_files: int = DEFAULT_MAX_FILES
+    ) -> None:
         self.repo_path = Path(repo_path).expanduser().resolve()
         if not self.repo_path.is_dir():
             raise ValueError(f"repository path must be an existing directory: {repo_path}")
+        if isinstance(max_files, bool) or not isinstance(max_files, int) or max_files < 1:
+            raise ValueError("max_files must be a positive integer")
+        self.max_files = max_files
 
-    def _has_python_tests(self) -> bool:
-        tests_dir = self.repo_path / "tests"
-        if tests_dir.is_dir():
-            return any(tests_dir.rglob("test_*.py")) or any(tests_dir.rglob("*_test.py"))
-        return any(self.repo_path.glob("test_*.py")) or any(self.repo_path.glob("*_test.py"))
+    def _files(self) -> tuple[list[str], bool, list[str]]:
+        """Perform one bounded walk, pruning ignored and symlink directories."""
+        files: list[str] = []
+        truncated = False
+        scan_errors: list[str] = []
 
-    def _has_go_tests(self) -> bool:
-        return any(
-            path.name.endswith("_test.go")
-            for path in self.repo_path.rglob("*_test.go")
-            if not any(part in SKIP_DIRS for part in path.relative_to(self.repo_path).parts)
-        )
+        def record_error(error: OSError) -> None:
+            scan_errors.append(f"{type(error).__name__}: {error}")
 
-    def _has_javascript_tests(self) -> bool:
-        for path in self.repo_path.rglob("*"):
-            if any(part in SKIP_DIRS for part in path.relative_to(self.repo_path).parts):
-                continue
-            name = path.name.casefold()
-            if path.is_file() and (".test." in name or ".spec." in name):
-                return True
-        return False
+        for current, directories, filenames in os.walk(
+            self.repo_path,
+            topdown=True,
+            followlinks=False,
+            onerror=record_error,
+        ):
+            current_path = Path(current)
+            directories[:] = [
+                name
+                for name in directories
+                if name not in SKIP_DIRS and not (current_path / name).is_symlink()
+            ]
+            for filename in filenames:
+                path = current_path / filename
+                if path.is_symlink() or not path.is_file():
+                    continue
+                relative = path.relative_to(self.repo_path).as_posix()
+                files.append(relative)
+                if len(files) > self.max_files:
+                    files.pop()
+                    truncated = True
+                    return sorted(files), truncated, scan_errors
+
+        return sorted(files), truncated, scan_errors
+
+    @staticmethod
+    def _is_python_test(path: str) -> bool:
+        name = Path(path).name.casefold()
+        return name.startswith("test_") or name.endswith("_test.py")
+
+    @staticmethod
+    def _is_javascript_test(path: str) -> bool:
+        name = Path(path).name.casefold()
+        parts = {part.casefold() for part in Path(path).parts}
+        return ".test." in name or ".spec." in name or "__tests__" in parts
 
     def plan(self) -> dict[str, Any]:
-        """Return detected test commands without executing any target code."""
+        """Return detected test commands without executing target code."""
+        files, truncated, scan_errors = self._files()
+        file_set = {item.casefold() for item in files}
         commands: list[dict[str, Any]] = []
 
-        if self._has_python_tests():
+        python_tests = [
+            item for item in files if Path(item).suffix.casefold() == ".py" and self._is_python_test(item)
+        ]
+        if python_tests:
             python = sys.executable
             for candidate in (
                 self.repo_path / ".venv" / "bin" / "python",
@@ -80,15 +117,18 @@ class TestForge:
                 {
                     "ecosystem": "python",
                     "command": [python, "-m", "pytest", "-q"],
-                    "reason": "Python test files or a tests/ directory were detected.",
+                    "reason": "Conventional Python test files were detected.",
                 }
             )
 
         package_json = self.repo_path / "package.json"
-        if package_json.is_file() and self._has_javascript_tests():
+        javascript_tests = [item for item in files if self._is_javascript_test(item)]
+        if package_json.is_file() and javascript_tests:
             try:
-                package = json.loads(package_json.read_text(encoding="utf-8")[:1_000_000])
-                test_script = package.get("scripts", {}).get("test")
+                with package_json.open("r", encoding="utf-8") as package_file:
+                    package = json.load(package_file)
+                scripts = package.get("scripts", {})
+                test_script = scripts.get("test") if isinstance(scripts, dict) else None
             except (OSError, UnicodeError, json.JSONDecodeError, AttributeError):
                 test_script = None
             if isinstance(test_script, str) and test_script.strip():
@@ -106,7 +146,7 @@ class TestForge:
                     }
                 )
 
-        if (self.repo_path / "go.mod").is_file() and self._has_go_tests():
+        if "go.mod" in file_set and any(Path(item).name.endswith("_test.go") for item in files):
             commands.append(
                 {
                     "ecosystem": "go",
@@ -115,53 +155,73 @@ class TestForge:
                 }
             )
 
-        if (self.repo_path / "Cargo.toml").is_file():
+        if "cargo.toml" in file_set:
             commands.append(
                 {
                     "ecosystem": "rust",
                     "command": ["cargo", "test"],
-                    "reason": (
-                        "Cargo.toml was detected; cargo test is the standard test entry point."
-                    ),
+                    "reason": "Cargo.toml was detected; cargo test is the standard test entry point.",
                 }
             )
 
-        if (self.repo_path / "pom.xml").is_file() and (self.repo_path / "src" / "test").is_dir():
+        if "pom.xml" in file_set and any(
+            item.startswith("src/test/") for item in file_set
+        ):
             commands.append(
                 {
                     "ecosystem": "java-maven",
                     "command": ["mvn", "-q", "test"],
-                    "reason": "Maven project and conventional test source directory were detected.",
+                    "reason": "Maven project and conventional test source files were detected.",
                 }
             )
 
-        gradle_wrapper = self.repo_path / ("gradlew.bat" if os.name == "nt" else "gradlew")
-        if gradle_wrapper.is_file() and (self.repo_path / "src" / "test").is_dir():
+        gradle_wrapper_name = "gradlew.bat" if os.name == "nt" else "gradlew"
+        gradle_wrapper = self.repo_path / gradle_wrapper_name
+        if gradle_wrapper.is_file() and any(
+            item.startswith("src/test/") for item in file_set
+        ):
+            gradle_command = (
+                [str(gradle_wrapper), "test", "--no-daemon"]
+                if os.name == "nt"
+                else ["bash", str(gradle_wrapper), "test", "--no-daemon"]
+            )
             commands.append(
                 {
                     "ecosystem": "java-gradle",
-                    "command": [str(gradle_wrapper), "test", "--no-daemon"],
-                    "reason": (
-                        "Gradle wrapper and conventional test source directory were detected."
-                    ),
+                    "command": gradle_command,
+                    "reason": "Gradle wrapper and conventional test source files were detected.",
                 }
             )
 
-        dotnet_projects = list(self.repo_path.glob("*.sln")) + list(self.repo_path.glob("*.csproj"))
+        dotnet_projects = [
+            item
+            for item in files
+            if item.casefold().endswith((".sln", ".slnx", ".csproj"))
+        ]
         if dotnet_projects:
-            commands.append(
-                {
-                    "ecosystem": "dotnet",
-                    "command": ["dotnet", "test", "--nologo"],
-                    "reason": "A .NET solution or project file was detected.",
-                }
-            )
+            solutions = [item for item in dotnet_projects if item.casefold().endswith((".sln", ".slnx"))]
+            targets = solutions or [item for item in dotnet_projects if item.casefold().endswith(".csproj")]
+            for target in targets:
+                commands.append(
+                    {
+                        "ecosystem": "dotnet",
+                        "command": ["dotnet", "test", target, "--nologo"],
+                        "reason": "A .NET solution or project file was detected.",
+                    }
+                )
 
         return {
             "repository": self.repo_path.name,
             "path": str(self.repo_path),
             "mode": "plan_only",
             "execution_is_sandboxed": False,
+            "scan": {
+                "files_scanned": len(files),
+                "truncated": truncated,
+                "complete": not truncated and not scan_errors,
+                "errors": scan_errors,
+                "max_files": self.max_files,
+            },
             "warning": (
                 "Executing tests runs repository-controlled code. This runner is not an OS "
                 "sandbox; only use --execute for repositories you trust."
@@ -175,13 +235,13 @@ class TestForge:
         """Preserve runtime essentials while removing common credential variables."""
         blocked_fragments = ("KEY", "TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
         blocked_prefixes = ("AWS_", "AZURE_", "GOOGLE_", "GITHUB_", "GH_")
-        env = {
+        environment = {
             key: value
             for key, value in os.environ.items()
             if not any(fragment in key.upper() for fragment in blocked_fragments)
             and not key.upper().startswith(blocked_prefixes)
         }
-        env.update(
+        environment.update(
             {
                 "CI": "1",
                 "NO_COLOR": "1",
@@ -189,7 +249,93 @@ class TestForge:
                 "PIP_DISABLE_PIP_VERSION_CHECK": "1",
             }
         )
-        return env
+        return environment
+
+    @staticmethod
+    def _kill_process(process: subprocess.Popen[bytes]) -> None:
+        """Stop the command and its POSIX process group after a timeout."""
+        if os.name != "nt":
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+                return
+            except (ProcessLookupError, PermissionError, OSError):
+                pass
+        process.kill()
+
+    @staticmethod
+    def _capture_tail(stream: Any, destination: bytearray) -> None:
+        """Drain output continuously while retaining only the final bounded bytes."""
+        try:
+            while True:
+                chunk = stream.read(4096)
+                if not chunk:
+                    break
+                destination.extend(chunk)
+                overflow = len(destination) - MAX_OUTPUT_BYTES
+                if overflow > 0:
+                    del destination[:overflow]
+        except (OSError, ValueError):
+            pass
+
+    def _execute_one(
+        self, item: dict[str, Any], *, environment: dict[str, str], timeout: int
+    ) -> dict[str, Any]:
+        started = time.monotonic()
+        launch_options: dict[str, Any] = {}
+        if os.name != "nt":
+            launch_options["start_new_session"] = True
+        else:
+            launch_options["creationflags"] = getattr(
+                subprocess, "CREATE_NEW_PROCESS_GROUP", 0
+            )
+
+        try:
+            process = subprocess.Popen(
+                item["command"],
+                cwd=self.repo_path,
+                env=environment,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=False,
+                bufsize=0,
+                **launch_options,
+            )
+        except OSError as exc:
+            return {
+                **item,
+                "status": "unavailable",
+                "duration_seconds": round(time.monotonic() - started, 3),
+                "output": str(exc)[-MAX_OUTPUT_BYTES:],
+            }
+
+        output_tail = bytearray()
+        reader = threading.Thread(
+            target=self._capture_tail,
+            args=(process.stdout, output_tail),
+            daemon=True,
+        )
+        reader.start()
+
+        timed_out = False
+        try:
+            return_code = process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            self._kill_process(process)
+            return_code = process.wait()
+
+        reader.join(timeout=2)
+        output = output_tail.decode("utf-8", errors="replace")
+        status = "timed_out" if timed_out else ("passed" if return_code == 0 else "failed")
+        result = {
+            **item,
+            "status": status,
+            "return_code": return_code,
+            "duration_seconds": round(time.monotonic() - started, 3),
+            "output": output,
+            "output_truncated": len(output_tail) >= MAX_OUTPUT_BYTES,
+        }
+        return result
 
     def run(self, *, execute: bool = False, timeout: int = 120) -> dict[str, Any]:
         """Plan tests, or run detected commands after explicit opt-in."""
@@ -208,47 +354,7 @@ class TestForge:
         environment = self._safe_environment()
 
         for item in report["commands"]:
-            started = time.monotonic()
-            try:
-                completed = subprocess.run(
-                    item["command"],
-                    cwd=self.repo_path,
-                    env=environment,
-                    capture_output=True,
-                    text=True,
-                    errors="replace",
-                    timeout=timeout,
-                    check=False,
-                    shell=False,
-                )
-                result = {
-                    **item,
-                    "status": "passed" if completed.returncode == 0 else "failed",
-                    "return_code": completed.returncode,
-                    "duration_seconds": round(time.monotonic() - started, 3),
-                    "output": (completed.stdout + completed.stderr)[-8000:],
-                }
-            except subprocess.TimeoutExpired as exc:
-                output = exc.stdout or ""
-                error = exc.stderr or ""
-                if isinstance(output, bytes):
-                    output = output.decode(errors="replace")
-                if isinstance(error, bytes):
-                    error = error.decode(errors="replace")
-                result = {
-                    **item,
-                    "status": "timed_out",
-                    "duration_seconds": round(time.monotonic() - started, 3),
-                    "output": (output + error)[-8000:],
-                }
-            except FileNotFoundError as exc:
-                result = {
-                    **item,
-                    "status": "unavailable",
-                    "duration_seconds": round(time.monotonic() - started, 3),
-                    "output": str(exc),
-                }
-
+            result = self._execute_one(item, environment=environment, timeout=timeout)
             report["results"].append(result)
             if result["status"] != "passed":
                 report["status"] = "failed"
