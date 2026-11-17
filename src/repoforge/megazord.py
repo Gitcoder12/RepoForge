@@ -116,10 +116,7 @@ class MegazordEngine:
             raise ValueError("duplicate repository paths are not allowed")
 
         profiles = [Blacksmith(path).inspect() for path in paths]
-        pairings = [
-            self._pair(left, right)
-            for left, right in combinations(profiles, 2)
-        ]
+        pairings = [self._pair(left, right) for left, right in combinations(profiles, 2)]
         pairings.sort(
             key=lambda item: (
                 -item["fit_score"],
@@ -163,9 +160,7 @@ class MegazordEngine:
             capability_a, capability_b = tuple(relation)
             spans_both_repositories = (
                 capability_a in left_caps and capability_b in right_caps
-            ) or (
-                capability_b in left_caps and capability_a in right_caps
-            )
+            ) or (capability_b in left_caps and capability_a in right_caps)
             if spans_both_repositories:
                 matches.append(
                     {
@@ -194,9 +189,8 @@ class MegazordEngine:
                 {
                     "pattern": "Adapter-based integration",
                     "approach": (
-                        "Identify one concrete shared workflow, define a versioned "
-                        "interface, and integrate through an adapter rather than "
-                        "merging repositories."
+                        "Identify one concrete shared workflow, define a versioned interface, "
+                        "and integrate through an adapter rather than merging repositories."
                     ),
                 }
             )
@@ -204,20 +198,15 @@ class MegazordEngine:
         risks = [
             "Review dependency versions and runtime requirements before connecting the projects.",
             "Confirm both repositories' licences permit the intended combined distribution.",
-            (
-                "Define ownership, error handling, observability and rollback "
-                "for the integration boundary."
-            ),
+            "Define ownership, error handling, observability and rollback for the integration boundary.",
         ]
         if len(set(left["languages"]) | set(right["languages"])) > 3:
             risks.append(
-                "The combination spans several languages; prefer a language-neutral "
-                "API or event contract."
+                "The combination spans several languages; prefer a language-neutral API or event contract."
             )
         if not left["manifests"] or not right["manifests"]:
             risks.append(
-                "At least one repository has no recognised package manifest; "
-                "runtime dependencies may be undocumented."
+                "At least one repository has no recognised package manifest; runtime dependencies may be undocumented."
             )
 
         return {
