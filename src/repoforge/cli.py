@@ -123,3 +123,52 @@ def generate(
         raise typer.Exit(code=2) from exc
 
     typer.echo(response)
+
+
+
+@app.command("blacksmith")
+def blacksmith_command(
+    repo_path: Path = typer.Argument(
+        Path("."),
+        exists=True,
+        file_okay=False,
+        readable=True,
+        help="Local repository to inspect.",
+    ),
+    apply_fixes: bool = typer.Option(
+        False,
+        "--apply",
+        help="Apply safe create-if-absent repairs. The default is a dry run.",
+    ),
+) -> None:
+    """Rank a repository and propose/apply bounded, non-destructive repairs."""
+    from repoforge.blacksmith import Blacksmith
+
+    try:
+        result = Blacksmith(repo_path).run(apply_fixes=apply_fixes)
+    except ValueError as exc:
+        typer.echo(f"Blacksmith error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+
+
+@app.command("megazords")
+def megazords_command(
+    repo_paths: list[Path] = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=False,
+        readable=True,
+        help="Two or more local repositories to compare.",
+    ),
+    top_k: int = typer.Option(10, "--top", min=1, max=100),
+) -> None:
+    """Suggest complementary repository combinations without modifying them."""
+    from repoforge.megazord import MegazordEngine
+
+    try:
+        result = MegazordEngine().suggest(repo_paths, top_k=top_k)
+    except ValueError as exc:
+        typer.echo(f"Megazord error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
