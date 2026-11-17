@@ -17,6 +17,8 @@ def test_package_version_and_cli_help() -> None:
     assert "version" in result.stdout
     assert "providers" in result.stdout
     assert "generate" in result.stdout
+    assert "blacksmith" in result.stdout
+    assert "megazords" in result.stdout
 
 
 def test_offline_provider_orchestration() -> None:
