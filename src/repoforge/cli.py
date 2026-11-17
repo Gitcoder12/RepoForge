@@ -106,13 +106,18 @@ def generate(
     max_tokens: int = typer.Option(2048, "--max-tokens", min=1, max=32768),
 ) -> None:
     """Generate one response using an explicitly selected real provider."""
+    from repoforge.orchestrator import AIOrchestrator
     from repoforge.providers.errors import ProviderError
-    from repoforge.providers.factory import ProviderFactory
 
     _load_environment()
     try:
-        selected = ProviderFactory().get(provider, model=model, timeout=timeout)
-        response = selected.generate(prompt, max_tokens=max_tokens)
+        orchestrator = AIOrchestrator()
+        orchestrator.register_real_provider(provider, model=model, timeout=timeout)
+        response = orchestrator.generate(
+            prompt,
+            provider=provider.strip().lower(),
+            max_tokens=max_tokens,
+        )
     except ProviderError as exc:
         typer.echo(f"Provider error: {exc}", err=True)
         raise typer.Exit(code=2) from exc
