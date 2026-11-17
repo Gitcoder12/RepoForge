@@ -108,9 +108,7 @@ def test_testforge_returns_no_tests_for_empty_repository(tmp_path: Path):
 def test_testforge_executes_only_after_explicit_opt_in(tmp_path: Path, monkeypatch):
     tests = tmp_path / "tests"
     tests.mkdir()
-    (tests / "test_sample.py").write_text(
-        "def test_ok():\n    assert True\n", encoding="utf-8"
-    )
+    (tests / "test_sample.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
     captured: dict = {}
     fake_process = FakeProcess([sys.executable, "-m", "pytest", "-q"], output=b"1 passed")
 
@@ -133,9 +131,7 @@ def test_testforge_executes_only_after_explicit_opt_in(tmp_path: Path, monkeypat
 def test_testforge_reports_test_failures(tmp_path: Path, monkeypatch):
     tests = tmp_path / "tests"
     tests.mkdir()
-    (tests / "test_sample.py").write_text(
-        "def test_ok():\n    assert True\n", encoding="utf-8"
-    )
+    (tests / "test_sample.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
     fake_process = FakeProcess(["python", "-m", "pytest"], return_code=1, output=b"1 failed")
 
     monkeypatch.setattr(subprocess, "Popen", lambda *args, **kwargs: fake_process)
@@ -149,9 +145,7 @@ def test_testforge_reports_test_failures(tmp_path: Path, monkeypatch):
 def test_testforge_reports_timeout_and_kills_process(tmp_path: Path, monkeypatch):
     tests = tmp_path / "tests"
     tests.mkdir()
-    (tests / "test_sample.py").write_text(
-        "def test_ok():\n    assert True\n", encoding="utf-8"
-    )
+    (tests / "test_sample.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
     fake_process = FakeProcess(["python", "-m", "pytest"], timeout=True)
 
     monkeypatch.setattr(subprocess, "Popen", lambda *args, **kwargs: fake_process)
@@ -165,9 +159,7 @@ def test_testforge_reports_timeout_and_kills_process(tmp_path: Path, monkeypatch
 def test_testforge_bounds_captured_output(tmp_path: Path, monkeypatch):
     tests = tmp_path / "tests"
     tests.mkdir()
-    (tests / "test_sample.py").write_text(
-        "def test_ok():\n    assert True\n", encoding="utf-8"
-    )
+    (tests / "test_sample.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
     fake_process = FakeProcess(["python", "-m", "pytest"], output=b"x" * 20_000)
 
     monkeypatch.setattr(subprocess, "Popen", lambda *args, **kwargs: fake_process)
@@ -181,9 +173,7 @@ def test_testforge_bounds_captured_output(tmp_path: Path, monkeypatch):
 def test_testforge_reports_missing_runner(tmp_path: Path, monkeypatch):
     tests = tmp_path / "tests"
     tests.mkdir()
-    (tests / "test_sample.py").write_text(
-        "def test_ok():\n    assert True\n", encoding="utf-8"
-    )
+    (tests / "test_sample.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
 
     def missing_runner(*args, **kwargs):
         raise FileNotFoundError("pytest runner not found")
