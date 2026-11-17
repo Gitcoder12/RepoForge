@@ -415,3 +415,15 @@ repoforge generate "Review this Python function for correctness and performance"
 Use `--model`, `--timeout`, and `--max-tokens` to control the request. For DeepSeek's higher-capability V4-Pro model, select `--model deepseek-v4-pro` explicitly. Provider quota exhaustion, authentication errors, timeouts, and connection failures are reported explicitly. SDK retries are disabled, and RepoForge does not silently substitute mock output or switch to another paid provider. Choose another provider deliberately with `--provider`.
 
 The CLI builds and enables the selected adapter through `AIOrchestrator`, so the same explicit provider-selection contract is available to programmatic orchestration. This is still a single-request provider runtime, not yet the autonomous repository-editing `forge` workflow. It must pass CI and review before it is treated as part of the released default branch.
+
+
+## Explicit standby model routing
+
+Use an explicitly configured primary and ordered standby providers. Transient connection, timeout and unusable-response failures may trigger standby. Authentication/configuration/request failures stop; quota fallback is opt-in because it can incur extra cost. No implicit mock fallback is used.
+
+```bash
+repoforge generate "Review this patch" --provider deepseek --standby openai --standby groq
+repoforge generate "Review this patch" --route-config configs/model_failover.json
+```
+
+See `configs/model_failover.json` for the sample route policy. Standby routing is not a guarantee that different models are semantically equivalent; quality checks, cost budgets and data-residency rules remain operator responsibilities.

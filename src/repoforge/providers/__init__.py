@@ -12,6 +12,12 @@ from repoforge.providers.errors import (
     ProviderTimeoutError,
 )
 from repoforge.providers.factory import PROVIDER_DEFINITIONS, ProviderFactory
+from repoforge.providers.failover import (
+    GenerationResult,
+    ProviderAttempt,
+    ProviderFailoverExhaustedError,
+    StandbyProviderPool,
+)
 from repoforge.providers.mock import MockProvider
 
 __all__ = [
@@ -27,4 +33,8 @@ __all__ = [
     "ProviderConnectionError",
     "ProviderResponseError",
     "ProviderRequestError",
+    "ProviderAttempt",
+    "GenerationResult",
+    "ProviderFailoverExhaustedError",
+    "StandbyProviderPool",
 ]
