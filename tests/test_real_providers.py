@@ -191,3 +191,13 @@ def test_async_stream_does_not_block_the_event_loop():
 
     assert response == ["real model response"]
     assert loop_was_responsive
+
+
+
+def test_provider_status_treats_whitespace_only_keys_as_missing(monkeypatch):
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "   ")
+    deepseek = next(
+        item for item in ProviderFactory().list_status() if item["name"] == "deepseek"
+    )
+
+    assert deepseek["configured"] is False
