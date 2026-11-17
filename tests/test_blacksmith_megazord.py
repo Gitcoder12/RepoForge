@@ -189,3 +189,42 @@ def test_megazords_cli_returns_pairing_json(tmp_path: Path):
     report = json.loads(result.stdout)
     assert report["repositories_analyzed"] == 2
     assert report["pairings_evaluated"] == 1
+
+
+
+def test_blacksmith_recognises_go_and_javascript_test_file_conventions(tmp_path: Path):
+    (tmp_path / "foo_test.go").write_text("package demo\n", encoding="utf-8")
+    report = Blacksmith(tmp_path).inspect()
+
+    assert report["signals"]["tests"] is True
+    assert "testing" in report["capabilities"]
+
+
+def test_blacksmith_does_not_infer_robotics_from_ros_substring(tmp_path: Path):
+    (tmp_path / "README.md").write_text("# Across the roadmap\n", encoding="utf-8")
+    report = Blacksmith(tmp_path).inspect()
+
+    assert "robotics" not in report["capabilities"]
+
+
+def test_blacksmith_infers_robotics_from_ros_token(tmp_path: Path):
+    (tmp_path / "README.md").write_text("# ROS integration\n", encoding="utf-8")
+    report = Blacksmith(tmp_path).inspect()
+
+    assert "robotics" in report["capabilities"]
+
+
+def test_blacksmith_marks_scan_incomplete_on_walk_error(tmp_path: Path, monkeypatch):
+    import repoforge.blacksmith as blacksmith_module
+
+    def failing_walk(root, *, topdown, followlinks, onerror):
+        onerror(PermissionError("directory unreadable"))
+        yield str(root), [], []
+
+    monkeypatch.setattr(blacksmith_module.os, "walk", failing_walk)
+    report = Blacksmith(tmp_path).inspect()
+
+    assert report["scan_incomplete"] is True
+    assert report["scan_truncated"] is False
+    assert report["scan_errors"]
+    assert any("scan incomplete" in item.casefold() for item in report["findings"])
