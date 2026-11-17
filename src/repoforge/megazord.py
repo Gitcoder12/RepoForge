@@ -133,7 +133,13 @@ class MegazordEngine:
         shared = sorted(set(left["languages"]).intersection(right["languages"]))
         matches: list[dict[str, Any]] = []
         for relation, weight in SYNERGY.items():
-            if relation.issubset(left_caps | right_caps) and relation.intersection(left_caps) and relation.intersection(right_caps):
+            capability_a, capability_b = tuple(relation)
+            spans_both_repositories = (
+                capability_a in left_caps and capability_b in right_caps
+            ) or (
+                capability_b in left_caps and capability_a in right_caps
+            )
+            if spans_both_repositories:
                 matches.append(
                     {
                         "capabilities": sorted(relation),
@@ -148,7 +154,13 @@ class MegazordEngine:
         combined = sorted(left_caps | right_caps)
         patterns = []
         for relation, (title, approach) in INTEGRATION_PATTERNS.items():
-            if relation.issubset(left_caps | right_caps) and relation.intersection(left_caps) and relation.intersection(right_caps):
+            capability_a, capability_b = tuple(relation)
+            spans_both_repositories = (
+                capability_a in left_caps and capability_b in right_caps
+            ) or (
+                capability_b in left_caps and capability_a in right_caps
+            )
+            if spans_both_repositories:
                 patterns.append({"pattern": title, "approach": approach})
         if not patterns:
             patterns.append(
