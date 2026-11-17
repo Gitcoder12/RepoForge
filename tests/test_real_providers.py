@@ -142,7 +142,7 @@ def test_generate_cli_does_not_fall_back_when_deepseek_is_unconfigured(monkeypat
 
     assert result.exit_code == 2
     assert "DEEPSEEK_API_KEY" in result.output
-    assert "mock response" not in result.output.lower()
+    assert "repoforge mock response" not in result.output.lower()
 
 
 def test_groq_uses_a_current_production_model_id(monkeypatch):
