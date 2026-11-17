@@ -205,6 +205,7 @@ def test_testforge_strips_common_credentials_from_child_environment(monkeypatch)
     assert "GITHUB_TOKEN" not in environment
     assert environment["PATH"] == "/usr/bin"
 
+
 def test_testforge_refuses_to_execute_after_an_incomplete_scan(tmp_path: Path, monkeypatch):
     (tmp_path / "one.py").write_text("print('one')\n", encoding="utf-8")
     (tmp_path / "two.py").write_text("print('two')\n", encoding="utf-8")
@@ -230,9 +231,7 @@ def test_testforge_finds_root_python_tests_even_when_tests_directory_is_empty(tm
 
 
 def test_testforge_detects_javascript_tests_in_dunder_tests(tmp_path: Path):
-    (tmp_path / "package.json").write_text(
-        '{"scripts":{"test":"jest"}}', encoding="utf-8"
-    )
+    (tmp_path / "package.json").write_text('{"scripts":{"test":"jest"}}', encoding="utf-8")
     test_dir = tmp_path / "src" / "__tests__"
     test_dir.mkdir(parents=True)
     (test_dir / "widget.js").write_text("module.exports = 1\n", encoding="utf-8")
@@ -252,8 +251,7 @@ def test_testforge_detects_maven_tests_in_nested_module(tmp_path: Path):
     commands = TestForge(tmp_path).plan()["commands"]
 
     assert any(
-        item["command"] == ["mvn", "-q", "-f", "service/pom.xml", "test"]
-        for item in commands
+        item["command"] == ["mvn", "-q", "-f", "service/pom.xml", "test"] for item in commands
     )
 
 
@@ -276,10 +274,7 @@ def test_testforge_detects_dotnet_slnx_and_uses_explicit_target(tmp_path: Path):
 
     commands = TestForge(tmp_path).plan()["commands"]
 
-    assert any(
-        item["command"] == ["dotnet", "test", "App.slnx", "--nologo"]
-        for item in commands
-    )
+    assert any(item["command"] == ["dotnet", "test", "App.slnx", "--nologo"] for item in commands)
 
 
 def test_testforge_filters_database_and_docker_credentials(monkeypatch):
