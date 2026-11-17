@@ -158,7 +158,6 @@ def test_groq_uses_a_current_production_model_id(monkeypatch):
     assert PROVIDER_DEFINITIONS["groq"]["model"] == "openai/gpt-oss-120b"
 
 
-
 def test_async_stream_does_not_block_the_event_loop():
     completed = threading.Event()
     release_request = threading.Event()
