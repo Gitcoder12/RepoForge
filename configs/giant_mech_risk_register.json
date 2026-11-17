@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "status": "concept_only_not_build_ready",
+  "intended_roles": ["industrial inspection", "disaster-area sensing", "remote material handling"],
+  "prohibited_roles": ["weaponization", "crowd control", "autonomous use of force"],
+  "risks": [
+    {"id":"R1","hazard":"toppling_due_to_high_center_of_mass","severity":"critical","controls":["low center of gravity","wide stance","stability envelope monitor","speed limits","safe kneel state"]},
+    {"id":"R2","hazard":"joint_or_frame_structural_failure","severity":"critical","controls":["finite_element_analysis","fatigue_testing","load_limits","redundant retention","inspection schedule"]},
+    {"id":"R3","hazard":"human_crush_or_pinch_injury","severity":"critical","controls":["force_and_speed_limits","physical guarding","proximity sensing","safe separation","independent emergency stop"]},
+    {"id":"R4","hazard":"battery_thermal_runaway_or_high_power_fault","severity":"critical","controls":["certified battery system","BMS","thermal isolation","fusing","fire response plan"]},
+    {"id":"R5","hazard":"sensor_occlusion_or_pose_estimation_failure","severity":"high","controls":["multi-modal sensing","uncertainty thresholds","safe stop on stale data","human confirmation"]},
+    {"id":"R6","hazard":"control_network_or_model_failure","severity":"critical","controls":["local safety controller","communication watchdog","bounded commands","safe-state fallback","no cloud-only emergency stop"]},
+    {"id":"R7","hazard":"ground_pressure_floor_or_bridge_failure","severity":"high","controls":["ground-bearing assessment","route survey","distributed loads","exclusion zones"]},
+    {"id":"R8","hazard":"transport_power_and_maintenance_complexity","severity":"high","controls":["modular transport sections","lockout-tagout","service lifts","documented inspection points"]}
+  ],
+  "required_evidence_before_any_physical_build": [
+    "system hazard analysis",
+    "structural FEA and physical proof tests",
+    "kinematic and stability simulation",
+    "thermal and battery safety validation",
+    "functional safety review",
+    "human factors assessment",
+    "independent emergency-stop verification",
+    "site-specific risk assessment"
+  ]
+}
