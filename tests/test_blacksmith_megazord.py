@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import json
+from pathlib import Path
 
 import pytest
 from typer.testing import CliRunner
@@ -163,7 +163,6 @@ def test_blacksmith_scan_limit_is_not_truncated_when_exactly_full(tmp_path: Path
     assert report["scan_truncated"] is False
 
 
-
 def test_blacksmith_cli_returns_before_after_rank_json(tmp_path: Path):
     (tmp_path / "README.md").write_text("# CLI sample\n", encoding="utf-8")
 
@@ -172,7 +171,10 @@ def test_blacksmith_cli_returns_before_after_rank_json(tmp_path: Path):
     assert result.exit_code == 0
     report = json.loads(result.stdout)
     assert report["mode"] == "dry_run"
-    assert report["before"]["rank"]["score"] == report["after"]["rank"]["score"]
+    assert (
+        report["before"]["rank"]["score"]
+        == report["after"]["rank"]["score"]
+    )
 
 
 def test_megazords_cli_returns_pairing_json(tmp_path: Path):
