@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import sys
+import threading
 from types import ModuleType, SimpleNamespace
 
 import pytest
@@ -154,3 +156,41 @@ def test_groq_uses_a_current_production_model_id(monkeypatch):
 
     assert groq["configured"] is True
     assert PROVIDER_DEFINITIONS["groq"]["model"] == "openai/gpt-oss-120b"
+
+
+
+def test_async_stream_does_not_block_the_event_loop():
+    completed = threading.Event()
+    release_request = threading.Event()
+
+    class BlockingCompletions(FakeCompletions):
+        def create(self, **kwargs):
+            release_request.wait(timeout=1)
+            completed.set()
+            return super().create(**kwargs)
+
+    provider = OpenAICompatibleProvider(
+        provider_name="deepseek",
+        api_key="test-key",
+        model="deepseek-flash",
+        client=SimpleNamespace(
+            chat=SimpleNamespace(completions=BlockingCompletions())
+        ),
+    )
+
+    async def collect():
+        return [chunk async for chunk in provider.stream("Review this patch")]
+
+    async def event_loop_probe():
+        await asyncio.sleep(0.02)
+        loop_was_responsive = not completed.is_set()
+        release_request.set()
+        return loop_was_responsive
+
+    async def run():
+        return await asyncio.gather(collect(), event_loop_probe())
+
+    response, loop_was_responsive = asyncio.run(run())
+
+    assert response == ["real model response"]
+    assert loop_was_responsive
