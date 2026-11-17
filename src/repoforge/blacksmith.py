@@ -165,6 +165,7 @@ class Blacksmith:
                 "test" in parts
                 or "tests" in parts
                 or name.startswith("test_")
+                or name.endswith("_test.go")
                 or ".test." in name
                 or ".spec." in name
             ):
