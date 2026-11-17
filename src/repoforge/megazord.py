@@ -196,7 +196,7 @@ class MegazordEngine:
         risks = [
             "Review dependency versions and runtime requirements before connecting the projects.",
             "Confirm both repositories' licences permit the intended combined distribution.",
-            "Define ownership, error handling, observability and rollback for the integration boundary.",
+            "Define integration ownership, error handling, observability, and rollback.",
         ]
         if len(set(left["languages"]) | set(right["languages"])) > 3:
             risks.append(
