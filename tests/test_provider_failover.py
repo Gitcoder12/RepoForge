@@ -170,3 +170,64 @@ def test_pool_never_uses_an_implicit_mock():
 
     with pytest.raises(ProviderFailoverExhaustedError):
         pool.generate("hello")
+
+
+
+def test_generate_cli_loads_an_explicit_route_config(tmp_path, monkeypatch):
+    import json
+    from types import SimpleNamespace
+    from typer.testing import CliRunner
+
+    from repoforge.cli import app
+    from repoforge.providers.failover import StandbyProviderPool
+
+    config = tmp_path / "route.json"
+    config.write_text(
+        json.dumps(
+            {
+                "primary": {"provider": "deepseek", "model_override": "deepseek-flash"},
+                "standby": [
+                    {"provider": "openai", "model_override": None, "enabled": True},
+                    {"provider": "ollama", "model_override": None, "enabled": False},
+                ],
+                "policy": {"fallback_on_rate_limit": False},
+            }
+        ),
+        encoding="utf-8",
+    )
+    captured = {}
+
+    class FakeRoute:
+        def generate_with_report(self, prompt, **kwargs):
+            captured["prompt"] = prompt
+            captured["kwargs"] = kwargs
+            return SimpleNamespace(
+                text="standby success",
+                attempts=(
+                    SimpleNamespace(
+                        provider_name="openai",
+                        model="gpt-4o-mini",
+                        status="success",
+                        error_type=None,
+                    ),
+                ),
+            )
+
+    def fake_from_factory(cls, **kwargs):
+        captured.update(kwargs)
+        return FakeRoute()
+
+    monkeypatch.setattr(
+        StandbyProviderPool, "from_factory", classmethod(fake_from_factory)
+    )
+    result = CliRunner().invoke(
+        app,
+        ["generate", "test prompt", "--route-config", str(config)],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "standby success" in result.output
+    assert captured["primary_name"] == "deepseek"
+    assert captured["standby_names"] == ("openai",)
+    assert captured["model_overrides"]["deepseek"] == "deepseek-flash"
+    assert captured["allow_rate_limit_fallback"] is False
