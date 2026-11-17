@@ -69,6 +69,5 @@ def test_company_catalogue_does_not_claim_a_safety_or_quality_ranking():
     companies = {entry["company"] for entry in config["entries"]}
     assert {"OpenAI", "Anthropic", "Google DeepMind", "NVIDIA", "Neuralink"} <= companies
     assert any(
-        "does not imply independent verification" in rule
-        for rule in config["evidence_rules"]
+        "does not imply independent verification" in rule for rule in config["evidence_rules"]
     )
