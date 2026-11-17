@@ -15,6 +15,8 @@ def test_package_version_and_cli_help() -> None:
     assert result.exit_code == 0
     assert "validate" in result.stdout
     assert "version" in result.stdout
+    assert "providers" in result.stdout
+    assert "generate" in result.stdout
 
 
 def test_offline_provider_orchestration() -> None:
@@ -161,3 +163,69 @@ def test_validator_rejects_invalid_target_and_timeout(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="test_timeout"):
         asyncio.run(validator.validate(test_timeout=0))
+
+
+def test_orchestrator_registers_and_enables_explicit_real_provider():
+    orchestrator = AIOrchestrator()
+    provider = MockProvider("adapter result")
+
+    with patch("repoforge.providers.factory.ProviderFactory.get", return_value=provider) as build:
+        registered = orchestrator.register_real_provider(
+            "DeepSeek",
+            model="deepseek-flash",
+            timeout=30.0,
+        )
+
+    build.assert_called_once_with(
+        "deepseek",
+        model="deepseek-flash",
+        timeout=30.0,
+    )
+    assert registered is provider
+    assert orchestrator.providers["deepseek"] is provider
+    assert "deepseek" in orchestrator.pm.enabled
+    assert orchestrator.generate("hello", provider="deepseek") == "adapter result"
+
+
+def test_orchestrator_rejects_duplicate_real_provider_registration():
+    import pytest
+
+    orchestrator = AIOrchestrator()
+    orchestrator.register("deepseek", MockProvider("existing"))
+
+    with pytest.raises(ValueError, match="already registered"):
+        orchestrator.register_real_provider("deepseek")
+
+
+def test_generate_cli_uses_the_orchestrator_for_explicit_provider():
+    with (
+        patch("repoforge.orchestrator.AIOrchestrator.register_real_provider") as register,
+        patch(
+            "repoforge.orchestrator.AIOrchestrator.generate",
+            return_value="integrated provider response",
+        ) as generate,
+    ):
+        result = CliRunner().invoke(
+            app,
+            [
+                "generate",
+                "review this patch",
+                "--provider",
+                "deepseek",
+                "--model",
+                "deepseek-flash",
+                "--timeout",
+                "20",
+                "--max-tokens",
+                "1024",
+            ],
+        )
+
+    assert result.exit_code == 0
+    assert result.stdout.strip() == "integrated provider response"
+    register.assert_called_once_with("deepseek", model="deepseek-flash", timeout=20.0)
+    generate.assert_called_once_with(
+        "review this patch",
+        provider="deepseek",
+        max_tokens=1024,
+    )

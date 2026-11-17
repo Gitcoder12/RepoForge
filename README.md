@@ -379,4 +379,4 @@ repoforge generate "Review this Python function for correctness and performance"
 
 Use `--model`, `--timeout`, and `--max-tokens` to control the request. For DeepSeek's higher-capability V4-Pro model, select `--model deepseek-v4-pro` explicitly. Provider quota exhaustion, authentication errors, timeouts, and connection failures are reported explicitly. SDK retries are disabled, and RepoForge does not silently substitute mock output or switch to another paid provider. Choose another provider deliberately with `--provider`.
 
-This is a single-request provider runtime, not yet the autonomous repository-editing `forge` workflow. It must pass CI and review before it is treated as part of the released default branch.
+The CLI builds and enables the selected adapter through `AIOrchestrator`, so the same explicit provider-selection contract is available to programmatic orchestration. This is still a single-request provider runtime, not yet the autonomous repository-editing `forge` workflow. It must pass CI and review before it is treated as part of the released default branch.
