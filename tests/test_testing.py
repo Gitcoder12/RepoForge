@@ -42,9 +42,7 @@ class FakeProcess:
 def test_testforge_plans_python_tests_without_executing(tmp_path: Path, monkeypatch):
     tests = tmp_path / "tests"
     tests.mkdir()
-    (tests / "test_sample.py").write_text(
-        "def test_ok():\n    assert True\n", encoding="utf-8"
-    )
+    (tests / "test_sample.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
 
     def unexpected_popen(*args, **kwargs):
         raise AssertionError("plan-only mode must not execute repository code")
@@ -62,9 +60,7 @@ def test_testforge_plans_python_tests_without_executing(tmp_path: Path, monkeypa
 def test_testforge_detects_go_and_javascript_test_commands(tmp_path: Path):
     (tmp_path / "go.mod").write_text("module example\n", encoding="utf-8")
     (tmp_path / "service_test.go").write_text("package example\n", encoding="utf-8")
-    (tmp_path / "package.json").write_text(
-        '{"scripts":{"test":"vitest run"}}', encoding="utf-8"
-    )
+    (tmp_path / "package.json").write_text('{"scripts":{"test":"vitest run"}}', encoding="utf-8")
     (tmp_path / "app.test.ts").write_text("export {}\n", encoding="utf-8")
 
     commands = TestForge(tmp_path).plan()["commands"]
@@ -116,9 +112,7 @@ def test_testforge_executes_only_after_explicit_opt_in(tmp_path: Path, monkeypat
         "def test_ok():\n    assert True\n", encoding="utf-8"
     )
     captured: dict = {}
-    fake_process = FakeProcess(
-        [sys.executable, "-m", "pytest", "-q"], output=b"1 passed"
-    )
+    fake_process = FakeProcess([sys.executable, "-m", "pytest", "-q"], output=b"1 passed")
 
     def fake_popen(command, **kwargs):
         captured["command"] = command
