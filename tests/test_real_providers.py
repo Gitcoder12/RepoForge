@@ -54,9 +54,7 @@ def test_provider_status_never_exposes_secret_values(monkeypatch):
 def test_factory_builds_deepseek_with_explicit_endpoint_and_zero_retries(monkeypatch):
     monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
     completions = FakeCompletions()
-    fake_client = SimpleNamespace(
-        chat=SimpleNamespace(completions=completions)
-    )
+    fake_client = SimpleNamespace(chat=SimpleNamespace(completions=completions))
     options: dict = {}
 
     class FakeOpenAI:
@@ -111,9 +109,7 @@ def test_timeout_is_converted_to_a_clear_provider_error():
         api_key="test-key",
         model="deepseek-flash",
         client=SimpleNamespace(
-            chat=SimpleNamespace(
-                completions=FakeCompletions(error=APITimeoutError())
-            )
+            chat=SimpleNamespace(completions=FakeCompletions(error=APITimeoutError()))
         ),
     )
 
@@ -126,9 +122,7 @@ def test_empty_provider_response_is_not_reported_as_success():
         provider_name="deepseek",
         api_key="test-key",
         model="deepseek-flash",
-        client=SimpleNamespace(
-            chat=SimpleNamespace(completions=FakeCompletions(content=None))
-        ),
+        client=SimpleNamespace(chat=SimpleNamespace(completions=FakeCompletions(content=None))),
     )
 
     with pytest.raises(ProviderResponseError, match="no completion choices"):
@@ -149,7 +143,6 @@ def test_generate_cli_does_not_fall_back_when_deepseek_is_unconfigured(monkeypat
     assert result.exit_code == 2
     assert "DEEPSEEK_API_KEY" in result.output
     assert "mock response" not in result.output.lower()
-
 
 
 def test_groq_uses_a_current_production_model_id(monkeypatch):
