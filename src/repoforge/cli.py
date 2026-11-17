@@ -97,8 +97,12 @@ def providers() -> None:
 @app.command()
 def generate(
     prompt: str = typer.Argument(..., help="Prompt to send to the selected model."),
-    provider: str = typer.Option(..., "--provider", "-p", help="Provider name; selection is explicit."),
-    model: str | None = typer.Option(None, "--model", help="Override the provider's default model."),
+    provider: str = typer.Option(
+        ..., "--provider", "-p", help="Provider name; selection is explicit."
+    ),
+    model: str | None = typer.Option(
+        None, "--model", help="Override the provider's default model."
+    ),
     timeout: float = typer.Option(45.0, "--timeout", min=1.0, max=180.0),
     max_tokens: int = typer.Option(2048, "--max-tokens", min=1, max=32768),
 ) -> None:
