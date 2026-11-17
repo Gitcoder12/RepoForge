@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, AsyncGenerator
 
 from repoforge.base import BaseProvider
@@ -152,8 +153,9 @@ class OpenAICompatibleProvider(BaseProvider):
         system_prompt: str = "",
         **kwargs: Any,
     ) -> AsyncGenerator[str, None]:
-        """Yield one completed response; true token streaming is not advertised."""
-        yield self.generate(prompt, system_prompt, **kwargs)
+        """Run the blocking SDK request off-loop; true token streaming is not advertised."""
+        response = await asyncio.to_thread(self.generate, prompt, system_prompt, **kwargs)
+        yield response
 
     def get_capabilities(self) -> dict[str, Any]:
         return {
