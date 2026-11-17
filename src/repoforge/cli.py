@@ -205,9 +205,7 @@ def generate(
                     )
             else:
                 if allow_rate_limit_fallback:
-                    raise ValueError(
-                        "--allow-rate-limit-fallback requires at least one --standby"
-                    )
+                    raise ValueError("--allow-rate-limit-fallback requires at least one --standby")
                 orchestrator = AIOrchestrator()
                 orchestrator.register_real_provider(provider, model=model, timeout=timeout)
                 response = orchestrator.generate(
