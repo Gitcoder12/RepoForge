@@ -37,7 +37,11 @@ class OpenAICompatibleProvider(BaseProvider):
             )
         if not model.strip():
             raise ValueError("model must not be empty")
-        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not 1 <= timeout <= 180:
+        if (
+            isinstance(timeout, bool)
+            or not isinstance(timeout, (int, float))
+            or not 1 <= timeout <= 180
+        ):
             raise ValueError("timeout must be between 1 and 180 seconds")
 
         self.provider_name = provider_name
