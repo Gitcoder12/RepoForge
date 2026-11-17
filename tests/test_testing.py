@@ -235,4 +235,4 @@ def test_testforge_refuses_to_execute_after_an_incomplete_scan(tmp_path: Path, m
 
     assert report["status"] == "scan_incomplete"
     assert report["mode"] == "plan_only"
-    assert report["results"] if "results" in report else True
+    assert "results" not in report
