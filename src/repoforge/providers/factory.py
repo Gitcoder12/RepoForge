@@ -55,7 +55,7 @@ class ProviderFactory:
         status = []
         for name, definition in PROVIDER_DEFINITIONS.items():
             env_name = definition["env"]
-            configured = bool(os.getenv(env_name)) if env_name else True
+            configured = bool(os.getenv(env_name, "").strip()) if env_name else True
             status.append(
                 {
                     "name": name,
