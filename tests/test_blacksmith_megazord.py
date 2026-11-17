@@ -171,10 +171,7 @@ def test_blacksmith_cli_returns_before_after_rank_json(tmp_path: Path):
     assert result.exit_code == 0
     report = json.loads(result.stdout)
     assert report["mode"] == "dry_run"
-    assert (
-        report["before"]["rank"]["score"]
-        == report["after"]["rank"]["score"]
-    )
+    assert report["before"]["rank"]["score"] == report["after"]["rank"]["score"]
 
 
 def test_megazords_cli_returns_pairing_json(tmp_path: Path):
