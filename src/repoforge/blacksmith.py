@@ -7,6 +7,7 @@ bounded file metadata and applies only explicit create-if-absent hygiene fixes.
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -108,13 +109,19 @@ class Blacksmith:
             raise ValueError("max_files must be a positive integer")
         self.max_files = max_files
 
-    def _files(self) -> tuple[list[str], bool]:
-        """Return bounded repository-relative file paths without following symlinks."""
+    def _files(self) -> tuple[list[str], bool, list[str]]:
+        """Return bounded paths and any traversal errors without following symlinks."""
         files: list[str] = []
         truncated = False
+        scan_errors: list[str] = []
         root = self.repo_path
 
-        for current, directories, filenames in os.walk(root, topdown=True, followlinks=False):
+        def record_walk_error(error: OSError) -> None:
+            scan_errors.append(f"{type(error).__name__}: {error}")
+
+        for current, directories, filenames in os.walk(
+            root, topdown=True, followlinks=False, onerror=record_walk_error
+        ):
             current_path = Path(current)
             directories[:] = [
                 name
@@ -133,8 +140,8 @@ class Blacksmith:
                 if len(files) > self.max_files:
                     files.pop()
                     truncated = True
-                    return sorted(files), truncated
-        return sorted(files), truncated
+                    return sorted(files), truncated, scan_errors
+        return sorted(files), truncated, scan_errors
 
     @staticmethod
     def _grade(score: int) -> str:
@@ -166,7 +173,8 @@ class Blacksmith:
 
     def inspect(self) -> dict[str, Any]:
         """Create a transparent repository snapshot and a deterministic RepoRank."""
-        files, truncated = self._files()
+        files, truncated, scan_errors = self._files()
+        scan_incomplete = truncated or bool(scan_errors)
         lower_files = {item.casefold() for item in files}
         languages: dict[str, int] = {}
         for file_path in files:
@@ -244,6 +252,8 @@ class Blacksmith:
         for passed, message in checks:
             if not passed:
                 findings.append(message)
+        if scan_errors:
+            findings.append("Repository scan incomplete because one or more directories could not be read")
 
         # Capability labels are heuristics for discovery, not verified feature claims.
         readme_text = ""
@@ -252,11 +262,10 @@ class Blacksmith:
                 "readme"
             ):
                 try:
-                    readme_text = (
-                        (self.repo_path / file_path)
-                        .read_text(encoding="utf-8", errors="replace")[:40_000]
-                        .casefold()
-                    )
+                    with (self.repo_path / file_path).open(
+                        "r", encoding="utf-8", errors="replace"
+                    ) as readme_file:
+                        readme_text = readme_file.read(40_000).casefold()
                 except OSError:
                     readme_text = ""
                 break
@@ -270,6 +279,8 @@ class Blacksmith:
             "path": str(self.repo_path),
             "files_scanned": len(files),
             "scan_truncated": truncated,
+            "scan_incomplete": scan_incomplete,
+            "scan_errors": scan_errors,
             "languages": dict(sorted(languages.items())),
             "manifests": manifest_names,
             "capabilities": sorted(capabilities),
@@ -320,7 +331,7 @@ class Blacksmith:
             ),
             "backend": ("fastapi", "flask", "django", "express", "backend", "rest api", "graphql"),
             "frontend": ("react", "next.js", "frontend", "user interface", "dashboard", "vite"),
-            "robotics": ("robotics", "ros", "robot arm", "autonomous robot", "simulator"),
+            "robotics": ("robotics", "robot arm", "autonomous robot", "simulator"),
             "security": (
                 "cybersecurity",
                 "security scanner",
@@ -348,6 +359,8 @@ class Blacksmith:
         for capability, phrases in rules.items():
             if any(phrase in text for phrase in phrases):
                 capabilities.add(capability)
+        if re.search(r"\\bros\\b", text):
+            capabilities.add("robotics")
         if "Python" in languages and Blacksmith._contains_test(list(lower_files)):
             capabilities.add("testing")
         if any(item.startswith(".github/workflows/") for item in lower_files):
