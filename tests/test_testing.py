@@ -31,9 +31,7 @@ def test_testforge_plans_python_tests_without_executing(tmp_path: Path, monkeypa
 def test_testforge_detects_go_and_javascript_test_commands(tmp_path: Path):
     (tmp_path / "go.mod").write_text("module example\n", encoding="utf-8")
     (tmp_path / "service_test.go").write_text("package example\n", encoding="utf-8")
-    (tmp_path / "package.json").write_text(
-        '{"scripts":{"test":"vitest run"}}', encoding="utf-8"
-    )
+    (tmp_path / "package.json").write_text('{"scripts":{"test":"vitest run"}}', encoding="utf-8")
     (tmp_path / "app.test.ts").write_text("export {}\n", encoding="utf-8")
 
     commands = TestForge(tmp_path).plan()["commands"]
