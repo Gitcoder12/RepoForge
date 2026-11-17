@@ -60,10 +60,8 @@ def test_factory_builds_deepseek_with_explicit_endpoint_and_zero_retries(monkeyp
     options: dict = {}
 
     class FakeOpenAI:
-        def __init__(self, **kwargs):
-            options.update(kwargs)
-
         def __new__(cls, **kwargs):
+            options.update(kwargs)
             return fake_client
 
     sdk = ModuleType("openai")
