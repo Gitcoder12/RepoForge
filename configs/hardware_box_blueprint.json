@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "status": "conceptual_reference_design_not_build_ready",
+  "purpose": "Edge telemetry appliance for Asimov-Meter observations, reliability monitoring and robot-lab instrumentation.",
+  "compute": {
+    "controller": "select_after workload and lifecycle testing",
+    "edge_compute": "optional low-power SBC or industrial computer",
+    "secure_element": "required for device identity and signed update verification",
+    "storage": "encrypted industrial storage with write-integrity checks"
+  },
+  "sensor_interfaces": [
+    "temperature",
+    "relative_humidity",
+    "fan_tachometer",
+    "power_meter_via_certified_isolated_interface",
+    "door_or_enclosure_state",
+    "vibration",
+    "water_leak",
+    "network_link_health"
+  ],
+  "communications": {
+    "primary": "Ethernet",
+    "optional": ["Wi-Fi"],
+    "telemetry_protocol": "MQTT over TLS or HTTPS",
+    "offline_buffering": true,
+    "remote_actuation": false
+  },
+  "safety": {
+    "mains_power": "use certified enclosed power supply; do not expose mains wiring",
+    "overcurrent_protection": "fuse or certified protected input module",
+    "grounding": "protective earth where required by the final enclosure and PSU",
+    "thermal": "independent thermal shutdown and airflow path",
+    "firmware": "signed updates, rollback image, secure boot where supported",
+    "network": "outbound allow-list, no default inbound administration",
+    "data": "encryption at rest, local retention policy, provenance on every reading"
+  },
+  "serviceability": {
+    "front_panel": ["status LEDs", "isolated service port", "physical reset"],
+    "internal_layout": ["power compartment", "compute compartment", "sensor interface compartment"],
+    "cable_management": "separate low-voltage signal and power routing"
+  },
+  "not_yet_specified": [
+    "voltage and current ratings",
+    "PCB trace widths",
+    "fuse part numbers",
+    "thermal budget",
+    "enclosure material and IP rating",
+    "EMC and regulatory approvals"
+  ],
+  "engineering_gate": "Electrical and mechanical design must be reviewed by qualified engineers and tested to applicable standards before fabrication."
+}
