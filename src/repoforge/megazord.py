@@ -28,31 +28,52 @@ SYNERGY: dict[frozenset[str], int] = {
 INTEGRATION_PATTERNS: dict[frozenset[str], tuple[str, str]] = {
     frozenset({"frontend", "backend"}): (
         "Product interface + service",
-        "Expose stable versioned HTTP/JSON contracts; keep UI and service deployable independently.",
+        (
+            "Expose stable versioned HTTP/JSON contracts; keep UI and service "
+            "deployable independently."
+        ),
     ),
     frozenset({"ai_ml", "data"}): (
         "Data-to-model pipeline",
-        "Connect ingestion, validation and provenance to a versioned feature/dataset contract before model training or inference.",
+        (
+            "Connect ingestion, validation and provenance to a versioned "
+            "feature/dataset contract before model training or inference."
+        ),
     ),
     frozenset({"ai_ml", "evaluation"}): (
         "Model + evaluation harness",
-        "Treat model outputs as candidates; run deterministic regression, adversarial and quality evaluations before release.",
+        (
+            "Treat model outputs as candidates; run deterministic regression, "
+            "adversarial and quality evaluations before release."
+        ),
     ),
     frozenset({"ai_ml", "robotics"}): (
         "Perception/planning + robotics runtime",
-        "Use a simulator-first adapter boundary with explicit command schemas, rate limits and independent safety interlocks.",
+        (
+            "Use a simulator-first adapter boundary with explicit command "
+            "schemas, rate limits and independent safety interlocks."
+        ),
     ),
     frozenset({"ai_ml", "security"}): (
         "AI system + security controls",
-        "Place threat scanning and policy checks at the model/tool boundary; keep audit logs and human approval for high-impact actions.",
+        (
+            "Place threat scanning and policy checks at the model/tool boundary; "
+            "keep audit logs and human approval for high-impact actions."
+        ),
     ),
     frozenset({"backend", "data"}): (
         "API + data platform",
-        "Connect through documented APIs or events and define ownership, schema versions and retry/idempotency rules.",
+        (
+            "Connect through documented APIs or events and define ownership, "
+            "schema versions and retry/idempotency rules."
+        ),
     ),
     frozenset({"backend", "infrastructure"}): (
         "Service + deployment platform",
-        "Package the service with repeatable build and deployment definitions; add health checks and rollback procedures.",
+        (
+            "Package the service with repeatable build and deployment definitions; "
+            "add health checks and rollback procedures."
+        ),
     ),
     frozenset({"evaluation", "security"}): (
         "Security test platform",
@@ -60,11 +81,17 @@ INTEGRATION_PATTERNS: dict[frozenset[str], tuple[str, str]] = {
     ),
     frozenset({"research", "ai_ml"}): (
         "Research + model implementation",
-        "Bind datasets, experiment configurations, model versions and reported results to reproducible manifests.",
+        (
+            "Bind datasets, experiment configurations, model versions and "
+            "reported results to reproducible manifests."
+        ),
     ),
     frozenset({"robotics", "security"}): (
         "Robotics + safety assurance",
-        "Keep safety monitors independent of the controller and verify command constraints in simulation before hardware trials.",
+        (
+            "Keep safety monitors independent of the controller and verify "
+            "command constraints in simulation before hardware trials."
+        ),
     ),
 }
 
@@ -166,19 +193,32 @@ class MegazordEngine:
             patterns.append(
                 {
                     "pattern": "Adapter-based integration",
-                    "approach": "Identify one concrete shared workflow, define a versioned interface, and integrate through an adapter rather than merging repositories.",
+                    "approach": (
+                        "Identify one concrete shared workflow, define a versioned "
+                        "interface, and integrate through an adapter rather than "
+                        "merging repositories."
+                    ),
                 }
             )
 
         risks = [
             "Review dependency versions and runtime requirements before connecting the projects.",
             "Confirm both repositories' licences permit the intended combined distribution.",
-            "Define ownership, error handling, observability and rollback for the integration boundary.",
+            (
+                "Define ownership, error handling, observability and rollback "
+                "for the integration boundary."
+            ),
         ]
         if len(set(left["languages"]) | set(right["languages"])) > 3:
-            risks.append("The combination spans several languages; prefer a language-neutral API or event contract.")
+            risks.append(
+                "The combination spans several languages; prefer a language-neutral "
+                "API or event contract."
+            )
         if not left["manifests"] or not right["manifests"]:
-            risks.append("At least one repository has no recognised package manifest; runtime dependencies may be undocumented.")
+            risks.append(
+                "At least one repository has no recognised package manifest; "
+                "runtime dependencies may be undocumented."
+            )
 
         return {
             "repositories": [
