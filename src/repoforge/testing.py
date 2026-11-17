@@ -99,9 +99,10 @@ class TestForge:
         file_set = {item.casefold() for item in files}
         commands: list[dict[str, Any]] = []
 
-        python_tests = [
-            item for item in files if Path(item).suffix.casefold() == ".py" and self._is_python_test(item)
-        ]
+        python_tests = []
+        for item in files:
+            if Path(item).suffix.casefold() == ".py" and self._is_python_test(item):
+                python_tests.append(item)
         if python_tests:
             python = sys.executable
             for candidate in (
@@ -160,7 +161,7 @@ class TestForge:
                 {
                     "ecosystem": "rust",
                     "command": ["cargo", "test"],
-                    "reason": "Cargo.toml was detected; cargo test is the standard test entry point.",
+                    "reason": "Cargo.toml detected; run cargo test.",
                 }
             )
 
@@ -199,8 +200,13 @@ class TestForge:
             if item.casefold().endswith((".sln", ".slnx", ".csproj"))
         ]
         if dotnet_projects:
-            solutions = [item for item in dotnet_projects if item.casefold().endswith((".sln", ".slnx"))]
-            targets = solutions or [item for item in dotnet_projects if item.casefold().endswith(".csproj")]
+            solutions = [
+                item for item in dotnet_projects if item.casefold().endswith((".sln", ".slnx"))
+            ]
+            projects = [
+                item for item in dotnet_projects if item.casefold().endswith(".csproj")
+            ]
+            targets = solutions or projects
             for target in targets:
                 commands.append(
                     {
