@@ -1,0 +1,129 @@
+{
+  "schema_version": "1.0",
+  "dataset_type": "cloud_region_and_zone_inventory",
+  "last_reviewed": "2026-11-17",
+  "precision_policy": {
+    "location_type": "region_or_published_city",
+    "building_level_addresses": "not_publicly_asserted",
+    "latitude_longitude": null,
+    "note": "These are published cloud regions or Local Zones, not verified individual data-centre building coordinates. Map only to the published city/region footprint until a licensed facility dataset is added."
+  },
+  "locations": [
+    {
+      "provider": "AWS",
+      "location_type": "region",
+      "name": "Asia Pacific (Mumbai)",
+      "region_code": "ap-south-1",
+      "city": "Mumbai",
+      "country": "India",
+      "availability_zones": 3,
+      "status": "available",
+      "source_url": "https://aws.amazon.com/local/india/"
+    },
+    {
+      "provider": "AWS",
+      "location_type": "region",
+      "name": "Asia Pacific (Hyderabad)",
+      "region_code": "ap-south-2",
+      "city": "Hyderabad",
+      "country": "India",
+      "availability_zones": 3,
+      "status": "available",
+      "source_url": "https://aws.amazon.com/local/india/"
+    },
+    {
+      "provider": "AWS",
+      "location_type": "local_zone",
+      "name": "Delhi Local Zone",
+      "region_code": "ap-south-1-del-1a",
+      "city": "Delhi",
+      "country": "India",
+      "parent_region": "ap-south-1",
+      "availability_zones": null,
+      "status": "listed",
+      "source_url": "https://aws.amazon.com/about-aws/global-infrastructure/localzones/locations/"
+    },
+    {
+      "provider": "AWS",
+      "location_type": "local_zone",
+      "name": "Kolkata Local Zone",
+      "region_code": "ap-south-1-ccu-1a",
+      "city": "Kolkata",
+      "country": "India",
+      "parent_region": "ap-south-1",
+      "availability_zones": null,
+      "status": "listed",
+      "source_url": "https://aws.amazon.com/about-aws/global-infrastructure/localzones/locations/"
+    },
+    {
+      "provider": "Google Cloud",
+      "location_type": "region",
+      "name": "Mumbai",
+      "region_code": "asia-south1",
+      "city": "Mumbai",
+      "country": "India",
+      "availability_zones": 3,
+      "status": "listed",
+      "source_url": "https://cloud.google.com/about/locations/"
+    },
+    {
+      "provider": "Google Cloud",
+      "location_type": "region",
+      "name": "Delhi",
+      "region_code": "asia-south2",
+      "city": "Delhi",
+      "country": "India",
+      "availability_zones": 3,
+      "status": "listed",
+      "source_url": "https://docs.cloud.google.com/filestore/docs/regions"
+    },
+    {
+      "provider": "Microsoft Azure",
+      "location_type": "region",
+      "name": "Central India",
+      "region_code": "centralindia",
+      "city": "Pune",
+      "country": "India",
+      "availability_zones": 3,
+      "status": "listed",
+      "paired_region": "southindia",
+      "source_url": "https://learn.microsoft.com/en-us/azure/reliability/regions-list"
+    },
+    {
+      "provider": "Microsoft Azure",
+      "location_type": "region",
+      "name": "India South Central",
+      "region_code": "indiasouthcentral",
+      "city": "Hyderabad",
+      "country": "India",
+      "availability_zones": 3,
+      "status": "listed",
+      "paired_region": "centralindia",
+      "source_url": "https://learn.microsoft.com/en-us/azure/reliability/regions-list"
+    },
+    {
+      "provider": "Microsoft Azure",
+      "location_type": "region",
+      "name": "South India",
+      "region_code": "southindia",
+      "city": "Chennai",
+      "country": "India",
+      "availability_zones": null,
+      "status": "listed",
+      "paired_region": "centralindia",
+      "source_url": "https://learn.microsoft.com/en-us/azure/reliability/regions-list"
+    },
+    {
+      "provider": "Microsoft Azure",
+      "location_type": "region",
+      "name": "West India",
+      "region_code": "westindia",
+      "city": "Mumbai",
+      "country": "India",
+      "availability_zones": null,
+      "status": "listed",
+      "paired_region": "southindia",
+      "source_url": "https://learn.microsoft.com/en-us/azure/reliability/regions-list"
+    }
+  ]
+}
