@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 
 import pytest
+from typer.testing import CliRunner
 
 from repoforge.blacksmith import Blacksmith
+from repoforge.cli import app
 from repoforge.megazord import MegazordEngine
 
 
@@ -158,3 +161,29 @@ def test_blacksmith_scan_limit_is_not_truncated_when_exactly_full(tmp_path: Path
 
     assert report["files_scanned"] == 1
     assert report["scan_truncated"] is False
+
+
+
+def test_blacksmith_cli_returns_before_after_rank_json(tmp_path: Path):
+    (tmp_path / "README.md").write_text("# CLI sample\n", encoding="utf-8")
+
+    result = CliRunner().invoke(app, ["blacksmith", str(tmp_path)])
+
+    assert result.exit_code == 0
+    report = json.loads(result.stdout)
+    assert report["mode"] == "dry_run"
+    assert report["before"]["rank"]["score"] == report["after"]["rank"]["score"]
+
+
+def test_megazords_cli_returns_pairing_json(tmp_path: Path):
+    first = tmp_path / "frontend-ui"
+    second = tmp_path / "backend-api"
+    _make_repo(first, "frontend-ui", "# React frontend UI")
+    _make_repo(second, "backend-api", "# FastAPI backend REST API")
+
+    result = CliRunner().invoke(app, ["megazords", str(first), str(second)])
+
+    assert result.exit_code == 0
+    report = json.loads(result.stdout)
+    assert report["repositories_analyzed"] == 2
+    assert report["pairings_evaluated"] == 1
