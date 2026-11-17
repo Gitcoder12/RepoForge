@@ -173,7 +173,11 @@ class Blacksmith:
             if language:
                 languages[language] = languages.get(language, 0) + 1
 
-        readme = any(Path(item).parent == Path(".") and Path(item).name.casefold().startswith("readme") for item in files)
+        readme = any(
+            Path(item).parent == Path(".")
+            and Path(item).name.casefold().startswith("readme")
+            for item in files
+        )
         contributing = any(Path(item).name.casefold() == "contributing.md" for item in files)
         tests = self._contains_test(files)
         ci = any(
@@ -243,7 +247,10 @@ class Blacksmith:
         # Capability labels are heuristics for discovery, not verified feature claims.
         readme_text = ""
         for file_path in files:
-            if Path(file_path).parent == Path(".") and Path(file_path).name.casefold().startswith("readme"):
+            if (
+                Path(file_path).parent == Path(".")
+                and Path(file_path).name.casefold().startswith("readme")
+            ):
                 try:
                     readme_text = (self.repo_path / file_path).read_text(
                         encoding="utf-8", errors="replace"
@@ -251,7 +258,10 @@ class Blacksmith:
                 except OSError:
                     readme_text = ""
                 break
-        search_text = f"{self.repo_path.name.casefold()} {readme_text} {' '.join(files[:500]).casefold()}"
+        search_text = (
+            f"{self.repo_path.name.casefold()} {readme_text} "
+            f"{' '.join(files[:500]).casefold()}"
+        )
         capabilities = self._infer_capabilities(search_text, languages, lower_files)
 
         return {
@@ -276,7 +286,10 @@ class Blacksmith:
                 "grade": self._grade(score),
                 "maximum": 100,
                 "dimensions": dimensions,
-                "method": "deterministic repository-hygiene signals; not a code-quality or security certification",
+                "method": (
+                    "deterministic repository-hygiene signals; not a code-quality "
+                    "or security certification"
+                ),
             },
             "findings": findings,
         }
@@ -287,21 +300,56 @@ class Blacksmith:
     ) -> set[str]:
         capabilities: set[str] = set()
         rules = {
-            "ai_ml": ("machine learning", "deep learning", "llm", "transformer", "pytorch", "tensorflow", "artificial intelligence"),
-            "data": ("data pipeline", "data engineering", "etl", "dataset", "streaming", "analytics"),
+            "ai_ml": (
+                "machine learning",
+                "deep learning",
+                "llm",
+                "transformer",
+                "pytorch",
+                "tensorflow",
+                "artificial intelligence",
+            ),
+            "data": (
+                "data pipeline",
+                "data engineering",
+                "etl",
+                "dataset",
+                "streaming",
+                "analytics",
+            ),
             "backend": ("fastapi", "flask", "django", "express", "backend", "rest api", "graphql"),
             "frontend": ("react", "next.js", "frontend", "user interface", "dashboard", "vite"),
             "robotics": ("robotics", "ros", "robot arm", "autonomous robot", "simulator"),
-            "security": ("cybersecurity", "security scanner", "red team", "vulnerability", "penetration testing"),
-            "evaluation": ("benchmark", "evaluation harness", "red teaming", "test framework", "metrics"),
-            "infrastructure": ("docker", "kubernetes", "deployment", "terraform", "infrastructure as code"),
+            "security": (
+                "cybersecurity",
+                "security scanner",
+                "red team",
+                "vulnerability",
+                "penetration testing",
+            ),
+            "evaluation": (
+                "benchmark",
+                "evaluation harness",
+                "red teaming",
+                "test framework",
+                "metrics",
+            ),
+            "infrastructure": (
+                "docker",
+                "kubernetes",
+                "deployment",
+                "terraform",
+                "infrastructure as code",
+            ),
             "research": ("research paper", "research framework", "experiment", "scientific"),
             "cli": ("command line", "cli tool", "terminal"),
         }
         for capability, phrases in rules.items():
             if any(phrase in text for phrase in phrases):
                 capabilities.add(capability)
-        if "Python" in languages and any("test" in Path(item).name.casefold() for item in lower_files):
+        if "Python" in languages and any(
+            "test" in Path(item).name.casefold() for item in lower_files
+        ):
             capabilities.add("testing")
         if any(item.startswith(".github/workflows/") for item in lower_files):
             capabilities.add("automation")
@@ -316,7 +364,10 @@ class Blacksmith:
                 {
                     "path": ".gitignore",
                     "operation": "create_if_absent",
-                    "reason": "Add conservative ignores for local environments, caches and build output",
+                    "reason": (
+                        "Add conservative ignores for local environments, caches "
+                        "and build output"
+                    ),
                     "safe_to_apply": True,
                     "content": GENERIC_GITIGNORE,
                 }
@@ -326,7 +377,10 @@ class Blacksmith:
                 {
                     "path": ".github/workflows/ci.yml",
                     "operation": "review_required",
-                    "reason": "A CI workflow is missing; its commands must be tailored to this repository's actual toolchain",
+                    "reason": (
+                        "A CI workflow is missing; commands must be tailored to "
+                        "this repository's actual toolchain"
+                    ),
                     "safe_to_apply": False,
                     "content": None,
                 }
@@ -336,7 +390,10 @@ class Blacksmith:
                 {
                     "path": "tests/",
                     "operation": "human_design_required",
-                    "reason": "Tests must assert real project behavior; Blacksmith will not generate fake passing tests",
+                    "reason": (
+                        "Tests must assert real project behavior; Blacksmith will "
+                        "not generate fake passing tests"
+                    ),
                     "safe_to_apply": False,
                     "content": None,
                 }
