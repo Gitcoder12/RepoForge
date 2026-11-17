@@ -253,7 +253,9 @@ class Blacksmith:
             if not passed:
                 findings.append(message)
         if scan_errors:
-            findings.append("Repository scan incomplete because one or more directories could not be read")
+            findings.append(
+                "Repository scan incomplete because one or more directories could not be read"
+            )
 
         # Capability labels are heuristics for discovery, not verified feature claims.
         readme_text = ""
