@@ -224,3 +224,15 @@ def test_blacksmith_marks_scan_incomplete_on_walk_error(tmp_path: Path, monkeypa
     assert report["scan_truncated"] is False
     assert report["scan_errors"]
     assert any("scan incomplete" in item.casefold() for item in report["findings"])
+
+
+
+def test_blacksmith_reports_truncated_scan_as_incomplete(tmp_path: Path):
+    (tmp_path / "one.py").write_text("VALUE = 1\n", encoding="utf-8")
+    (tmp_path / "two.py").write_text("VALUE = 2\n", encoding="utf-8")
+
+    report = Blacksmith(tmp_path, max_files=1).inspect()
+
+    assert report["scan_truncated"] is True
+    assert report["scan_incomplete"] is True
+    assert any("scan incomplete" in item.casefold() for item in report["findings"])
