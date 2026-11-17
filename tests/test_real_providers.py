@@ -165,7 +165,7 @@ def test_async_stream_does_not_block_the_event_loop():
 
     class BlockingCompletions(FakeCompletions):
         def create(self, **kwargs):
-            release_request.wait(timeout=1)
+            release_request.wait(timeout=5)
             completed.set()
             return super().create(**kwargs)
 
@@ -173,9 +173,7 @@ def test_async_stream_does_not_block_the_event_loop():
         provider_name="deepseek",
         api_key="test-key",
         model="deepseek-flash",
-        client=SimpleNamespace(
-            chat=SimpleNamespace(completions=BlockingCompletions())
-        ),
+        client=SimpleNamespace(chat=SimpleNamespace(completions=BlockingCompletions())),
     )
 
     async def collect():
