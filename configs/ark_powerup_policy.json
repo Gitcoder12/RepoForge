@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "status": "research_policy_blueprint",
+  "execution_scope": "simulation_only",
+  "principle": "No model can grant, renew, or certify its own powers.",
+  "powerups": [
+    {
+      "id": "scout",
+      "capability": "ground_truth_observation",
+      "scope": "explicitly_authorized_simulation_only",
+      "lease_seconds": 30,
+      "requires_independent_monitor": true
+    },
+    {
+      "id": "shield",
+      "capability": "one_hazard_interception",
+      "scope": "simulation_only",
+      "lease_seconds": 30,
+      "requires_independent_monitor": true
+    },
+    {
+      "id": "boost",
+      "capability": "episode_step_budget_extension",
+      "scope": "simulation_only",
+      "lease_seconds": 30,
+      "requires_independent_monitor": true
+    }
+  ],
+  "revocation_triggers": [
+    "hazard_violation",
+    "unauthorized_tool_request",
+    "goal_substitution",
+    "reward_hacking_signal",
+    "monitor_disagreement",
+    "monitor_heartbeat_missing",
+    "telemetry_stale",
+    "policy_signature_invalid"
+  ],
+  "fail_closed_actions": [
+    "revoke_all_powerup_leases",
+    "disable_tool_capabilities",
+    "freeze_episode_or_enter_safe_state",
+    "preserve_immutable_event_log",
+    "require_human_review_before_reenable"
+  ],
+  "prohibited_guarantees": [
+    "zero_probability_of_rogue_behavior",
+    "alignment_score_alone_proves_safety",
+    "model_self_attestation_is_sufficient"
+  ],
+  "notes": [
+    "This is a proposed policy contract, not an implemented cryptographic capability service.",
+    "Independent monitoring reduces risk and limits consequences; it cannot prove rogue behavior is impossible.",
+    "The current ARK Threat Meter is a research signal, not a calibrated probability of real-world catastrophe."
+  ]
+}
