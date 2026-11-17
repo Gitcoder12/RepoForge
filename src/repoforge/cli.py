@@ -97,29 +97,125 @@ def providers() -> None:
 @app.command()
 def generate(
     prompt: str = typer.Argument(..., help="Prompt to send to the selected model."),
-    provider: str = typer.Option(
-        ..., "--provider", "-p", help="Provider name; selection is explicit."
+    provider: str | None = typer.Option(
+        None, "--provider", "-p", help="Primary provider name; selection is explicit."
     ),
     model: str | None = typer.Option(
-        None, "--model", help="Override the provider's default model."
+        None, "--model", help="Override the primary provider's default model."
+    ),
+    standby: list[str] = typer.Option(
+        [],
+        "--standby",
+        help="Explicit standby provider; repeat the option to declare an ordered route.",
+    ),
+    route_config: Path | None = typer.Option(
+        None,
+        "--route-config",
+        exists=True,
+        dir_okay=False,
+        readable=True,
+        help="Load the explicit provider route from a JSON config file.",
+    ),
+    allow_rate_limit_fallback: bool = typer.Option(
+        False,
+        "--allow-rate-limit-fallback",
+        help="Permit standby after quota/rate-limit failures; may incur additional charges.",
     ),
     timeout: float = typer.Option(45.0, "--timeout", min=1.0, max=180.0),
     max_tokens: int = typer.Option(2048, "--max-tokens", min=1, max=32768),
 ) -> None:
-    """Generate one response using an explicitly selected real provider."""
+    """Generate with one explicit provider or a declared primary/standby route."""
     from repoforge.orchestrator import AIOrchestrator
     from repoforge.providers.errors import ProviderError
 
     _load_environment()
     try:
-        orchestrator = AIOrchestrator()
-        orchestrator.register_real_provider(provider, model=model, timeout=timeout)
-        response = orchestrator.generate(
-            prompt,
-            provider=provider.strip().lower(),
-            max_tokens=max_tokens,
-        )
-    except ProviderError as exc:
+        if route_config is not None:
+            if provider is not None or standby or allow_rate_limit_fallback:
+                raise ValueError(
+                    "Use either --route-config or explicit --provider/--standby options, not both"
+                )
+            from repoforge.providers.failover import StandbyProviderPool
+
+            config = json.loads(route_config.read_text(encoding="utf-8"))
+            primary = config.get("primary")
+            if not isinstance(primary, dict) or not isinstance(primary.get("provider"), str):
+                raise ValueError("route config requires primary.provider")
+            standby_entries = config.get("standby", [])
+            if not isinstance(standby_entries, list):
+                raise ValueError("route config standby must be a JSON array")
+            standby_names = []
+            model_overrides = {}
+            for entry in standby_entries:
+                if not isinstance(entry, dict) or not isinstance(entry.get("provider"), str):
+                    raise ValueError("each standby entry requires a provider name")
+                if entry.get("enabled", True):
+                    name = entry["provider"].strip().lower()
+                    standby_names.append(name)
+                    override = entry.get("model_override")
+                    if override is not None:
+                        if not isinstance(override, str) or not override.strip():
+                            raise ValueError("standby model_override must be a non-empty string")
+                        model_overrides[name] = override
+            primary_name = primary["provider"].strip().lower()
+            primary_model = primary.get("model_override")
+            if primary_model is not None:
+                if not isinstance(primary_model, str) or not primary_model.strip():
+                    raise ValueError("primary model_override must be a non-empty string")
+                model_overrides[primary_name] = primary_model
+            policy = config.get("policy", {})
+            if not isinstance(policy, dict):
+                raise ValueError("route config policy must be a JSON object")
+            rate_limit_fallback = policy.get("fallback_on_rate_limit", False)
+            if not isinstance(rate_limit_fallback, bool):
+                raise ValueError("fallback_on_rate_limit must be a boolean")
+            route = StandbyProviderPool.from_factory(
+                primary_name=primary_name,
+                standby_names=tuple(standby_names),
+                model_overrides=model_overrides,
+                timeout=timeout,
+                allow_rate_limit_fallback=rate_limit_fallback,
+            )
+            result = route.generate_with_report(prompt, max_tokens=max_tokens)
+            response = result.text
+            for attempt in result.attempts:
+                typer.echo(
+                    f"Route: {attempt.provider_name} / {attempt.model} — {attempt.status}"
+                    + (f" ({attempt.error_type})" if attempt.error_type else ""),
+                    err=True,
+                )
+        elif provider is not None:
+            if standby:
+                from repoforge.providers.failover import StandbyProviderPool
+
+                route = StandbyProviderPool.from_factory(
+                    primary_name=provider.strip().lower(),
+                    standby_names=tuple(name.strip().lower() for name in standby),
+                    model_overrides={provider.strip().lower(): model} if model else {},
+                    timeout=timeout,
+                    allow_rate_limit_fallback=allow_rate_limit_fallback,
+                )
+                result = route.generate_with_report(prompt, max_tokens=max_tokens)
+                response = result.text
+                for attempt in result.attempts:
+                    typer.echo(
+                        f"Route: {attempt.provider_name} / {attempt.model} — {attempt.status}"
+                        + (f" ({attempt.error_type})" if attempt.error_type else ""),
+                        err=True,
+                    )
+            else:
+                if allow_rate_limit_fallback:
+                    raise ValueError("--allow-rate-limit-fallback requires at least one --standby")
+                orchestrator = AIOrchestrator()
+                orchestrator.register_real_provider(provider, model=model, timeout=timeout)
+                response = orchestrator.generate(
+                    prompt,
+                    provider=provider.strip().lower(),
+                    max_tokens=max_tokens,
+                )
+        else:
+            raise ValueError("Specify --provider or --route-config")
+    except (ProviderError, ValueError, OSError, json.JSONDecodeError) as exc:
         typer.echo(f"Provider error: {exc}", err=True)
         raise typer.Exit(code=2) from exc
 
