@@ -359,9 +359,9 @@ class Blacksmith:
         for capability, phrases in rules.items():
             if any(phrase in text for phrase in phrases):
                 capabilities.add(capability)
-        if re.search(r"\\bros\\b", text):
+        if re.search(r"\bros\b", text):
             capabilities.add("robotics")
-        if "Python" in languages and Blacksmith._contains_test(list(lower_files)):
+        if Blacksmith._contains_test(list(lower_files)):
             capabilities.add("testing")
         if any(item.startswith(".github/workflows/") for item in lower_files):
             capabilities.add("automation")
