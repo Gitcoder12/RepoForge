@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import io
-import os
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -124,8 +124,6 @@ def test_testforge_executes_only_after_explicit_opt_in(tmp_path: Path, monkeypat
         captured["command"] = command
         captured.update(kwargs)
         return fake_process
-
-    import sys
 
     monkeypatch.setattr(subprocess, "Popen", fake_popen)
     report = TestForge(tmp_path).run(execute=True, timeout=15)
