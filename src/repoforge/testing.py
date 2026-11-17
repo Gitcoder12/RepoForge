@@ -42,12 +42,8 @@ class TestForge:
     def _has_python_tests(self) -> bool:
         tests_dir = self.repo_path / "tests"
         if tests_dir.is_dir():
-            return any(tests_dir.rglob("test_*.py")) or any(
-                tests_dir.rglob("*_test.py")
-            )
-        return any(self.repo_path.glob("test_*.py")) or any(
-            self.repo_path.glob("*_test.py")
-        )
+            return any(tests_dir.rglob("test_*.py")) or any(tests_dir.rglob("*_test.py"))
+        return any(self.repo_path.glob("test_*.py")) or any(self.repo_path.glob("*_test.py"))
 
     def _has_go_tests(self) -> bool:
         return any(
@@ -130,9 +126,7 @@ class TestForge:
                 }
             )
 
-        if (self.repo_path / "pom.xml").is_file() and (
-            self.repo_path / "src" / "test"
-        ).is_dir():
+        if (self.repo_path / "pom.xml").is_file() and (self.repo_path / "src" / "test").is_dir():
             commands.append(
                 {
                     "ecosystem": "java-maven",
@@ -153,9 +147,7 @@ class TestForge:
                 }
             )
 
-        dotnet_projects = list(self.repo_path.glob("*.sln")) + list(
-            self.repo_path.glob("*.csproj")
-        )
+        dotnet_projects = list(self.repo_path.glob("*.sln")) + list(self.repo_path.glob("*.csproj"))
         if dotnet_projects:
             commands.append(
                 {
