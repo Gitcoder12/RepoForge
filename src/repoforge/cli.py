@@ -126,7 +126,6 @@ def generate(
     typer.echo(response)
 
 
-
 @app.command("blacksmith")
 def blacksmith_command(
     repo_path: Path = typer.Argument(
