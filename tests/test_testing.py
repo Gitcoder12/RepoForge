@@ -205,8 +205,6 @@ def test_testforge_strips_common_credentials_from_child_environment(monkeypatch)
     assert "GITHUB_TOKEN" not in environment
     assert environment["PATH"] == "/usr/bin"
 
-
-
 def test_testforge_refuses_to_execute_after_an_incomplete_scan(tmp_path: Path, monkeypatch):
     (tmp_path / "one.py").write_text("print('one')\n", encoding="utf-8")
     (tmp_path / "two.py").write_text("print('two')\n", encoding="utf-8")
@@ -220,3 +218,93 @@ def test_testforge_refuses_to_execute_after_an_incomplete_scan(tmp_path: Path, m
     assert report["status"] == "scan_incomplete"
     assert report["mode"] == "plan_only"
     assert "results" not in report
+
+
+def test_testforge_finds_root_python_tests_even_when_tests_directory_is_empty(tmp_path: Path):
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "test_root.py").write_text("def test_root():\n    assert True\n", encoding="utf-8")
+
+    report = TestForge(tmp_path).plan()
+
+    assert any(item["ecosystem"] == "python" for item in report["commands"])
+
+
+def test_testforge_detects_javascript_tests_in_dunder_tests(tmp_path: Path):
+    (tmp_path / "package.json").write_text(
+        '{"scripts":{"test":"jest"}}', encoding="utf-8"
+    )
+    test_dir = tmp_path / "src" / "__tests__"
+    test_dir.mkdir(parents=True)
+    (test_dir / "widget.js").write_text("module.exports = 1\n", encoding="utf-8")
+
+    commands = TestForge(tmp_path).plan()["commands"]
+
+    assert any(item["ecosystem"] == "javascript" for item in commands)
+
+
+def test_testforge_detects_maven_tests_in_nested_module(tmp_path: Path):
+    module = tmp_path / "service"
+    test_dir = module / "src" / "test" / "java"
+    test_dir.mkdir(parents=True)
+    (module / "pom.xml").write_text("<project/>\n", encoding="utf-8")
+    (test_dir / "ServiceTest.java").write_text("class ServiceTest {}\n", encoding="utf-8")
+
+    commands = TestForge(tmp_path).plan()["commands"]
+
+    assert any(
+        item["command"] == ["mvn", "-q", "-f", "service/pom.xml", "test"]
+        for item in commands
+    )
+
+
+def test_testforge_detects_gradle_tests_in_nested_module(tmp_path: Path):
+    (tmp_path / "gradlew").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    test_dir = tmp_path / "service" / "src" / "test" / "java"
+    test_dir.mkdir(parents=True)
+    (test_dir / "ServiceTest.java").write_text("class ServiceTest {}\n", encoding="utf-8")
+
+    commands = TestForge(tmp_path).plan()["commands"]
+
+    assert any(item["ecosystem"] == "java-gradle" for item in commands)
+
+
+def test_testforge_detects_dotnet_slnx_and_uses_explicit_target(tmp_path: Path):
+    (tmp_path / "App.slnx").write_text("<Solution/>\n", encoding="utf-8")
+    project = tmp_path / "src" / "App" / "App.csproj"
+    project.parent.mkdir(parents=True)
+    project.write_text("<Project/>\n", encoding="utf-8")
+
+    commands = TestForge(tmp_path).plan()["commands"]
+
+    assert any(
+        item["command"] == ["dotnet", "test", "App.slnx", "--nologo"]
+        for item in commands
+    )
+
+
+def test_testforge_filters_database_and_docker_credentials(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "postgres://user:secret@example/db")
+    monkeypatch.setenv("DOCKER_AUTH_CONFIG", '{"auths":{"registry":{"auth":"secret"}}}')
+    monkeypatch.setenv("PATH", "/usr/bin")
+
+    environment = TestForge._safe_environment()
+
+    assert "DATABASE_URL" not in environment
+    assert "DOCKER_AUTH_CONFIG" not in environment
+    assert environment["PATH"] == "/usr/bin"
+
+
+def test_testforge_reports_permission_error_as_unavailable(tmp_path: Path, monkeypatch):
+    tests = tmp_path / "tests"
+    tests.mkdir()
+    (tests / "test_sample.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
+
+    def denied(*args, **kwargs):
+        raise PermissionError("execution denied")
+
+    monkeypatch.setattr(subprocess, "Popen", denied)
+    report = TestForge(tmp_path).run(execute=True)
+
+    assert report["status"] == "failed"
+    assert report["results"][0]["status"] == "unavailable"
+    assert "execution denied" in report["results"][0]["output"]
