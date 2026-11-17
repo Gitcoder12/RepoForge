@@ -200,11 +200,11 @@ class MegazordEngine:
         ]
         if len(set(left["languages"]) | set(right["languages"])) > 3:
             risks.append(
-                "The combination spans several languages; prefer a language-neutral API or event contract."
+                "Several languages are involved; prefer a neutral API or event contract."
             )
         if not left["manifests"] or not right["manifests"]:
             risks.append(
-                "At least one repository has no recognised package manifest; runtime dependencies may be undocumented."
+                "A package manifest is missing; runtime dependencies may be undocumented."
             )
 
         return {
