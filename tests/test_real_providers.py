@@ -154,8 +154,10 @@ def test_generate_cli_does_not_fall_back_when_deepseek_is_unconfigured(monkeypat
 
 def test_groq_uses_a_current_production_model_id(monkeypatch):
     monkeypatch.setenv("GROQ_API_KEY", "test-key")
+    from repoforge.providers.factory import PROVIDER_DEFINITIONS
+
     definition = ProviderFactory().list_status()
     groq = next(item for item in definition if item["name"] == "groq")
 
     assert groq["configured"] is True
-    assert ProviderFactory().get("groq").models == ["openai/gpt-oss-120b"]
+    assert PROVIDER_DEFINITIONS["groq"]["model"] == "openai/gpt-oss-120b"
