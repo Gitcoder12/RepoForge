@@ -69,7 +69,6 @@ def validate(
     raise typer.Exit(code=1)
 
 
-
 def _load_environment() -> None:
     """Load a local .env file without overriding variables from the shell."""
     try:
