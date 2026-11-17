@@ -143,7 +143,6 @@ def test_megazord_rejects_missing_repository_paths(tmp_path: Path):
         MegazordEngine().suggest([existing, tmp_path / "missing"])
 
 
-
 def test_blacksmith_does_not_mistake_latest_filename_for_test_coverage(tmp_path: Path):
     (tmp_path / "latest.py").write_text("VALUE = 1\n", encoding="utf-8")
 
