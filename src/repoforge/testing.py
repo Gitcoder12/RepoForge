@@ -163,18 +163,34 @@ class TestForge:
                 }
             )
 
-        if "pom.xml" in file_set and any(item.startswith("src/test/") for item in file_set):
-            commands.append(
-                {
-                    "ecosystem": "java-maven",
-                    "command": ["mvn", "-q", "test"],
-                    "reason": "Maven project and conventional test source files were detected.",
-                }
-            )
+        java_test_roots = set()
+        for item in files:
+            parts = Path(item).parts
+            for index in range(len(parts) - 1):
+                if parts[index : index + 2] == ("src", "test"):
+                    java_test_roots.add("/".join(parts[:index]))
+
+        if java_test_roots:
+            if "pom.xml" in file_set:
+                maven_poms = ["pom.xml"]
+            else:
+                maven_poms = sorted(
+                    f"{root}/pom.xml" if root else "pom.xml"
+                    for root in java_test_roots
+                    if (f"{root}/pom.xml" if root else "pom.xml") in file_set
+                )
+            for pom_path in maven_poms:
+                commands.append(
+                    {
+                        "ecosystem": "java-maven",
+                        "command": ["mvn", "-q", "-f", pom_path, "test"],
+                        "reason": "Maven manifest and module test sources were detected.",
+                    }
+                )
 
         gradle_wrapper_name = "gradlew.bat" if os.name == "nt" else "gradlew"
         gradle_wrapper = self.repo_path / gradle_wrapper_name
-        if gradle_wrapper.is_file() and any(item.startswith("src/test/") for item in file_set):
+        if gradle_wrapper.is_file() and java_test_roots:
             gradle_command = (
                 [str(gradle_wrapper), "test", "--no-daemon"]
                 if os.name == "nt"
@@ -233,12 +249,30 @@ class TestForge:
     @staticmethod
     def _safe_environment() -> dict[str, str]:
         """Preserve runtime essentials while removing common credential variables."""
-        blocked_fragments = ("KEY", "TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
-        blocked_prefixes = ("AWS_", "AZURE_", "GOOGLE_", "GITHUB_", "GH_")
+        blocked_fragments = ("KEY", "TOKEN", "SECRET", "PASSWORD", "CREDENTIAL", "AUTH")
+        blocked_names = {
+            "DATABASE_URL",
+            "DOCKER_AUTH_CONFIG",
+            "DOCKER_CONFIG",
+            "NETRC",
+            "NPM_CONFIG_USERCONFIG",
+            "PIP_INDEX_URL",
+            "PIP_EXTRA_INDEX_URL",
+        }
+        blocked_prefixes = (
+            "AWS_",
+            "AZURE_",
+            "GOOGLE_",
+            "GITHUB_",
+            "GH_",
+            "DOCKER_",
+            "NPM_CONFIG_",
+        )
         environment = {
             key: value
             for key, value in os.environ.items()
-            if not any(fragment in key.upper() for fragment in blocked_fragments)
+            if key.upper() not in blocked_names
+            and not any(fragment in key.upper() for fragment in blocked_fragments)
             and not key.upper().startswith(blocked_prefixes)
         }
         environment.update(
@@ -253,14 +287,24 @@ class TestForge:
 
     @staticmethod
     def _kill_process(process: subprocess.Popen[bytes]) -> None:
-        """Stop the command and its POSIX process group after a timeout."""
-        if os.name != "nt":
+        """Stop the command and its child process tree after a timeout."""
+        if os.name == "nt":
             try:
-                os.killpg(process.pid, signal.SIGKILL)
+                subprocess.run(
+                    ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                    capture_output=True,
+                    check=False,
+                    timeout=10,
+                )
                 return
-            except (ProcessLookupError, PermissionError, OSError):
-                pass
-        process.kill()
+            except (OSError, subprocess.TimeoutExpired):
+                process.kill()
+                return
+
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError, OSError):
+            process.kill()
 
     @staticmethod
     def _capture_tail(stream: Any, destination: bytearray, truncated_flag: list[bool]) -> None:
