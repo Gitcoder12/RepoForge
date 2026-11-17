@@ -179,9 +179,7 @@ class MegazordEngine:
             capability_a, capability_b = tuple(relation)
             spans_both_repositories = (
                 capability_a in left_caps and capability_b in right_caps
-            ) or (
-                capability_b in left_caps and capability_a in right_caps
-            )
+            ) or (capability_b in left_caps and capability_a in right_caps)
             if spans_both_repositories:
                 patterns.append({"pattern": title, "approach": approach})
         if not patterns:
