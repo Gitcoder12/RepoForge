@@ -177,7 +177,6 @@ def test_pool_never_uses_an_implicit_mock():
         pool.generate("hello")
 
 
-
 def test_generate_cli_loads_an_explicit_route_config(tmp_path, monkeypatch):
     config = tmp_path / "route.json"
     config.write_text(
@@ -215,9 +214,7 @@ def test_generate_cli_loads_an_explicit_route_config(tmp_path, monkeypatch):
         captured.update(kwargs)
         return FakeRoute()
 
-    monkeypatch.setattr(
-        StandbyProviderPool, "from_factory", classmethod(fake_from_factory)
-    )
+    monkeypatch.setattr(StandbyProviderPool, "from_factory", classmethod(fake_from_factory))
     result = CliRunner().invoke(
         app,
         ["generate", "test prompt", "--route-config", str(config)],
