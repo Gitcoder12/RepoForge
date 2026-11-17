@@ -36,3 +36,5 @@ jobs:
         run: |
           repoforge --help
           repoforge version
+          repoforge providers
+          repoforge generate --help
