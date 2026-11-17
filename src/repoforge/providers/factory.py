@@ -5,8 +5,8 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from repoforge.providers.compatible import OpenAICompatibleProvider
-from repoforge.providers.errors import ProviderConfigurationError
+from .compatible import OpenAICompatibleProvider
+from .errors import ProviderConfigurationError
 
 
 PROVIDER_DEFINITIONS: dict[str, dict[str, Any]] = {
