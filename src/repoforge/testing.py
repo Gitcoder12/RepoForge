@@ -227,7 +227,11 @@ class TestForge:
                 "sandbox; only use --execute for repositories you trust."
             ),
             "commands": commands,
-            "status": "planned" if commands else "no_tests_detected",
+            "status": (
+                "scan_incomplete"
+                if truncated or scan_errors
+                else ("planned" if commands else "no_tests_detected")
+            ),
         }
 
     @staticmethod
@@ -263,17 +267,22 @@ class TestForge:
         process.kill()
 
     @staticmethod
-    def _capture_tail(stream: Any, destination: bytearray) -> None:
+    def _capture_tail(
+        stream: Any, destination: bytearray, truncated_flag: list[bool]
+    ) -> None:
         """Drain output continuously while retaining only the final bounded bytes."""
+        total_bytes = 0
         try:
             while True:
                 chunk = stream.read(4096)
                 if not chunk:
                     break
+                total_bytes += len(chunk)
                 destination.extend(chunk)
                 overflow = len(destination) - MAX_OUTPUT_BYTES
                 if overflow > 0:
                     del destination[:overflow]
+            truncated_flag[0] = total_bytes > MAX_OUTPUT_BYTES
         except (OSError, ValueError):
             pass
 
@@ -309,9 +318,10 @@ class TestForge:
             }
 
         output_tail = bytearray()
+        output_truncated = [False]
         reader = threading.Thread(
             target=self._capture_tail,
-            args=(process.stdout, output_tail),
+            args=(process.stdout, output_tail, output_truncated),
             daemon=True,
         )
         reader.start()
@@ -333,7 +343,7 @@ class TestForge:
             "return_code": return_code,
             "duration_seconds": round(time.monotonic() - started, 3),
             "output": output,
-            "output_truncated": len(output_tail) >= MAX_OUTPUT_BYTES,
+            "output_truncated": output_truncated[0],
         }
         return result
 
@@ -345,6 +355,13 @@ class TestForge:
             raise ValueError("timeout must be an integer between 1 and 1800 seconds")
 
         report = self.plan()
+        if not report["scan"]["complete"]:
+            report["status"] = "scan_incomplete"
+            report["warning"] = (
+                "The repository scan was incomplete. No test commands were executed; "
+                "increase max_files or fix the traversal errors before relying on results."
+            )
+            return report
         if not execute or not report["commands"]:
             return report
 
