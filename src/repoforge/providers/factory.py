@@ -13,7 +13,7 @@ PROVIDER_DEFINITIONS: dict[str, dict[str, Any]] = {
     "deepseek": {
         "env": "DEEPSEEK_API_KEY",
         "base_url": "https://api.deepseek.com",
-        "model": "deepseek-chat",
+        "model": "deepseek-flash",
         "kind": "remote",
     },
     "openai": {
@@ -31,7 +31,7 @@ PROVIDER_DEFINITIONS: dict[str, dict[str, Any]] = {
     "groq": {
         "env": "GROQ_API_KEY",
         "base_url": "https://api.groq.com/openai/v1",
-        "model": "llama-3.3-70b-versatile",
+        "model": "openai/gpt-oss-120b",
         "kind": "remote",
     },
     "ollama": {
