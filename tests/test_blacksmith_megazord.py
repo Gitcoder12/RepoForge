@@ -188,7 +188,6 @@ def test_megazords_cli_returns_pairing_json(tmp_path: Path):
     assert report["pairings_evaluated"] == 1
 
 
-
 def test_blacksmith_recognises_go_and_javascript_test_file_conventions(tmp_path: Path):
     (tmp_path / "foo_test.go").write_text("package demo\n", encoding="utf-8")
     report = Blacksmith(tmp_path).inspect()
