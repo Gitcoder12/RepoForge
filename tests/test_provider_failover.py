@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
-import pytest
+import json
+from types import SimpleNamespace
 
+import pytest
+from typer.testing import CliRunner
+
+from repoforge.cli import app
 from repoforge.providers.errors import (
     ProviderAuthenticationError,
     ProviderConnectionError,
@@ -174,13 +179,6 @@ def test_pool_never_uses_an_implicit_mock():
 
 
 def test_generate_cli_loads_an_explicit_route_config(tmp_path, monkeypatch):
-    import json
-    from types import SimpleNamespace
-    from typer.testing import CliRunner
-
-    from repoforge.cli import app
-    from repoforge.providers.failover import StandbyProviderPool
-
     config = tmp_path / "route.json"
     config.write_text(
         json.dumps(
