@@ -124,7 +124,9 @@ class TestForge:
                 {
                     "ecosystem": "rust",
                     "command": ["cargo", "test"],
-                    "reason": "Cargo.toml was detected; cargo test is the standard test entry point.",
+                    "reason": (
+                        "Cargo.toml was detected; cargo test is the standard test entry point."
+                    ),
                 }
             )
 
@@ -145,7 +147,9 @@ class TestForge:
                 {
                     "ecosystem": "java-gradle",
                     "command": [str(gradle_wrapper), "test", "--no-daemon"],
-                    "reason": "Gradle wrapper and conventional test source directory were detected.",
+                    "reason": (
+                        "Gradle wrapper and conventional test source directory were detected."
+                    ),
                 }
             )
 
