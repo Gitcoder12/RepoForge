@@ -364,7 +364,10 @@ class Blacksmith:
                 {
                     "path": ".gitignore",
                     "operation": "create_if_absent",
-                    "reason": "Add ignores for local environments, caches, and build output",
+                    "reason": (
+                        "Add ignores for local environments, caches, "
+                        "and build output"
+                    ),
                     "safe_to_apply": True,
                     "content": GENERIC_GITIGNORE,
                 }
