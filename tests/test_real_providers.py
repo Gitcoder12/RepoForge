@@ -77,10 +77,10 @@ def test_factory_builds_deepseek_with_explicit_endpoint_and_zero_retries(monkeyp
 
     assert result == "real model response"
     assert provider.name == "deepseek"
-    assert provider.models == ["deepseek-chat"]
+    assert provider.models == ["deepseek-flash"]
     assert options["base_url"] == "https://api.deepseek.com"
     assert options["max_retries"] == 0
-    assert completions.request["model"] == "deepseek-chat"
+    assert completions.request["model"] == "deepseek-flash"
     assert completions.request["max_tokens"] == 512
     assert completions.request["messages"][0]["role"] == "system"
 
@@ -94,7 +94,7 @@ def test_quota_exhaustion_is_reported_without_provider_switch():
         provider_name="deepseek",
         api_key="test-key",
         base_url="https://api.deepseek.com",
-        model="deepseek-chat",
+        model="deepseek-flash",
         client=SimpleNamespace(chat=SimpleNamespace(completions=completions)),
     )
 
@@ -109,7 +109,7 @@ def test_timeout_is_converted_to_a_clear_provider_error():
     provider = OpenAICompatibleProvider(
         provider_name="deepseek",
         api_key="test-key",
-        model="deepseek-chat",
+        model="deepseek-flash",
         client=SimpleNamespace(
             chat=SimpleNamespace(
                 completions=FakeCompletions(error=APITimeoutError())
@@ -125,7 +125,7 @@ def test_empty_provider_response_is_not_reported_as_success():
     provider = OpenAICompatibleProvider(
         provider_name="deepseek",
         api_key="test-key",
-        model="deepseek-chat",
+        model="deepseek-flash",
         client=SimpleNamespace(
             chat=SimpleNamespace(completions=FakeCompletions(content=None))
         ),
@@ -149,3 +149,13 @@ def test_generate_cli_does_not_fall_back_when_deepseek_is_unconfigured(monkeypat
     assert result.exit_code == 2
     assert "DEEPSEEK_API_KEY" in result.output
     assert "mock response" not in result.output.lower()
+
+
+
+def test_groq_uses_a_current_production_model_id(monkeypatch):
+    monkeypatch.setenv("GROQ_API_KEY", "test-key")
+    definition = ProviderFactory().list_status()
+    groq = next(item for item in definition if item["name"] == "groq")
+
+    assert groq["configured"] is True
+    assert ProviderFactory().get("groq").models == ["openai/gpt-oss-120b"]
