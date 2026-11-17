@@ -199,13 +199,9 @@ class MegazordEngine:
             "Define integration ownership, error handling, observability, and rollback.",
         ]
         if len(set(left["languages"]) | set(right["languages"])) > 3:
-            risks.append(
-                "Several languages are involved; prefer a neutral API or event contract."
-            )
+            risks.append("Several languages are involved; prefer a neutral API or event contract.")
         if not left["manifests"] or not right["manifests"]:
-            risks.append(
-                "A package manifest is missing; runtime dependencies may be undocumented."
-            )
+            risks.append("A package manifest is missing; runtime dependencies may be undocumented.")
 
         return {
             "repositories": [
