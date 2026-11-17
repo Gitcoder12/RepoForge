@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Explicit primary and standby model routing for RepoForge generation",
+  "primary": {
+    "provider": "deepseek",
+    "model_override": null
+  },
+  "standby": [
+    {
+      "provider": "openai",
+      "model_override": null,
+      "enabled": true
+    },
+    {
+      "provider": "groq",
+      "model_override": null,
+      "enabled": false
+    },
+    {
+      "provider": "ollama",
+      "model_override": null,
+      "enabled": false
+    }
+  ],
+  "policy": {
+    "fallback_on_connection_error": true,
+    "fallback_on_timeout": true,
+    "fallback_on_empty_response": true,
+    "fallback_on_rate_limit": false,
+    "fallback_on_authentication_error": false,
+    "fallback_on_configuration_error": false,
+    "fallback_on_request_error": false,
+    "never_fallback_to_implicit_mock": true,
+    "require_explicit_provider_credentials": true,
+    "record_provider_attempt_metadata": true
+  },
+  "operational_notes": [
+    "Only providers explicitly enabled and configured by the operator may be used.",
+    "Rate-limit fallback is disabled by default because it may incur a second provider charge.",
+    "This configuration does not yet enforce a monetary budget or provider-specific data residency policy.",
+    "Use a local Ollama standby only after the model is downloaded and its hardware capacity is tested."
+  ]
+}
