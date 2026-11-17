@@ -351,3 +351,32 @@ Review each PR's exact head and CI before relying on these features. The origina
 3. Test traversal/symlink escapes, dry-run behavior, checkpoint failure, validator failure, rollback failure, and partial action errors.
 
 **Verification status:** static source inspection only; full test suite, live model workflow, rollback behavior, and end-to-end execution remain unverified.
+
+
+---
+
+## Real model provider runtime — development PR
+
+The installable `src/repoforge` package now has an explicit OpenAI-compatible provider runtime for DeepSeek, OpenAI, OpenRouter, Groq, and a local Ollama endpoint.
+
+Install the provider SDK:
+
+```bash
+pip install -e ".[providers]"
+```
+
+Configure the matching environment variable (for example, `DEEPSEEK_API_KEY`) and inspect readiness without displaying credential values:
+
+```bash
+repoforge providers
+```
+
+Send a single prompt to an explicitly selected provider:
+
+```bash
+repoforge generate "Review this Python function for correctness and performance" --provider deepseek
+```
+
+Use `--model`, `--timeout`, and `--max-tokens` to control the request. Provider quota exhaustion, authentication errors, timeouts, and connection failures are reported explicitly. SDK retries are disabled, and RepoForge does not silently substitute mock output or switch to another paid provider. Choose another provider deliberately with `--provider`.
+
+This is a single-request provider runtime, not yet the autonomous repository-editing `forge` workflow. It must pass CI and review before it is treated as part of the released default branch.
