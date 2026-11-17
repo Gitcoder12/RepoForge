@@ -38,9 +38,7 @@ MAX_OUTPUT_BYTES = 8_000
 class TestForge:
     """Detect conventional test runners and execute them only after opt-in."""
 
-    def __init__(
-        self, repo_path: str | Path = ".", *, max_files: int = DEFAULT_MAX_FILES
-    ) -> None:
+    def __init__(self, repo_path: str | Path = ".", *, max_files: int = DEFAULT_MAX_FILES) -> None:
         self.repo_path = Path(repo_path).expanduser().resolve()
         if not self.repo_path.is_dir():
             raise ValueError(f"repository path must be an existing directory: {repo_path}")
@@ -165,9 +163,7 @@ class TestForge:
                 }
             )
 
-        if "pom.xml" in file_set and any(
-            item.startswith("src/test/") for item in file_set
-        ):
+        if "pom.xml" in file_set and any(item.startswith("src/test/") for item in file_set):
             commands.append(
                 {
                     "ecosystem": "java-maven",
@@ -178,9 +174,7 @@ class TestForge:
 
         gradle_wrapper_name = "gradlew.bat" if os.name == "nt" else "gradlew"
         gradle_wrapper = self.repo_path / gradle_wrapper_name
-        if gradle_wrapper.is_file() and any(
-            item.startswith("src/test/") for item in file_set
-        ):
+        if gradle_wrapper.is_file() and any(item.startswith("src/test/") for item in file_set):
             gradle_command = (
                 [str(gradle_wrapper), "test", "--no-daemon"]
                 if os.name == "nt"
@@ -195,17 +189,13 @@ class TestForge:
             )
 
         dotnet_projects = [
-            item
-            for item in files
-            if item.casefold().endswith((".sln", ".slnx", ".csproj"))
+            item for item in files if item.casefold().endswith((".sln", ".slnx", ".csproj"))
         ]
         if dotnet_projects:
             solutions = [
                 item for item in dotnet_projects if item.casefold().endswith((".sln", ".slnx"))
             ]
-            projects = [
-                item for item in dotnet_projects if item.casefold().endswith(".csproj")
-            ]
+            projects = [item for item in dotnet_projects if item.casefold().endswith(".csproj")]
             targets = solutions or projects
             for target in targets:
                 commands.append(
@@ -273,9 +263,7 @@ class TestForge:
         process.kill()
 
     @staticmethod
-    def _capture_tail(
-        stream: Any, destination: bytearray, truncated_flag: list[bool]
-    ) -> None:
+    def _capture_tail(stream: Any, destination: bytearray, truncated_flag: list[bool]) -> None:
         """Drain output continuously while retaining only the final bounded bytes."""
         total_bytes = 0
         try:
@@ -300,9 +288,7 @@ class TestForge:
         if os.name != "nt":
             launch_options["start_new_session"] = True
         else:
-            launch_options["creationflags"] = getattr(
-                subprocess, "CREATE_NEW_PROCESS_GROUP", 0
-            )
+            launch_options["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
 
         try:
             process = subprocess.Popen(
