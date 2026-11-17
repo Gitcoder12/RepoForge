@@ -130,7 +130,8 @@ class Blacksmith:
                 except ValueError:
                     continue
                 files.append(relative)
-                if len(files) >= self.max_files:
+                if len(files) > self.max_files:
+                    files.pop()
                     truncated = True
                     return sorted(files), truncated
         return sorted(files), truncated
@@ -347,9 +348,7 @@ class Blacksmith:
         for capability, phrases in rules.items():
             if any(phrase in text for phrase in phrases):
                 capabilities.add(capability)
-        if "Python" in languages and any(
-            "test" in Path(item).name.casefold() for item in lower_files
-        ):
+        if "Python" in languages and Blacksmith._contains_test(list(lower_files)):
             capabilities.add("testing")
         if any(item.startswith(".github/workflows/") for item in lower_files):
             capabilities.add("automation")
@@ -419,6 +418,9 @@ class Blacksmith:
                 raise ValueError("repair path escapes repository root") from exc
             if target.is_symlink():
                 raise ValueError(f"refusing to write through symlink: {relative}")
+            if target.exists():
+                applied.append({"path": relative.as_posix(), "status": "skipped_exists"})
+                continue
             try:
                 with target.open("x", encoding="utf-8", newline="\n") as handle:
                     handle.write(repair["content"])
