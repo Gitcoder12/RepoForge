@@ -172,3 +172,33 @@ def megazords_command(
         typer.echo(f"Megazord error: {exc}", err=True)
         raise typer.Exit(code=2) from exc
     typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+
+
+@app.command("test")
+def test_command(
+    repo_path: Path = typer.Argument(
+        Path("."),
+        exists=True,
+        file_okay=False,
+        readable=True,
+        help="Local repository to inspect or test.",
+    ),
+    execute: bool = typer.Option(
+        False,
+        "--execute",
+        help="Execute detected test commands. Only use this for repositories you trust.",
+    ),
+    timeout: int = typer.Option(120, "--timeout", min=1, max=1800),
+) -> None:
+    """Discover test commands; execution is opt-in and is not sandboxed."""
+    from repoforge.testing import TestForge
+
+    try:
+        result = TestForge(repo_path).run(execute=execute, timeout=timeout)
+    except ValueError as exc:
+        typer.echo(f"TestForge error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+
+    typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+    if execute and result["status"] in {"failed", "scan_incomplete"}:
+        raise typer.Exit(code=1)

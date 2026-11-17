@@ -129,6 +129,24 @@ Extreme
 
 ---
 
+## TestForge — fast test discovery
+
+TestForge detects conventional test entry points across Python, JavaScript/TypeScript, Go, Rust, Java, and .NET. It prints a test plan without executing repository code by default.
+
+Preview the detected commands:
+
+```bash
+repoforge test .
+```
+
+Explicitly execute the detected commands for a repository you trust:
+
+```bash
+repoforge test . --execute --timeout 120
+```
+
+Execution is **not sandboxed**. Tests can run arbitrary repository-controlled code; TestForge removes common credential environment variables, uses argument arrays instead of a shell, captures bounded output, and enforces a timeout, but it does not provide OS-level isolation or network denial. Do not run untrusted repositories with `--execute`. A container-backed isolated runner is a separate future milestone.
+
 ## Blacksmith & Megazords
 
 **Blacksmith** audits a local repository, reports a transparent before/after RepoRank, and previews or applies safe create-only repairs.
