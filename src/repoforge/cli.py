@@ -67,3 +67,51 @@ def validate(
         typer.echo("Test output:", err=True)
         typer.echo(output[-8000:], err=True)
     raise typer.Exit(code=1)
+
+
+
+def _load_environment() -> None:
+    """Load a local .env file without overriding variables from the shell."""
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    load_dotenv(override=False)
+
+
+@app.command()
+def providers() -> None:
+    """Show provider configuration without displaying API keys."""
+    from repoforge.providers.factory import ProviderFactory
+
+    _load_environment()
+    typer.echo("RepoForge model providers")
+    for item in ProviderFactory().list_status():
+        if item["kind"] == "local":
+            state = "local endpoint (connectivity not checked)"
+        else:
+            state = "configured" if item["configured"] else f"missing {item['credential_variable']}"
+        typer.echo(f"  {item['name']}: {state}")
+
+
+@app.command()
+def generate(
+    prompt: str = typer.Argument(..., help="Prompt to send to the selected model."),
+    provider: str = typer.Option(..., "--provider", "-p", help="Provider name; selection is explicit."),
+    model: str | None = typer.Option(None, "--model", help="Override the provider's default model."),
+    timeout: float = typer.Option(45.0, "--timeout", min=1.0, max=180.0),
+    max_tokens: int = typer.Option(2048, "--max-tokens", min=1, max=32768),
+) -> None:
+    """Generate one response using an explicitly selected real provider."""
+    from repoforge.providers.errors import ProviderError
+    from repoforge.providers.factory import ProviderFactory
+
+    _load_environment()
+    try:
+        selected = ProviderFactory().get(provider, model=model, timeout=timeout)
+        response = selected.generate(prompt, max_tokens=max_tokens)
+    except ProviderError as exc:
+        typer.echo(f"Provider error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+
+    typer.echo(response)
