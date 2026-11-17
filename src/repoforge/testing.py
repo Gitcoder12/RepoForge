@@ -300,16 +300,25 @@ class TestForge:
                     return
                 if process.poll() is not None:
                     return
-                process.kill()
+                try:
+                    process.kill()
+                except (ProcessLookupError, OSError):
+                    pass
                 return
             except (OSError, subprocess.TimeoutExpired):
-                process.kill()
+                try:
+                    process.kill()
+                except (ProcessLookupError, OSError):
+                    pass
                 return
 
         try:
             os.killpg(process.pid, signal.SIGKILL)
         except (ProcessLookupError, PermissionError, OSError):
-            process.kill()
+            try:
+                process.kill()
+            except (ProcessLookupError, OSError):
+                pass
 
     @staticmethod
     def _capture_tail(stream: Any, destination: bytearray, truncated_flag: list[bool]) -> None:
