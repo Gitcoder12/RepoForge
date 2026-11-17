@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 
+import repoforge.testing as testing_module
 from repoforge.testing import MAX_OUTPUT_BYTES, TestForge
 
 
@@ -303,3 +304,33 @@ def test_testforge_reports_permission_error_as_unavailable(tmp_path: Path, monke
     assert report["status"] == "failed"
     assert report["results"][0]["status"] == "unavailable"
     assert "execution denied" in report["results"][0]["output"]
+
+
+
+def test_testforge_uses_windows_process_tree_termination(monkeypatch):
+    class Process:
+        pid = 321
+        killed = False
+
+        def poll(self):
+            return None
+
+        def kill(self):
+            self.killed = True
+
+    process = Process()
+    captured = {}
+
+    def fake_taskkill(command, **kwargs):
+        captured["command"] = command
+        captured.update(kwargs)
+        return subprocess.CompletedProcess(command, 1, stdout="", stderr="denied")
+
+    monkeypatch.setattr(testing_module.os, "name", "nt")
+    monkeypatch.setattr(subprocess, "run", fake_taskkill)
+
+    TestForge._kill_process(process)
+
+    assert captured["command"] == ["taskkill", "/PID", "321", "/T", "/F"]
+    assert captured["timeout"] == 10
+    assert process.killed is True
