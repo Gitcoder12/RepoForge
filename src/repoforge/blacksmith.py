@@ -253,7 +253,7 @@ class Blacksmith:
         for passed, message in checks:
             if not passed:
                 findings.append(message)
-        if scan_errors:
+        if scan_incomplete:
             findings.append(
                 "Repository scan incomplete because one or more directories could not be read"
             )
