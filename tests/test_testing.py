@@ -87,7 +87,7 @@ def test_testforge_skips_dependency_folders_and_bounds_the_scan(tmp_path: Path):
     assert report["scan"]["truncated"] is True
     assert report["scan"]["complete"] is False
     assert report["scan"]["files_scanned"] == 1
-    assert report["status"] == "no_tests_detected"
+    assert report["status"] == "scan_incomplete"
 
 
 def test_testforge_does_not_follow_symlink_directories(tmp_path: Path):
@@ -220,3 +220,19 @@ def test_testforge_strips_common_credentials_from_child_environment(monkeypatch)
     assert "OPENAI_API_KEY" not in environment
     assert "GITHUB_TOKEN" not in environment
     assert environment["PATH"] == "/usr/bin"
+
+
+
+def test_testforge_refuses_to_execute_after_an_incomplete_scan(tmp_path: Path, monkeypatch):
+    (tmp_path / "one.py").write_text("print('one')\n", encoding="utf-8")
+    (tmp_path / "two.py").write_text("print('two')\n", encoding="utf-8")
+
+    def unexpected_popen(*args, **kwargs):
+        raise AssertionError("incomplete scans must never execute a partial test plan")
+
+    monkeypatch.setattr(subprocess, "Popen", unexpected_popen)
+    report = TestForge(tmp_path, max_files=1).run(execute=True)
+
+    assert report["status"] == "scan_incomplete"
+    assert report["mode"] == "plan_only"
+    assert report["results"] if "results" in report else True
