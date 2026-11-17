@@ -415,3 +415,31 @@ repoforge generate "Review this Python function for correctness and performance"
 Use `--model`, `--timeout`, and `--max-tokens` to control the request. For DeepSeek's higher-capability V4-Pro model, select `--model deepseek-v4-pro` explicitly. Provider quota exhaustion, authentication errors, timeouts, and connection failures are reported explicitly. SDK retries are disabled, and RepoForge does not silently substitute mock output or switch to another paid provider. Choose another provider deliberately with `--provider`.
 
 The CLI builds and enables the selected adapter through `AIOrchestrator`, so the same explicit provider-selection contract is available to programmatic orchestration. This is still a single-request provider runtime, not yet the autonomous repository-editing `forge` workflow. It must pass CI and review before it is treated as part of the released default branch.
+
+
+---
+
+## Reliability & Robotics Platform Blueprint — 2026-11-17
+
+The next platform architecture is consolidated in [docs/PLATFORM_BLUEPRINT.md](docs/PLATFORM_BLUEPRINT.md). It covers explicit standby model routing, ARK safety-gated capability powers, SafeBreak incident learning, Onto-Sieve evidence quarantine, FlareHunt telemetry analysis, Asimov-Meter visualizations, a HardwareBox reference design, cloud-region planning, NeuraMapper and RoboDrafter.
+
+### Explicit model standby routing
+
+Use one selected primary provider and declare standby providers in order:
+
+```bash
+repoforge generate "Review this patch" \
+  --provider deepseek \
+  --standby openai \
+  --standby groq
+```
+
+Or load the example route policy:
+
+```bash
+repoforge generate "Review this patch" --route-config configs/model_failover.json
+```
+
+Fallback is limited to classified transient errors by default. Authentication and configuration failures stop immediately; rate-limit fallback is disabled unless the route configuration explicitly enables it. No implicit mock provider is used. The first implementation records redacted attempt metadata; background health checks, circuit-breaker state and cost budgets remain future work.
+
+The cloud-location catalogue records vendor-published regions and Local Zones, not undisclosed data-centre building addresses. HardwareBox and giant-mech files are conceptual design references, not build-ready electrical or mechanical drawings.
