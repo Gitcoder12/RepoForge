@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "dataset_type": "service_reliability_incidents",
+  "records": [
+    {
+      "id": "m365-outlook-2026-11",
+      "provider": "Microsoft",
+      "products_services": [
+        "Outlook",
+        "Exchange Online",
+        "Microsoft Teams",
+        "Microsoft 365",
+        "Copilot"
+      ],
+      "event_start": "2026-11-12",
+      "event_end": "2026-11-14",
+      "reported_summary_date": "2026-11-16",
+      "status": "service_restored",
+      "incident_class": "multi_factor_dependency_and_capacity_failure",
+      "vendor_reported_contributing_factors": [
+        "A latent software defect present since July 2026",
+        "A Teams networking gateway failure that shifted traffic to remaining infrastructure",
+        "An unrelated capacity issue that left more than 14 percent of server capacity unavailable"
+      ],
+      "failure_chain": [
+        "Gateway and capacity loss reduced available headroom",
+        "Traffic concentrated on remaining gateway capacity",
+        "The latent defect was exposed under the changed load pattern",
+        "Requests accumulated and server processes became unresponsive",
+        "Recovery was slowed by queued traffic and recovery mechanisms not designed for the scale of the event"
+      ],
+      "cybersecurity_assessment": {
+        "status": "vendor_reported_no_evidence_of_malicious_activity",
+        "interpretation": "Do not classify this incident as a cyberattack based on the available reporting."
+      },
+      "impact": {
+        "summary": "Global disruption to email, collaboration and dependent Microsoft 365 workflows",
+        "numeric_customer_impact": null,
+        "numeric_customer_impact_note": "No normalized affected-customer count is entered in this record."
+      },
+      "recommended_resilience_controls": [
+        "Maintain tested spare capacity and explicit overload limits",
+        "Use independent health checks and failure-domain-aware gateway routing",
+        "Run staged canaries for network and capacity changes",
+        "Maintain fast, tested rollback paths for configuration and software changes",
+        "Use bounded queues, backpressure, load shedding and retry budgets",
+        "Prevent retries from amplifying an outage with exponential backoff and jitter",
+        "Test recovery under simultaneous capacity loss and dependency failure",
+        "Use regional isolation and rehearsed degraded modes",
+        "Keep customer communications and status pages independent of the failing dependency",
+        "Rehearse backlog draining so recovery does not overload restored servers"
+      ],
+      "evidence_status": "reported_from_vendor_explanations_in_reputable_press_coverage",
+      "final_vendor_postmortem_available": false,
+      "sources": [
+        {
+          "url": "https://www.theguardian.com/technology/2026/nov/16/microsoft-global-outage-cause",
+          "publisher": "The Guardian",
+          "published": "2026-11-16"
+        },
+        {
+          "url": "https://commonsbusiness.parliament.uk/Document/109053/Pdf?subType=Standard",
+          "publisher": "UK Parliament",
+          "published": "2026-11-16"
+        }
+      ],
+      "data_quality_note": "This is an incident-learning record, not a complete forensic postmortem. Preserve attribution and update it if Microsoft publishes its final report."
+    }
+  ]
+}
