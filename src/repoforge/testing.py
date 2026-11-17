@@ -290,12 +290,17 @@ class TestForge:
         """Stop the command and its child process tree after a timeout."""
         if os.name == "nt":
             try:
-                subprocess.run(
+                result = subprocess.run(
                     ["taskkill", "/PID", str(process.pid), "/T", "/F"],
                     capture_output=True,
                     check=False,
                     timeout=10,
                 )
+                if result.returncode == 0:
+                    return
+                if process.poll() is not None:
+                    return
+                process.kill()
                 return
             except (OSError, subprocess.TimeoutExpired):
                 process.kill()
