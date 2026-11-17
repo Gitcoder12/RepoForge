@@ -306,7 +306,6 @@ def test_testforge_reports_permission_error_as_unavailable(tmp_path: Path, monke
     assert "execution denied" in report["results"][0]["output"]
 
 
-
 def test_testforge_uses_windows_process_tree_termination(monkeypatch):
     class Process:
         pid = 321
