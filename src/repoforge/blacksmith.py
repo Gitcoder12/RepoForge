@@ -174,8 +174,7 @@ class Blacksmith:
                 languages[language] = languages.get(language, 0) + 1
 
         readme = any(
-            Path(item).parent == Path(".")
-            and Path(item).name.casefold().startswith("readme")
+            Path(item).parent == Path(".") and Path(item).name.casefold().startswith("readme")
             for item in files
         )
         contributing = any(Path(item).name.casefold() == "contributing.md" for item in files)
@@ -195,7 +194,8 @@ class Blacksmith:
         )
         gitignore = ".gitignore" in lower_files
         security = any(
-            item in {
+            item
+            in {
                 "security.md",
                 ".github/dependabot.yml",
                 ".github/dependabot.yaml",
@@ -247,20 +247,20 @@ class Blacksmith:
         # Capability labels are heuristics for discovery, not verified feature claims.
         readme_text = ""
         for file_path in files:
-            if (
-                Path(file_path).parent == Path(".")
-                and Path(file_path).name.casefold().startswith("readme")
+            if Path(file_path).parent == Path(".") and Path(file_path).name.casefold().startswith(
+                "readme"
             ):
                 try:
-                    readme_text = (self.repo_path / file_path).read_text(
-                        encoding="utf-8", errors="replace"
-                    )[:40_000].casefold()
+                    readme_text = (
+                        (self.repo_path / file_path)
+                        .read_text(encoding="utf-8", errors="replace")[:40_000]
+                        .casefold()
+                    )
                 except OSError:
                     readme_text = ""
                 break
         search_text = (
-            f"{self.repo_path.name.casefold()} {readme_text} "
-            f"{' '.join(files[:500]).casefold()}"
+            f"{self.repo_path.name.casefold()} {readme_text} {' '.join(files[:500]).casefold()}"
         )
         capabilities = self._infer_capabilities(search_text, languages, lower_files)
 
@@ -364,10 +364,7 @@ class Blacksmith:
                 {
                     "path": ".gitignore",
                     "operation": "create_if_absent",
-                    "reason": (
-                        "Add conservative ignores for local environments, caches "
-                        "and build output"
-                    ),
+                    "reason": "Add conservative ignores for local environments, caches and build output",
                     "safe_to_apply": True,
                     "content": GENERIC_GITIGNORE,
                 }
@@ -443,8 +440,7 @@ class Blacksmith:
             "mode": "apply_safe_repairs" if apply_fixes else "dry_run",
             "before": before,
             "repair_plan": [
-                {key: value for key, value in repair.items() if key != "content"}
-                for repair in plan
+                {key: value for key, value in repair.items() if key != "content"} for repair in plan
             ],
             "applied": applied,
             "after": after,
