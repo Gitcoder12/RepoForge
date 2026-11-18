@@ -427,3 +427,10 @@ repoforge generate "Review this patch" --route-config configs/model_failover.jso
 ```
 
 See `configs/model_failover.json` for the sample route policy. Standby routing is not a guarantee that different models are semantically equivalent; quality checks, cost budgets and data-residency rules remain operator responsibilities.
+
+---
+
+## Examples Used
+- Repairing a failing software repository like a blacksmith restoring a machine
+- Comparing repository health before and after a bounded repair
+- Combining complementary repositories into a Megazord-style system
