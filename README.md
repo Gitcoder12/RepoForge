@@ -427,3 +427,41 @@ repoforge generate "Review this patch" --route-config configs/model_failover.jso
 ```
 
 See `configs/model_failover.json` for the sample route policy. Standby routing is not a guarantee that different models are semantically equivalent; quality checks, cost budgets and data-residency rules remain operator responsibilities.
+
+
+---
+
+## Branch Activity & Development History
+
+**Audit date:** 2026-11-18  
+**Comparison base:** `main`  
+**Method:** GitHub branch comparisons against the current `main` ref. File paths and ahead/behind counts are metadata, not test results.
+
+| Branch | Difference from `main` | Observed work / changed paths |
+|---|---:|---|
+| `ai-upgrade-2026-11-13` | 92 ahead / 29 behind | Large implementation series: agent orchestration, provider adapters, assembly pipeline, CLI, repository handling, docs and tests |
+| `chore/remove-emoji-glyphs-2026-11-13` | 39 / 111 | Glyph cleanup across CLI, analysis, core, providers, security, docs and tests |
+| `docs/portfolio-operating-kit-2026-11-13` | 4 / 111 | Activity log, company-fit notes, contributor guide, feature plan and README support docs |
+| `docs/project-status-2026-11-16-repoforge` | 1 / 12 | Project status snapshot: `PROJECT_STATUS.md` |
+| `docs/upgrade-plan` | 1 / 136 | Upgrade plan: `docs/UPGRADE_PLAN.md` |
+| `feat/blacksmith-megazord-engine` | 45 / 3 | Blacksmith repository repair engine, Megazord composition logic, CLI integration and tests |
+| `feat/instant-test-engine` | 25 / 2 | Test discovery/execution engine in `src/repoforge/testing.py`, CLI wiring and tests |
+| `feat/orchestrator-real-provider-integration` | 5 / 4 | Real-provider orchestrator integration and package tests |
+| `feat/provider-standby-routing` | 6 / 1 | Provider failover policy/configuration, routing implementation and tests |
+| `feat/real-provider-runtime` | 30 / 5 | OpenAI-compatible provider runtime, provider factory/errors, CLI integration and provider tests |
+| `feat/repoforge-mastery-foundation` | 90 / 29 | Large foundation series: agent system, assembly, CLI, repository operations, provider adapters, docs and tests |
+| `feat/resilience-robotics-blueprint` | 23 / 1 | Platform blueprint and configuration examples for AI/robotics, ARK, hardware, data centres, outage cases and provider failover |
+| `fix/canonical-package-layout` | 0 / 16 | No unique commits relative to `main`; branch is behind |
+| `fix/explicit-target-test-execution` | 0 / 7 | No unique commits relative to `main`; branch is behind |
+| `security/action-runner-path-guard` | 7 / 111 | Action-runner path guard, validator hardening, worklog and security tests |
+
+### Open pull requests observed during this audit
+
+- [PR #10 — project status snapshot](https://github.com/Gitcoder12/RepoForge/pull/10)
+- [PR #8 — project handbook and contributor workflow](https://github.com/Gitcoder12/RepoForge/pull/8)
+- [PR #6 — remove emoji glyphs](https://github.com/Gitcoder12/RepoForge/pull/6)
+- [PR #5 — coding, research and staged assembly agents](https://github.com/Gitcoder12/RepoForge/pull/5)
+
+**Important:** The PR list is a repository-level snapshot; this audit does not assume a one-to-one mapping between every PR and branch. Check each PR's head/base, review state and CI before deciding what to merge. Branches marked behind have no unique commits in the comparison against the current `main`; retain them as history until reviewed rather than deleting them.
+
+**Verification boundary:** This section records branch metadata and changed paths only. It does not certify code correctness, passing tests, safe behavior, or merge readiness. In particular, provider routing, test execution and repository-modification features require tests on the exact proposed merge head and explicit review of their safety boundaries.
