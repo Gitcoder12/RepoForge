@@ -92,9 +92,7 @@ class RepoBox:
         if not source_path.is_dir():
             raise ValueError("repository source must be a local directory")
 
-        top_level = Path(
-            _git(["-C", str(source_path), "rev-parse", "--show-toplevel"])
-        ).resolve()
+        top_level = Path(_git(["-C", str(source_path), "rev-parse", "--show-toplevel"])).resolve()
         if top_level != source_path:
             raise ValueError("source must be the root of a Git working tree")
 
