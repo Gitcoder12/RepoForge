@@ -37,9 +37,12 @@ def test_import_clones_repository_without_modifying_source(tmp_path: Path) -> No
     assert Path(record["managed_path"]).is_dir()
     assert (source / "README.md").read_text(encoding="utf-8") == "original\n"
     assert len(box.list_repositories()) == 1
-    assert record["head"] == subprocess.check_output(
-        ["git", "-C", str(source), "rev-parse", "HEAD"], text=True
-    ).strip()
+    assert (
+        record["head"]
+        == subprocess.check_output(
+            ["git", "-C", str(source), "rev-parse", "HEAD"], text=True
+        ).strip()
+    )
 
 
 def test_workspace_is_a_detached_worktree_and_source_stays_untouched(
@@ -53,15 +56,16 @@ def test_workspace_is_a_detached_worktree_and_source_stays_untouched(
     workspace = Path(result["workspace"])
 
     assert workspace.is_dir()
-    assert subprocess.check_output(
-        ["git", "-C", str(workspace), "rev-parse", "--is-inside-work-tree"],
-        text=True,
-    ).strip() == "true"
+    assert (
+        subprocess.check_output(
+            ["git", "-C", str(workspace), "rev-parse", "--is-inside-work-tree"],
+            text=True,
+        ).strip()
+        == "true"
+    )
     (workspace / "README.md").write_text("candidate change\n", encoding="utf-8")
     assert (source / "README.md").read_text(encoding="utf-8") == "original\n"
-    assert (Path(record["managed_path"]) / "README.md").read_text(
-        encoding="utf-8"
-    ) == "original\n"
+    assert (Path(record["managed_path"]) / "README.md").read_text(encoding="utf-8") == "original\n"
 
 
 def test_import_rejects_non_git_directory(tmp_path: Path) -> None:
