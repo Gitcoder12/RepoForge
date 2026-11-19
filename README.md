@@ -434,3 +434,12 @@ See `configs/model_failover.json` for the sample route policy. Standby routing i
 - Repairing a failing software repository like a blacksmith restoring a machine
 - Comparing repository health before and after a bounded repair
 - Combining complementary repositories into a Megazord-style system
+
+
+---
+
+## RepoBox — local repository storage and isolated workspaces
+
+RepoBox imports local Git repositories into a managed clone store and creates detached task worktrees so candidate changes stay separate from the original checkout. It does not execute target code or provide OS-level sandboxing.
+
+See [docs/REPOBOX.md](docs/REPOBOX.md) for installation, commands, storage layout and current safety boundaries.
