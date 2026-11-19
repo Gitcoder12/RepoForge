@@ -99,7 +99,8 @@ class RepoBox:
             raise ValueError("source must be the root of a Git working tree")
 
         display_name = name or source_path.name
-        repo_id = f"{self._validate_id(display_name, 'repository name')}-{uuid.uuid4().hex[:8]}"
+        slug = re.sub(r"[^A-Za-z0-9._-]+", "-", display_name).strip("-.") or "repository"
+        repo_id = f"{self._validate_id(slug, 'repository name')}-{uuid.uuid4().hex[:8]}"
         destination = self.repositories_dir / repo_id
         _git(["clone", "--no-hardlinks", "--", str(source_path), str(destination)])
 
