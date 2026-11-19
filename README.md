@@ -434,3 +434,28 @@ See `configs/model_failover.json` for the sample route policy. Standby routing i
 - Repairing a failing software repository like a blacksmith restoring a machine
 - Comparing repository health before and after a bounded repair
 - Combining complementary repositories into a Megazord-style system
+
+
+---
+
+## Comparison with Existing Open-Source Projects
+
+RepoForge is documented as a repository-engineering platform combining repository analysis, bounded improvement workflows, validation, Git checkpoints and reports. Its Blacksmith module previews/applies limited repairs, while Megazords compares local repositories for complementary capabilities. The following projects cover adjacent coding-agent and code-quality workflows.
+
+| Project | Established focus | Relationship to RepoForge |
+|---|---|---|
+| [OpenHands](https://github.com/All-Hands-AI/OpenHands) | General-purpose AI software-development agent that can work across repositories and tools | Broader autonomous software-engineering agent; RepoForge's stated distinction is a structured repository-health and bounded-change workflow with explicit before/after reporting. |
+| [SWE-agent](https://github.com/SWE-agent/SWE-agent) | Agent framework for resolving software-engineering issues in repositories | Focuses on issue-driven coding tasks; RepoForge aims to cover repository inspection, quality signals and controlled maintenance as well as selected changes. |
+| [Aider](https://github.com/Aider-AI/aider) | AI pair-programming in local Git repositories | A mature interactive coding assistant; RepoForge's intended value is a repeatable audit/repair/validation pipeline rather than conversational code editing alone. |
+| [Semgrep](https://github.com/semgrep/semgrep) | Static analysis and rule-based code security scanning | Deeper specialist static analysis; RepoForge should integrate or complement such tools rather than claim to replace their analysis depth. |
+
+### Where RepoForge is different
+- **Repository-first workflow:** scanning, health signals, complexity estimates, planning, bounded action, validation and reporting are presented as one lifecycle.
+- **Approval-oriented repair:** Blacksmith's current scope is deliberately narrow and supports preview before apply rather than unrestricted code rewriting.
+- **Portfolio composition analysis:** Megazords compares multiple local repositories for complementary capabilities and integration risks, not just one-repo code completion.
+
+### Where established projects are stronger
+OpenHands, SWE-agent and Aider have more mature agent workflows and ecosystems; Semgrep has deeper static-analysis rules. RepoForge's current README explicitly states that arbitrary semantic repair is not implemented and that TestForge execution is not sandboxed. Do not describe it as a secure autonomous engineer without stronger isolation and validation.
+
+### Evidence and limitations
+Publish reproducible before/after metrics, exact tools and versions, test outcomes, rollback behavior and repair acceptance rates. Keep heuristic RepoRank distinct from measured code quality. Require human approval for changes and OS-level isolation before executing untrusted tests. This is an architecture comparison, not a coding-agent benchmark.
