@@ -299,6 +299,7 @@ def test_command(
     if execute and result["status"] in {"failed", "scan_incomplete"}:
         raise typer.Exit(code=1)
 
+
 @app.command("sentinel")
 def sentinel_command(
     repo_path: Path = typer.Argument(
@@ -323,4 +324,4 @@ def sentinel_command(
     except ValueError as exc:
         typer.echo(f"Sentinel error: {exc}", err=True)
         raise typer.Exit(code=2) from exc
-    typer.echo(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))\n
+    typer.echo(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
