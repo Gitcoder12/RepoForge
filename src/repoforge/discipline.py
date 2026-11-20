@@ -140,8 +140,7 @@ class RunDiscipline:
 
         if evidence.violation == EngineeringViolation.REPEATED_VALIDATION_FAILURE:
             repeats = sum(
-                item.violation == evidence.violation
-                and item.confidence >= self.confidence_floor
+                item.violation == evidence.violation and item.confidence >= self.confidence_floor
                 for item in self._events
             )
             if repeats < 2 and evidence.severity < 4:
@@ -151,21 +150,16 @@ class RunDiscipline:
                     review=False,
                 )
 
-        severe = evidence.severity >= 5 or (
-            evidence.violation in {
-                EngineeringViolation.DESTRUCTIVE_GIT,
-                EngineeringViolation.UNAPPROVED_WRITE,
-                EngineeringViolation.PROTECTED_PATH_CHANGE,
-            } and evidence.severity >= 4
-        )
-        repeats = (
-            sum(
-                item.violation == evidence.violation
-                and item.confidence >= self.confidence_floor
-                for item in self._events
-            )
-            >= 2
-        )
+        destructive = evidence.violation in {
+            EngineeringViolation.DESTRUCTIVE_GIT,
+            EngineeringViolation.UNAPPROVED_WRITE,
+            EngineeringViolation.PROTECTED_PATH_CHANGE,
+        }
+        severe = evidence.severity >= 5 or (destructive and evidence.severity >= 4)
+        repeats = sum(
+            item.violation == evidence.violation and item.confidence >= self.confidence_floor
+            for item in self._events
+        ) >= 2
 
         if severe:
             self._level = max(self._level, EnforcementLevel.ISOLATED_REVIEW)
