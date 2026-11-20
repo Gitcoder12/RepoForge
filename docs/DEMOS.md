@@ -55,7 +55,7 @@ actions = [
     {
         "type": "create",
         "file": "docs/REPOFORGE_DEMO.md",
-        "content": "# RepoForge demo\\n\\nCreated only after explicit path approval.\\n",
+        "content": "# RepoForge demo\n\nCreated only after explicit path approval.\n",
     }
 ]
 
