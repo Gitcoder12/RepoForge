@@ -218,6 +218,9 @@ class WorkflowEngine:
         prompt: str,
         dry_run: bool = False,
         fix_mode: bool = False,
+        *,
+        approved_paths: set[str] | None = None,
+        allow_delete: bool = False,
     ) -> Dict[str, Any]:
 
         result = {
@@ -539,9 +542,40 @@ Rules:
         if isinstance(ai_result, dict) and isinstance(ai_result.get("actions"), list):
             actions = ai_result["actions"] or actions
 
-        action_result = self.runner.run(actions, dry_run=dry_run)
+        baseline_checkpoint = None
+        if not dry_run:
+            baseline_checkpoint = self.git.save_state()
+            if not baseline_checkpoint.get("success"):
+                result["stages"]["forge"] = {
+                    "status": "blocked",
+                    "errors": [{
+                        "policy": "RF-02",
+                        "error": baseline_checkpoint.get("message", "baseline verification failed"),
+                    }],
+                    "executed": [],
+                    "completed": 0,
+                }
+                result["stages"]["git"] = baseline_checkpoint
+                result["stages"]["report"] = self.reporter.generate(result)
+                return result
+
+        action_result = self.runner.run(
+            actions,
+            dry_run=dry_run,
+            approved_paths=approved_paths,
+            allow_delete=allow_delete,
+        )
 
         result["stages"]["forge"] = action_result
+
+        if not dry_run and action_result.get("status") not in ("completed", "no_actions"):
+            result["stages"]["validation"] = {
+                "passed": False,
+                "reason": "validation skipped because the constitution blocked the action batch",
+            }
+            result["stages"]["git"] = baseline_checkpoint
+            result["stages"]["report"] = self.reporter.generate(result)
+            return result
 
         # ============================================================
         # Validation
@@ -579,26 +613,19 @@ Rules:
 
         )
 
-        # Always create a Git checkpoint when we actually changed something.
-        # Validation is advisory – strict failures no longer block the product promise.
+        # The clean HEAD was recorded before any write. Never stage user files
+        # or create an automatic commit after the action runner has modified them.
         if completed_actions > 0:
-            try:
-                git_result = self.git.save_state("RepoForge AI improvement")
-                if not isinstance(git_result, dict):
-                    git_result = {"success": True, "message": str(git_result)}
-                if not syntax_ok:
-                    git_result["warning"] = "Validation had warnings (checkpoint still created)"
-            except Exception as e:
-                git_result = {"success": False, "message": f"Git checkpoint failed: {e}"}
-        elif completed_actions == 0:
             git_result = {
-                "success": False,
-                "message": "No Forge actions completed. Git checkpoint skipped.",
+                "success": True,
+                "message": "Clean HEAD baseline recorded before writes; changes remain uncommitted for review.",
+                "checkpoint": (baseline_checkpoint or {}).get("checkpoint"),
+                "warning": None if syntax_ok else "Static validation reported warnings.",
             }
         else:
             git_result = {
                 "success": False,
-                "message": "Nothing to checkpoint.",
+                "message": "No Forge actions completed. No Git mutation performed.",
             }
 
         result["stages"]["git"] = git_result
