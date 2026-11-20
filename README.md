@@ -220,25 +220,6 @@ Use `--apply` only after reviewing the preview. TestForge execution is not OS-sa
 
 ---
 
-# Installation
-
-## Requirements
-
-* Python 3.10+
-* Git
-
-Install:
-
-```bash
-pip install -e .
-```
-
-Verify:
-
-```bash
-python -m repoforge --help
-```
-
 ---
 
 # Usage
