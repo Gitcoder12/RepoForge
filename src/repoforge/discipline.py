@@ -95,7 +95,11 @@ class RunDiscipline:
             or not 0.5 <= confidence_floor <= 1
         ):
             raise ValueError("confidence_floor must be between 0.5 and 1")
-        if isinstance(history_limit, bool) or not isinstance(history_limit, int) or history_limit < 1:
+        if (
+            isinstance(history_limit, bool)
+            or not isinstance(history_limit, int)
+            or history_limit < 1
+        ):
             raise ValueError("history_limit must be a positive integer")
         self.run_id = run_id
         self.confidence_floor = confidence_floor
@@ -126,7 +130,10 @@ class RunDiscipline:
             evidence.confidence < self.confidence_floor
             or evidence.violation == EngineeringViolation.DRIFT_SIGNAL
         ):
-            return self._policy("weak/drift-only signal: request review, do not sanction", review=True)
+            return self._policy(
+                "weak/drift-only signal: request review, do not sanction",
+                review=True,
+            )
 
         if evidence.violation == EngineeringViolation.REPEATED_VALIDATION_FAILURE:
             repeats = sum(
