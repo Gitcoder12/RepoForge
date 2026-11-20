@@ -26,6 +26,7 @@ Git Checkpoint
 Reporter
 """
 
+import asyncio
 import os
 from typing import Dict, Any
 
@@ -581,7 +582,7 @@ Rules:
         # Validation
         # ============================================================
 
-        validation = self.validator.validate()
+        validation = asyncio.run(self.validator.validate())
 
         result["stages"]["validation"] = validation
 
@@ -601,17 +602,7 @@ Rules:
                 0
             )
 
-        syntax_ok = (
-
-            validation.get(
-                "syntax",
-                {}
-            ).get(
-                "passed",
-                False
-            )
-
-        )
+        syntax_ok = validation.get("passed", False)
 
         # The clean HEAD was recorded before any write. Never stage user files
         # or create an automatic commit after the action runner has modified them.
