@@ -74,7 +74,7 @@ def assess_truthstream_result(
         if usable
         else (
             "TruthStream result is not accepted as source-backed context.",
-            "Demo, incomplete, missing-provenance, or single-host results must not drive decisions.",
+            "Demo, incomplete, or single-host results must not drive decisions.",
         )
     )
     return TruthstreamAssessment(
