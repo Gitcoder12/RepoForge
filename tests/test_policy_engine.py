@@ -1,6 +1,6 @@
 import subprocess
 
-from policy_engine import PolicyEngine
+from repoforge.policy import PolicyEngine
 
 
 def _git_repo(path, branch="feature/policy-test"):
