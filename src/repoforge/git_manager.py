@@ -3,6 +3,7 @@
 The checkpoint operation is intentionally read-only: it records a clean HEAD
 and never stages or commits user files.
 """
+
 from __future__ import annotations
 
 import logging
