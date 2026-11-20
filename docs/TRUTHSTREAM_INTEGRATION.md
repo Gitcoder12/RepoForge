@@ -1,7 +1,22 @@
 # TruthStream evidence bridge (RepoForge)
 
-RepoForge can consume TruthStream results as external factual context, but only when every cited item has a stable evidence ID, HTTPS source URL and retrieval timestamp, TruthStream declares `source_backed`, and at least two distinct source hosts are represented.
+RepoForge can query TruthStream's `/verify` API through `TruthstreamClient` and consume results as external factual context.
 
-TruthStream does not prove that a repository file changed, a command ran, a dependency is malicious, or an agent violated an engineering rule. Those facts must be collected from trusted RepoForge adapters and integrity-protected run logs. Never use a claim confidence score alone to sanction an engineering run.
+```python
+from repoforge.truthstream_client import TruthstreamClient
 
-The default TruthStream main-branch retriever is an in-memory demo dataset with missing source URLs and retrieval timestamps. Its output is intentionally rejected. The bridge is a pure parser, not an HTTP client or source-truth oracle. Production integration still requires authenticated service identity, TLS, response limits, replay protection, and audit logging.
+client = TruthstreamClient("https://truthstream.example")
+assessments = client.verify("A factual claim that needs corroboration")
+for assessment in assessments:
+    print(assessment.status, assessment.usable_as_context)
+```
+
+The client requires HTTPS (HTTP is allowed only for loopback development), applies timeout and response-size limits, and refuses redirects. The bridge requires a source-backed provenance declaration, HTTPS evidence URLs, stable evidence IDs, retrieval timestamps, and at least two distinct source hosts.
+
+**Distinct hosts do not prove independent ownership or independent reporting.** Provenance completeness does not prove source authenticity or claim truth. Use results as context, never as sole authorization for an engineering action.
+
+TruthStream cannot prove that a repository file changed, a command ran, a dependency is malicious, or an agent violated an engineering rule. Those facts must come from trusted RepoForge adapters and integrity-protected run logs. Never use a claim confidence score alone to sanction an engineering run.
+
+The default TruthStream main-branch retriever is an in-memory demo dataset with missing source URLs and retrieval timestamps. Its output is intentionally rejected.
+
+The client does not authenticate the TruthStream service or sign responses. Production deployment still needs service authentication, replay protection, protected audit logging, and independent validation of source ownership.
