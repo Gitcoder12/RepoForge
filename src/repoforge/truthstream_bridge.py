@@ -77,7 +77,6 @@ def assess_truthstream_result(
             )
         except ValueError:
             host = None
-            port = None
             timestamp = None
             parsed_url = None
         valid_timestamp = (
