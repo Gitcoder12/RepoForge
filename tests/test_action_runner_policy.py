@@ -4,20 +4,28 @@ from action_runner import ActionRunner
 
 
 def _git_repo(path, branch="feature/constitutional-policy"):
-    subprocess.run(["git", "init", "-b", branch], cwd=path, check=True, capture_output=True)
-    subprocess.run(["git", "config", "user.email", "tests@example.invalid"], cwd=path, check=True)
-    subprocess.run(["git", "config", "user.name", "RepoForge Tests"], cwd=path, check=True)
+    subprocess.run(
+        ["git", "init", "-b", branch], cwd=path, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "tests@example.invalid"], cwd=path, check=True
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "RepoForge Tests"], cwd=path, check=True
+    )
     (path / "tracked.txt").write_text("baseline", encoding="utf-8")
     subprocess.run(["git", "add", "tracked.txt"], cwd=path, check=True)
-    subprocess.run(["git", "commit", "-m", "baseline"], cwd=path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "baseline"], cwd=path, check=True, capture_output=True
+    )
 
 
 def test_action_runner_blocks_unapproved_mutation(tmp_path):
     _git_repo(tmp_path)
     target = tmp_path / "tracked.txt"
-    result = ActionRunner(str(tmp_path)).run([
-        {"type": "modify", "file": "tracked.txt", "content": "changed"}
-    ])
+    result = ActionRunner(str(tmp_path)).run(
+        [{"type": "modify", "file": "tracked.txt", "content": "changed"}]
+    )
     assert result["status"] == "blocked"
     assert target.read_text(encoding="utf-8") == "baseline"
     assert result["errors"][0]["policy"] == "RF-06"
