@@ -89,3 +89,23 @@ def test_upgrade_plan_is_recommend_only_and_does_not_execute_code():
     assert report["safety"]["default"] == "recommend_only"
     assert report["safety"]["no_target_code_execution"] is True
     assert report["safety"]["no_overwrite_or_delete"] is True
+
+
+def test_blacksmith_report_includes_upgrade_catalogue(tmp_path):
+    from repoforge.blacksmith import Blacksmith
+
+    report = Blacksmith(tmp_path).run()
+    assert report["upgrade_options"]["engine"] == "UpgradeForge"
+    assert report["upgrade_options"]["summary"]["options_available"] > 0
+
+
+def test_upgrade_cli_emits_profile_filtered_json(tmp_path):
+    import json
+    from typer.testing import CliRunner
+    from repoforge.cli import app
+
+    result = CliRunner().invoke(app, ["upgrade", str(tmp_path), "--profile", "security"])
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["selected_profile"] == "security"
+    assert all(item["profile"] == "security" for item in payload["selected_options"])
