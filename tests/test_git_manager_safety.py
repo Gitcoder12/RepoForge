@@ -1,6 +1,6 @@
 import subprocess
 
-from git_manager import GitManager
+from repoforge.git_manager import GitManager
 
 
 def _git_repo(path):
