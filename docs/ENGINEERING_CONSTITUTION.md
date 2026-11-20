@@ -81,3 +81,20 @@ Record: timestamp, run ID, repository URL, owner/name, branch, base commit, work
 ## Compliance gate
 
 A rule is **enforced** only when it has a concrete implementation point, positive and negative tests, failure-path behavior, and an auditable decision. Until then, report it as **specified, not yet verified**.
+
+
+## Implementation status — 2026-11-20
+
+**Status: partially enforced in the legacy local ActionRunner path; not a complete engineering control plane.**
+
+Implemented in the current feature branch:
+- `policy_engine.py` checks the Git repository root, rejects protected local branch names, rejects dirty working trees, validates relative paths, and requires exact per-path approval for actual writes.
+- `action_runner.py` preflights the complete action batch before writing, rejects the whole batch if any action is denied, preserves existing create-only behavior, and requires separate `allow_delete=True` approval for deletion.
+- Dry runs can preview actions without mutation approval.
+- `git_manager.py` no longer stages or commits user files as a checkpoint. It records a clean HEAD reference and refuses dirty trees.
+- The legacy pipeline accepts explicit approved paths and no longer performs an automatic hard reset after validation failure; it leaves the diff for human inspection.
+- Regression tests cover path approvals, dirty trees, protected branches, batch denial, dry-run behavior, deletion approval, and safe checkpointing.
+
+Not yet enforced: authenticated approval identity, remote fork/upstream write authorization, OS-level isolation for running repository-controlled code, secret scanning, dependency/workflow-specific approval rules, persistent tamper-evident audit storage, and a verified transactional rollback system. The legacy ActionRunner is not the same as the installable canonical `src/repoforge` CLI package; these controls must not be described as universal RepoForge protection until all execution paths are consolidated and tested.
+
+The first CI attempt passed lint but stopped at formatting before tests. Formatting corrections have been pushed; a fresh CI result for the latest branch head is still required before calling this implementation verified.
