@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -140,10 +141,9 @@ def test_manifest_rejects_managed_paths_outside_storage(tmp_path: Path) -> None:
     source = make_git_repo(tmp_path / "source")
     box = RepoBox(tmp_path / "box")
     record = box.import_repository(source)
-    manifest = box.manifest_path
     data = box._read_manifest()
     data["repositories"][0]["managed_path"] = str(tmp_path / "outside")
-    manifest.write_text(__import__("json").dumps(data), encoding="utf-8")
+    box.manifest_path.write_text(json.dumps(data), encoding="utf-8")
 
     with pytest.raises(RepoBoxError, match="outside managed storage"):
         box.list_repositories()
