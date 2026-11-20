@@ -26,8 +26,12 @@ class TruthstreamAssessment:
 def assess_truthstream_result(
     payload: dict[str, Any], *, min_source_hosts: int = 2
 ) -> TruthstreamAssessment:
-    if min_source_hosts < 1:
-        raise ValueError("min_source_hosts must be positive")
+    if (
+        isinstance(min_source_hosts, bool)
+        or not isinstance(min_source_hosts, int)
+        or min_source_hosts < 1
+    ):
+        raise ValueError("min_source_hosts must be a positive integer")
     if not isinstance(payload, dict):
         raise ValueError("TruthStream assessment must be an object")
     claim_obj = payload.get("claim")
@@ -65,7 +69,7 @@ def assess_truthstream_result(
         try:
             parsed_url = urlsplit(url) if isinstance(url, str) else None
             host = parsed_url.hostname if parsed_url else None
-            port = parsed_url.port if parsed_url else None
+            _ = parsed_url.port if parsed_url else None
             timestamp = (
                 datetime.fromisoformat(retrieved_at.replace("Z", "+00:00"))
                 if isinstance(retrieved_at, str)
