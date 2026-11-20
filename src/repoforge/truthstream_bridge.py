@@ -6,8 +6,10 @@ TruthStream provides factual context, never proof of a repository mutation or to
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
+from math import isfinite
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urlsplit
 
 
 @dataclass(frozen=True)
@@ -26,41 +28,76 @@ def assess_truthstream_result(
 ) -> TruthstreamAssessment:
     if min_source_hosts < 1:
         raise ValueError("min_source_hosts must be positive")
+    if not isinstance(payload, dict):
+        raise ValueError("TruthStream assessment must be an object")
     claim_obj = payload.get("claim")
     claim = claim_obj.get("text", "") if isinstance(claim_obj, dict) else ""
-    status = str(payload.get("status", "unknown"))
+    status = payload.get("status", "unknown")
     confidence = payload.get("confidence_score", 0.0)
     if (
-        not isinstance(confidence, (int, float))
-        or isinstance(confidence, bool)
+        isinstance(confidence, bool)
+        or not isinstance(confidence, (int, float))
+        or not isfinite(confidence)
         or not 0 <= confidence <= 1
     ):
-        raise ValueError("confidence_score must be between 0 and 1")
+        raise ValueError("confidence_score must be a finite number between 0 and 1")
 
-    evidence_items: list[dict[str, Any]] = []
+    evidence_items: list[Any] = []
+    all_complete = True
     for key in ("supporting_evidence", "contradicting_evidence", "neutral_evidence"):
         group = payload.get(key, [])
-        if isinstance(group, list):
-            evidence_items.extend(item for item in group if isinstance(item, dict))
+        if not isinstance(group, list):
+            all_complete = False
+            continue
+        evidence_items.extend(group)
 
     verified_hosts: set[str] = set()
-    all_complete = bool(evidence_items)
+    seen_ids: set[str] = set()
+    all_complete = all_complete and bool(evidence_items)
     for item in evidence_items:
+        if not isinstance(item, dict):
+            all_complete = False
+            continue
         source = item.get("source")
         url = source.get("url") if isinstance(source, dict) else None
         evidence_id = item.get("evidence_id")
         retrieved_at = item.get("retrieved_at")
-        host = urlparse(url).hostname if isinstance(url, str) else None
+        try:
+            parsed_url = urlsplit(url) if isinstance(url, str) else None
+            host = parsed_url.hostname if parsed_url else None
+            port = parsed_url.port if parsed_url else None
+            timestamp = (
+                datetime.fromisoformat(retrieved_at.replace("Z", "+00:00"))
+                if isinstance(retrieved_at, str)
+                else None
+            )
+        except ValueError:
+            host = None
+            port = None
+            timestamp = None
+            parsed_url = None
+        valid_timestamp = (
+            timestamp is not None
+            and timestamp.tzinfo is not None
+            and timestamp.utcoffset() is not None
+        )
+        valid_id = (
+            isinstance(evidence_id, str)
+            and bool(evidence_id.strip())
+            and evidence_id not in seen_ids
+        )
         if (
-            not host
-            or urlparse(url).scheme != "https"
-            or not isinstance(evidence_id, str)
-            or not evidence_id.strip()
-            or not isinstance(retrieved_at, str)
-            or not retrieved_at.strip()
+            parsed_url is None
+            or parsed_url.scheme != "https"
+            or not host
+            or parsed_url.username is not None
+            or parsed_url.password is not None
+            or not valid_id
+            or not valid_timestamp
         ):
             all_complete = False
         else:
+            seen_ids.add(evidence_id)
             verified_hosts.add(host.lower())
 
     provenance = payload.get("provenance")
@@ -68,7 +105,15 @@ def assess_truthstream_result(
         isinstance(provenance, dict) and provenance.get("status") == "source_backed"
     )
     host_count = len(verified_hosts)
-    usable = all_complete and declared_source_backed and host_count >= min_source_hosts
+    usable = (
+        isinstance(claim, str)
+        and bool(claim.strip())
+        and isinstance(status, str)
+        and bool(status.strip())
+        and all_complete
+        and declared_source_backed
+        and host_count >= min_source_hosts
+    )
     limitations = (
         ()
         if usable
@@ -79,7 +124,7 @@ def assess_truthstream_result(
     )
     return TruthstreamAssessment(
         claim=claim,
-        status=status,
+        status=status if isinstance(status, str) else "unknown",
         confidence=float(confidence),
         provenance_status="source_backed" if usable else "unverified",
         distinct_source_host_count=host_count,
