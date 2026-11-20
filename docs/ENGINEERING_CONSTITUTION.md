@@ -85,16 +85,16 @@ A rule is **enforced** only when it has a concrete implementation point, positiv
 
 ## Implementation status — 2026-11-20
 
-**Status: partially enforced in the legacy local ActionRunner path; not a complete engineering control plane.**
+**Status: partially enforced in the canonical local ActionRunner and core WorkflowEngine path; not a complete engineering control plane.**
 
 Implemented in the current feature branch:
-- `policy_engine.py` checks the Git repository root, rejects protected local branch names, rejects dirty working trees, validates relative paths, and requires exact per-path approval for actual writes.
-- `action_runner.py` preflights the complete action batch before writing, rejects the whole batch if any action is denied, preserves existing create-only behavior, and requires separate `allow_delete=True` approval for deletion.
+- `src/repoforge/policy.py` checks the Git repository root, rejects protected local branch names, rejects dirty working trees, validates relative paths, and requires exact per-path approval for actual writes.
+- `src/repoforge/action_runner.py` preflights the complete action batch before writing, rejects the whole batch if any action is denied, preserves existing create-only behavior, and requires separate `allow_delete=True` approval for deletion. Root-level legacy imports now route to this canonical implementation.
 - Dry runs can preview actions without mutation approval.
-- `git_manager.py` no longer stages or commits user files as a checkpoint. It records a clean HEAD reference and refuses dirty trees.
-- The legacy pipeline accepts explicit approved paths and no longer performs an automatic hard reset after validation failure; it leaves the diff for human inspection.
+- `src/repoforge/git_manager.py` no longer stages or commits user files as a checkpoint. It records a clean HEAD reference and refuses dirty trees.
+- Both the legacy pipeline and `src/core/workflow_engine.py` accept explicit approved paths; the workflow records a clean HEAD before mutation and does not perform an automatic hard reset after validation failure.
 - Regression tests cover path approvals, dirty trees, protected branches, batch denial, dry-run behavior, deletion approval, and safe checkpointing.
 
-Not yet enforced: authenticated approval identity, remote fork/upstream write authorization, OS-level isolation for running repository-controlled code, secret scanning, dependency/workflow-specific approval rules, persistent tamper-evident audit storage, and a verified transactional rollback system. The legacy ActionRunner is not the same as the installable canonical `src/repoforge` CLI package; these controls must not be described as universal RepoForge protection until all execution paths are consolidated and tested.
+Not yet enforced: authenticated approval identity, remote fork/upstream write authorization, OS-level isolation for running repository-controlled code, secret scanning, dependency/workflow-specific approval rules, persistent tamper-evident audit storage, and a verified transactional rollback system. The installable CLI does not yet expose the full mutation workflow, and other legacy execution paths may not use this gate; do not describe these controls as universal RepoForge protection until all paths are consolidated and tested.
 
 The first CI attempt passed lint but stopped at formatting before tests. Formatting corrections have been pushed; a fresh CI result for the latest branch head is still required before calling this implementation verified.
