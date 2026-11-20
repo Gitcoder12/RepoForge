@@ -93,7 +93,7 @@ Implemented in the current feature branch:
 - Dry runs can preview actions without mutation approval.
 - `src/repoforge/git_manager.py` no longer stages or commits user files as a checkpoint. It records a clean HEAD reference and refuses dirty trees.
 - Both the legacy pipeline and `src/core/workflow_engine.py` accept explicit approved paths; the workflow records a clean HEAD before mutation and does not perform an automatic hard reset after validation failure.
-- Regression tests cover path approvals, dirty trees, protected branches, batch denial, dry-run behavior, deletion approval, and safe checkpointing.
+- Regression tests cover path approvals, dirty trees, protected branches, batch denial, dry-run behavior, deletion approval, safe checkpointing, symlink escapes, and create-only preservation.
 
 Not yet enforced: authenticated approval identity, remote fork/upstream write authorization, OS-level isolation for running repository-controlled code, secret scanning, dependency/workflow-specific approval rules, persistent tamper-evident audit storage, and a verified transactional rollback system. The installable CLI does not yet expose the full mutation workflow, and other legacy execution paths may not use this gate; do not describe these controls as universal RepoForge protection until all paths are consolidated and tested.
 
