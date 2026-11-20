@@ -99,7 +99,7 @@ class PolicyEngine:
             return self._record(PolicyResult(False, "RF-04", "invalid, absolute, or traversal path denied"), action_type or "unknown")
         if action_type not in {"create", "modify", "delete"}:
             return self._record(PolicyResult(False, "RF-04", f"unsupported action type: {action_type!r}", path), action_type)
-        if action_type == "delete" and not allow_delete:
+        if action_type == "delete" and not (allow_delete or dry_run):
             return self._record(PolicyResult(False, "RF-06", "delete requires explicit allow_delete approval", path), action_type)
         approved = {
             normalized for item in (approved_paths or set())
