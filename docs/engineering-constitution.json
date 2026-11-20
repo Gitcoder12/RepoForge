@@ -125,8 +125,9 @@
     "final_status"
   ],
   "notes": [
-    "Controls apply to the canonical ActionRunner and core WorkflowEngine path plus legacy compatibility imports; other execution paths may not use the gate.",
+    "Controls apply to the canonical ActionRunner, canonical Git manager, canonical policy engine, and legacy compatibility imports; other execution paths may not use the gate.",
     "The installable CLI does not yet expose the full repository-mutation workflow.",
+    "The incomplete src/core/workflow_engine.py is deliberately outside this change.",
     "Dry-run preview does not mutate files and does not require approval.",
     "Git checkpoint records a clean HEAD without staging or committing user files.",
     "A passing test suite is required before claiming verified enforcement.",
