@@ -8,10 +8,14 @@ from repoforge.discipline import (
 )
 
 
-def ev(run="r1", event="e1", violation=EngineeringViolation.REPEATED_VALIDATION_FAILURE,
-       severity=3, confidence=0.99):
-    return RunEvidence(event, violation, "observed in controlled run", confidence,
-                       severity, run)
+def ev(
+    run="r1",
+    event="e1",
+    violation=EngineeringViolation.REPEATED_VALIDATION_FAILURE,
+    severity=3,
+    confidence=0.99,
+):
+    return RunEvidence(event, violation, "observed in controlled run", confidence, severity, run)
 
 
 def test_first_validation_failure_records_notice_without_removing_write():
@@ -41,8 +45,7 @@ def test_drift_or_low_confidence_does_not_punish():
     engine = RunDiscipline("r1")
     weak = engine.record(ev(confidence=0.2))
     assert weak.level == EnforcementLevel.CLEAR
-    drift = engine.record(ev(event="e2", violation=EngineeringViolation.DRIFT_SIGNAL,
-                             severity=5))
+    drift = engine.record(ev(event="e2", violation=EngineeringViolation.DRIFT_SIGNAL, severity=5))
     assert drift.level == EnforcementLevel.CLEAR
     assert drift.requires_owner_review
 
