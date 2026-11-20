@@ -172,7 +172,12 @@ class PolicyEngine:
             )
         if action_type == "delete" and not (allow_delete or dry_run):
             return self._record(
-                PolicyResult(False, "RF-06", "delete requires explicit allow_delete approval", path),
+                PolicyResult(
+                    False,
+                    "RF-06",
+                    "delete requires explicit allow_delete approval",
+                    path,
+                ),
                 action_type,
             )
         approved = {
