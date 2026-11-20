@@ -4,20 +4,12 @@ from action_runner import ActionRunner
 
 
 def _git_repo(path, branch="feature/constitutional-policy"):
-    subprocess.run(
-        ["git", "init", "-b", branch], cwd=path, check=True, capture_output=True
-    )
-    subprocess.run(
-        ["git", "config", "user.email", "tests@example.invalid"], cwd=path, check=True
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "RepoForge Tests"], cwd=path, check=True
-    )
+    subprocess.run(["git", "init", "-b", branch], cwd=path, check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.email", "tests@example.invalid"], cwd=path, check=True)
+    subprocess.run(["git", "config", "user.name", "RepoForge Tests"], cwd=path, check=True)
     (path / "tracked.txt").write_text("baseline", encoding="utf-8")
     subprocess.run(["git", "add", "tracked.txt"], cwd=path, check=True)
-    subprocess.run(
-        ["git", "commit", "-m", "baseline"], cwd=path, check=True, capture_output=True
-    )
+    subprocess.run(["git", "commit", "-m", "baseline"], cwd=path, check=True, capture_output=True)
 
 
 def test_action_runner_blocks_unapproved_mutation(tmp_path):
