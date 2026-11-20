@@ -323,5 +323,4 @@ def sentinel_command(
     except ValueError as exc:
         typer.echo(f"Sentinel error: {exc}", err=True)
         raise typer.Exit(code=2) from exc
-    typer.echo(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
-
+    typer.echo(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))\n
