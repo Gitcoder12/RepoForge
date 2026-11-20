@@ -1,4 +1,5 @@
 """Small, bounded HTTP client for the TruthStream /verify API."""
+
 from __future__ import annotations
 
 import json
@@ -56,8 +57,9 @@ class TruthstreamClient:
         payload = json.loads(raw.decode("utf-8"))
         if not isinstance(payload, list):
             raise ValueError("TruthStream /verify response must be a JSON array")
-        return tuple(
+        assessments = [
             assess_truthstream_result(item)
             for item in payload
             if isinstance(item, dict)
-        )
+        ]
+        return tuple(assessments)
