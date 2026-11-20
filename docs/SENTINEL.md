@@ -5,7 +5,7 @@ Sentinel is the first repository-intelligence security subsystem. It scans selec
 ## Run
 
 ```bash
-python -m repoforge.sentinel /path/to/repository --max-files 10000 --max-total-bytes 50000000
+repoforge sentinel /path/to/repository --max-files 10000 --max-total-bytes 50000000
 ```
 
 The command emits JSON with rule IDs, severity, file/line locations, bounded evidence, explanations and remediation suggestions.
