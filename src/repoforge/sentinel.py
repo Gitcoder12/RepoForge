@@ -63,7 +63,7 @@ class ScanReport:
 
 RULES = (
     Rule(
-        "RF-SEN-001", "Dynamic code execution", "high",
+        "RF-SEN-001",\n        "Dynamic code execution",\n        "high",
         re.compile(r"\b(eval|exec)\s*\("),
         "Dynamic evaluation can execute data as code depending on its inputs.",
         "Trace input provenance; prefer constrained parsers or explicit dispatch.",
@@ -75,19 +75,19 @@ RULES = (
         "Prefer argument arrays with shell=False and validate every argument.",
     ),
     Rule(
-        "RF-SEN-003", "Legacy command execution", "high",
+        "RF-SEN-003",\n        "Legacy command execution",\n        "high",
         re.compile(r"\bos\.system\s*\("),
         "os.system delegates command execution to a shell.",
         "Use subprocess with an argument array and explicit environment/timeout controls.",
     ),
     Rule(
-        "RF-SEN-004", "Pickle deserialization", "high",
+        "RF-SEN-004",\n        "Pickle deserialization",\n        "high",
         re.compile(r"\bpickle\.(load|loads)\s*\("),
         "Untrusted pickle payloads can execute code during deserialization.",
         "Never load untrusted pickle data; use a non-executable data format.",
     ),
     Rule(
-        "RF-SEN-005", "Potentially unsafe YAML loader", "medium",
+        "RF-SEN-005",\n        "Potentially unsafe YAML loader",\n        "medium",
         re.compile(r"\byaml\.load\s*\("),
         "yaml.load may construct arbitrary Python objects unless a safe loader is explicitly used.",
         "Use yaml.safe_load or explicitly pass SafeLoader; verify the call context.",
@@ -110,7 +110,7 @@ MAX_FILE_BYTES = 1_000_000
 def _iter_files(root: Path) -> Iterable[Path]:
     for current, dirs, files in os.walk(root, followlinks=False):
         dirs[:] = sorted(
-            name for name in dirs
+            name\n            for name in dirs
             if name not in SKIP_DIRS and not (Path(current) / name).is_symlink()
         )
         for name in sorted(files):
