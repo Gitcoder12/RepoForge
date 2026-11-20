@@ -154,11 +154,17 @@ class RepoBox:
                 os.fsync(temporary.fileno())
             os.replace(temporary_path, self.manifest_path)
             if hasattr(os, "O_DIRECTORY"):
-                directory_fd = os.open(self.root, os.O_DIRECTORY)
                 try:
-                    os.fsync(directory_fd)
-                finally:
-                    os.close(directory_fd)
+                    directory_fd = os.open(self.root, os.O_DIRECTORY)
+                    try:
+                        os.fsync(directory_fd)
+                    finally:
+                        os.close(directory_fd)
+                except OSError:
+                    # The atomic replacement has already succeeded. A
+                    # directory-fsync limitation must not report a failed
+                    # import after its manifest record has been committed.
+                    pass
         except (OSError, TypeError, ValueError) as exc:
             raise RepoBoxError(f"RepoBox manifest could not be written atomically: {exc}") from exc
         finally:
