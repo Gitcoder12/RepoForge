@@ -66,6 +66,7 @@ def test_owner_halt_is_irreversible_for_current_run():
     engine = RunDiscipline("r1")
     policy = engine.halt(authenticated_owner=True, reason="stop requested")
     assert policy.level == EnforcementLevel.HALTED
+    assert policy.evidence_ids[-1].startswith("owner-halt-")
     assert not policy.writable
     assert not policy.may_run_tests
     with pytest.raises(PermissionError):
@@ -88,3 +89,9 @@ def test_event_history_and_replay_cache_are_bounded():
     engine.record(ev(event="three", severity=1))
     assert [item.event_id for item in engine.evidence] == ["two", "three"]
     assert len(engine._seen) == 2
+
+
+def test_halt_rejects_truthy_non_boolean_owner_claims():
+    engine = RunDiscipline("r1")
+    with pytest.raises(PermissionError):
+        engine.halt(authenticated_owner="yes", reason="spoofed owner")
