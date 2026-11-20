@@ -2,6 +2,7 @@
 
 TruthStream provides factual context, never proof of a repository mutation or tool call.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
