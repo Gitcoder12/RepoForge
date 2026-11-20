@@ -26,6 +26,7 @@ class EngineeringViolation(StrEnum):
     REQUIREMENT_DEVIATION = "requirement_deviation"
     UNSAFE_DEPENDENCY = "unsafe_dependency"
     DRIFT_SIGNAL = "drift_signal"
+    OWNER_HALT = "owner_halt"
 
 
 @dataclass(frozen=True)
@@ -108,6 +109,7 @@ class RunDiscipline:
         self._events: list[RunEvidence] = []
         self._seen: set[str] = set()
         self._halted = False
+        self._halt_sequence = 0
 
     @property
     def level(self) -> EnforcementLevel:
@@ -187,8 +189,26 @@ class RunDiscipline:
             self._seen.discard(expired.event_id)
 
     def halt(self, *, authenticated_owner: bool, reason: str) -> RunPolicy:
-        if not authenticated_owner or not reason.strip():
+        if authenticated_owner is not True or not isinstance(reason, str) or not reason.strip():
             raise PermissionError("authenticated owner and reason are required")
+        if self._halted:
+            return self._policy("run is already halted", review=False)
+        self._halt_sequence += 1
+        event_id = f"owner-halt-{self._halt_sequence}"
+        while event_id in self._seen:
+            self._halt_sequence += 1
+            event_id = f"owner-halt-{self._halt_sequence}"
+        self._append_event(
+            RunEvidence(
+                event_id=event_id,
+                violation=EngineeringViolation.OWNER_HALT,
+                detail=f"Owner halted run: {reason}",
+                confidence=1.0,
+                severity=5,
+                run_id=self.run_id,
+                source="authenticated_owner",
+            )
+        )
         self._level = EnforcementLevel.HALTED
         self._halted = True
         return self._policy("owner halted this run", review=False)
