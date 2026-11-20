@@ -70,7 +70,7 @@ def assess_truthstream_result(
     usable = all_complete and declared_source_backed and host_count >= min_source_hosts
     limitations = () if usable else (
         "TruthStream result is not accepted as source-backed context.",
-        "Demo, incomplete, missing-provenance, or single-host results must not drive engineering decisions.",
+        "Demo, incomplete, missing-provenance, or single-host results must not drive decisions.",
     )
     return TruthstreamAssessment(
         claim=claim,
