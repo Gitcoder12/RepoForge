@@ -54,3 +54,19 @@ def test_large_files_are_skipped(tmp_path):
     report = scan_repository(tmp_path)
     assert report.files_scanned == 0
     assert report.files_skipped == 1
+
+
+def test_scan_limits_bound_work_and_report_truncation(tmp_path):
+    (tmp_path / "a.py").write_text("print('a')", encoding="utf-8")
+    (tmp_path / "b.py").write_text("print('b')", encoding="utf-8")
+    report = scan_repository(tmp_path, max_files=1)
+    assert report.files_scanned == 1
+    assert report.truncated is True
+
+
+def test_total_byte_budget_stops_scanning(tmp_path):
+    (tmp_path / "a.py").write_text("x" * 100, encoding="utf-8")
+    (tmp_path / "b.py").write_text("y" * 100, encoding="utf-8")
+    report = scan_repository(tmp_path, max_total_bytes=150)
+    assert report.bytes_scanned <= 150
+    assert report.truncated is True
