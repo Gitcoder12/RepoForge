@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from math import isfinite
 from urllib.parse import urlparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
@@ -34,8 +35,19 @@ class TruthstreamClient:
             )
         if not parsed.netloc or parsed.username or parsed.password:
             raise ValueError("endpoint must be absolute and contain no embedded credentials")
-        if timeout <= 0 or max_response_bytes < 1:
-            raise ValueError("timeout and response limit must be positive")
+        if (
+            isinstance(timeout, bool)
+            or not isinstance(timeout, (int, float))
+            or not isfinite(timeout)
+            or timeout <= 0
+        ):
+            raise ValueError("timeout must be a positive finite number")
+        if (
+            isinstance(max_response_bytes, bool)
+            or not isinstance(max_response_bytes, int)
+            or max_response_bytes < 1
+        ):
+            raise ValueError("response limit must be a positive integer")
         self.endpoint = endpoint.rstrip("/") + "/verify"
         self.timeout = timeout
         self.max_response_bytes = max_response_bytes
@@ -57,9 +69,7 @@ class TruthstreamClient:
         payload = json.loads(raw.decode("utf-8"))
         if not isinstance(payload, list):
             raise ValueError("TruthStream /verify response must be a JSON array")
-        assessments = [
-            assess_truthstream_result(item)
-            for item in payload
-            if isinstance(item, dict)
-        ]
+        if any(not isinstance(item, dict) for item in payload):
+            raise ValueError("TruthStream response items must all be objects")
+        assessments = [assess_truthstream_result(item) for item in payload]
         return tuple(assessments)
