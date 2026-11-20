@@ -11,6 +11,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from repoforge.upgrades import UpgradePlanner
+
 SKIP_DIRS = {
     ".git",
     ".hg",
@@ -463,4 +465,5 @@ class Blacksmith:
             "applied": applied,
             "after": after,
             "rank_change": after["rank"]["score"] - before["rank"]["score"],
+            "upgrade_options": UpgradePlanner().build(after),
         }
