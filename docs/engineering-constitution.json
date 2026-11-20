@@ -125,7 +125,8 @@
     "final_status"
   ],
   "notes": [
-    "Controls currently apply to the legacy local ActionRunner and pipeline path, not every RepoForge execution path.",
+    "Controls apply to the canonical ActionRunner and core WorkflowEngine path plus legacy compatibility imports; other execution paths may not use the gate.",
+    "The installable CLI does not yet expose the full repository-mutation workflow.",
     "Dry-run preview does not mutate files and does not require approval.",
     "Git checkpoint records a clean HEAD without staging or committing user files.",
     "A passing test suite is required before claiming verified enforcement.",
@@ -135,7 +136,7 @@
   "implemented_controls": [
     "RF-02: clean working-tree preflight and no staging user changes",
     "RF-03: deny local writes on protected branch names",
-    "RF-04: relative-path and operation validation",
+    "RF-04: relative-path and operation validation in canonical ActionRunner",
     "RF-06: exact path approval and separate delete approval",
     "RF-11: full-batch preflight before first mutation"
   ],
