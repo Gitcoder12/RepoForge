@@ -1,5 +1,16 @@
 # RepoForge
 
+
+## Current Status / Current Version
+
+**Development — no verified release tag recorded**
+
+**Implemented according to current documentation:** repository scanning and analysis; quality/difficulty scoring; planning/orchestration and action execution pipeline; validation, Git checkpointing and reporting; TestForge test-command discovery; Blacksmith bounded create-only repair workflow; Megazords repository comparison.
+
+**Known limitations:** TestForge execution is not OS-sandboxed and must not be used on untrusted repositories. Blacksmith does not implement arbitrary semantic code repair. A documented pipeline or example output is not proof of successful end-to-end execution on arbitrary repositories.
+
+**Verification still required:** clean installation, actual test results, before/after diffs, rollback behavior and reproducible external-repository demonstrations.
+
 ## Autonomous AI Repository Engineering Platform
 
 RepoForge is an AI-powered repository engineering platform that analyzes software projects, understands repository structure, creates improvement strategies, executes engineering actions, validates changes, and generates detailed reports.
