@@ -4,12 +4,20 @@ from policy_engine import PolicyEngine
 
 
 def _git_repo(path, branch="feature/policy-test"):
-    subprocess.run(["git", "init", "-b", branch], cwd=path, check=True, capture_output=True)
-    subprocess.run(["git", "config", "user.email", "tests@example.invalid"], cwd=path, check=True)
-    subprocess.run(["git", "config", "user.name", "RepoForge Tests"], cwd=path, check=True)
+    subprocess.run(
+        ["git", "init", "-b", branch], cwd=path, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "tests@example.invalid"], cwd=path, check=True
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "RepoForge Tests"], cwd=path, check=True
+    )
     (path / "tracked.txt").write_text("baseline", encoding="utf-8")
     subprocess.run(["git", "add", "tracked.txt"], cwd=path, check=True)
-    subprocess.run(["git", "commit", "-m", "baseline"], cwd=path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-m", "baseline"], cwd=path, check=True, capture_output=True
+    )
 
 
 def test_dirty_worktree_is_denied_without_staging_user_changes(tmp_path):
