@@ -1,6 +1,6 @@
 import subprocess
 
-from action_runner import ActionRunner
+from repoforge.action_runner import ActionRunner
 
 
 def _git_repo(path, branch="feature/constitutional-policy"):
