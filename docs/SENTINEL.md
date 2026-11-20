@@ -5,7 +5,7 @@ Sentinel is the first repository-intelligence security subsystem. It scans selec
 ## Run
 
 ```bash
-python -m repoforge.sentinel /path/to/repository
+python -m repoforge.sentinel /path/to/repository --max-files 10000 --max-total-bytes 50000000
 ```
 
 The command emits JSON with rule IDs, severity, file/line locations, bounded evidence, explanations and remediation suggestions.
@@ -22,7 +22,7 @@ The command emits JSON with rule IDs, severity, file/line locations, bounded evi
 
 - Read-only; no repository code is executed.
 - Skips common generated/vendor directories, symlinks and files over 1 MB.
-- Uses bounded file traversal and evidence snippets.
+- Enforces a maximum file count, per-file size, and total byte budget; reports when a scan is truncated.\n- Uses bounded evidence snippets.
 - Findings are heuristics, not proof of malicious intent, exploitability or vulnerability.
 - Absence of findings is not a clean security certification.
 - It does not yet scan secrets, dependencies, CI workflows, licenses or runtime behaviour.
