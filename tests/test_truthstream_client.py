@@ -67,3 +67,9 @@ def test_client_rejects_non_finite_timeout_and_boolean_size_limit():
         TruthstreamClient("https://truth.example", timeout=float("nan"))
     with pytest.raises(ValueError):
         TruthstreamClient("https://truth.example", max_response_bytes=True)
+
+
+def test_client_rejects_malformed_or_query_bearing_endpoints():
+    for endpoint in ("", "https://[invalid", "https://truth.example?token=unsafe"):
+        with pytest.raises(ValueError):
+            TruthstreamClient(endpoint)
