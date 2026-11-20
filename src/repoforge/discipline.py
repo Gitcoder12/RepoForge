@@ -6,7 +6,7 @@ The module returns permissions and review requirements; adapters enforce them.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import IntEnum, StrEnum
+from enum import Enum, IntEnum
 from math import isfinite
 from time import time
 
@@ -19,7 +19,7 @@ class EnforcementLevel(IntEnum):
     HALTED = 4
 
 
-class EngineeringViolation(StrEnum):
+class EngineeringViolation(str, Enum):
     UNAPPROVED_WRITE = "unapproved_write"
     PROTECTED_PATH_CHANGE = "protected_path_change"
     DESTRUCTIVE_GIT = "destructive_git"
