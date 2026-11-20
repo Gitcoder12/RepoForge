@@ -40,6 +40,8 @@ class ScanReport:
     root: str
     files_scanned: int
     files_skipped: int
+    bytes_scanned: int
+    truncated: bool
     findings: tuple[Finding, ...]
 
     def to_dict(self) -> dict:
@@ -47,6 +49,8 @@ class ScanReport:
             "root": self.root,
             "files_scanned": self.files_scanned,
             "files_skipped": self.files_skipped,
+            "bytes_scanned": self.bytes_scanned,
+            "truncated": self.truncated,
             "finding_count": len(self.findings),
             "findings": [asdict(item) for item in self.findings],
             "disclaimer": (
@@ -114,7 +118,7 @@ def _iter_files(root: Path) -> Iterable[Path]:
                 yield path
 
 
-def scan_repository(root: str | Path, *, max_files: int = 10000) -> ScanReport:
+def scan_repository(\n    root: str | Path, *, max_files: int = 10000, max_total_bytes: int = 50_000_000\n) -> ScanReport:
     target = Path(root).expanduser().resolve()
     if not target.is_dir():
         raise ValueError("repository path must be an existing directory")
@@ -146,16 +150,16 @@ def scan_repository(root: str | Path, *, max_files: int = 10000) -> ScanReport:
                         rule.rule_id, rule.title, rule.severity, relative, line_number,
                         line.strip()[:240], rule.explanation, rule.recommendation,
                     ))
-    return ScanReport(str(target), scanned, skipped, tuple(findings))
+    return ScanReport(str(target), scanned, skipped, bytes_scanned, truncated, tuple(findings))
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Read-only RepoForge risk-signal scan")
     parser.add_argument("repository", nargs="?", default=".")
-    parser.add_argument("--max-files", type=int, default=10000)
+    parser.add_argument("--max-files", type=int, default=10000)\n    parser.add_argument("--max-total-bytes", type=int, default=50_000_000)
     args = parser.parse_args()
     try:
-        report = scan_repository(args.repository, max_files=args.max_files)
+        report = scan_repository(\n            args.repository, max_files=args.max_files, max_total_bytes=args.max_total_bytes\n        )
     except ValueError as exc:
         parser.error(str(exc))
     print(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
