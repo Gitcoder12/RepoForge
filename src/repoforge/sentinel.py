@@ -3,6 +3,7 @@
 The scanner reports review leads, not proof of malicious intent or vulnerability.
 It never imports or executes repository code.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -63,31 +64,43 @@ class ScanReport:
 
 RULES = (
     Rule(
-        "RF-SEN-001",\n        "Dynamic code execution",\n        "high",
+        "RF-SEN-001",
+        "Dynamic code execution",
+        "high",
         re.compile(r"\b(eval|exec)\s*\("),
         "Dynamic evaluation can execute data as code depending on its inputs.",
         "Trace input provenance; prefer constrained parsers or explicit dispatch.",
     ),
     Rule(
-        "RF-SEN-002", "Shell-enabled subprocess", "high",
-        re.compile(r"\bsubprocess\.(run|Popen|call|check_call|check_output)\s*\([^\n]*\bshell\s*=\s*True"),
+        "RF-SEN-002",
+        "Shell-enabled subprocess",
+        "high",
+        re.compile(
+            r"\bsubprocess\.(run|Popen|call|check_call|check_output)\s*\([^\n]*\bshell\s*=\s*True"
+        ),
         "Shell interpretation increases command-injection exposure when inputs are untrusted.",
         "Prefer argument arrays with shell=False and validate every argument.",
     ),
     Rule(
-        "RF-SEN-003",\n        "Legacy command execution",\n        "high",
+        "RF-SEN-003",
+        "Legacy command execution",
+        "high",
         re.compile(r"\bos\.system\s*\("),
         "os.system delegates command execution to a shell.",
         "Use subprocess with an argument array and explicit environment/timeout controls.",
     ),
     Rule(
-        "RF-SEN-004",\n        "Pickle deserialization",\n        "high",
+        "RF-SEN-004",
+        "Pickle deserialization",
+        "high",
         re.compile(r"\bpickle\.(load|loads)\s*\("),
         "Untrusted pickle payloads can execute code during deserialization.",
         "Never load untrusted pickle data; use a non-executable data format.",
     ),
     Rule(
-        "RF-SEN-005",\n        "Potentially unsafe YAML loader",\n        "medium",
+        "RF-SEN-005",
+        "Potentially unsafe YAML loader",
+        "medium",
         re.compile(r"\byaml\.load\s*\("),
         "yaml.load may construct arbitrary Python objects unless a safe loader is explicitly used.",
         "Use yaml.safe_load or explicitly pass SafeLoader; verify the call context.",
@@ -96,13 +109,40 @@ RULES = (
 
 
 SKIP_DIRS = {
-    ".git", ".hg", ".svn", ".venv", "venv", "node_modules",
-    "__pycache__", ".mypy_cache", ".pytest_cache", "dist", "build",
+    ".git",
+    ".hg",
+    ".svn",
+    ".venv",
+    "venv",
+    "node_modules",
+    "__pycache__",
+    ".mypy_cache",
+    ".pytest_cache",
+    "dist",
+    "build",
 }
 TEXT_SUFFIXES = {
-    ".py", ".pyi", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs",
-    ".java", ".kt", ".go", ".rs", ".rb", ".php", ".sh", ".bash",
-    ".yaml", ".yml", ".toml", ".ini", ".cfg",
+    ".py",
+    ".pyi",
+    ".js",
+    ".jsx",
+    ".ts",
+    ".tsx",
+    ".mjs",
+    ".cjs",
+    ".java",
+    ".kt",
+    ".go",
+    ".rs",
+    ".rb",
+    ".php",
+    ".sh",
+    ".bash",
+    ".yaml",
+    ".yml",
+    ".toml",
+    ".ini",
+    ".cfg",
 }
 MAX_FILE_BYTES = 1_000_000
 
@@ -110,7 +150,8 @@ MAX_FILE_BYTES = 1_000_000
 def _iter_files(root: Path) -> Iterable[Path]:
     for current, dirs, files in os.walk(root, followlinks=False):
         dirs[:] = sorted(
-            name\n            for name in dirs
+            name
+            for name in dirs
             if name not in SKIP_DIRS and not (Path(current) / name).is_symlink()
         )
         for name in sorted(files):
@@ -155,13 +196,26 @@ def scan_repository(
         for line_number, line in enumerate(content.splitlines(), start=1):
             for rule in RULES:
                 if rule.pattern.search(line):
-                    findings.append(Finding(
-                        rule.rule_id, rule.title, rule.severity, relative, line_number,
-                        line.strip()[:240], rule.explanation, rule.recommendation,
-                    ))
+                    findings.append(
+                        Finding(
+                            rule.rule_id,
+                            rule.title,
+                            rule.severity,
+                            relative,
+                            line_number,
+                            line.strip()[:240],
+                            rule.explanation,
+                            rule.recommendation,
+                        )
+                    )
 
     return ScanReport(
-        str(target), scanned, skipped, bytes_scanned, truncated, tuple(findings)
+        str(target),
+        scanned,
+        skipped,
+        bytes_scanned,
+        truncated,
+        tuple(findings),
     )
 
 
