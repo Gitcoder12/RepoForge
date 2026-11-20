@@ -1,4 +1,5 @@
 """Canonical RepoForge Action Runner with constitutional mutation checks."""
+
 from __future__ import annotations
 
 import logging
@@ -77,9 +78,7 @@ class ActionRunner:
 
     def _result(self, status: str) -> dict[str, Any]:
         completed = sum(
-            1
-            for item in self.executed
-            if item.get("status") in ("created", "modified", "ok")
+            1 for item in self.executed if item.get("status") in ("created", "modified", "ok")
         )
         return {
             "status": status,
