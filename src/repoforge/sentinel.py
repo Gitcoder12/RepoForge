@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -118,48 +119,64 @@ def _iter_files(root: Path) -> Iterable[Path]:
                 yield path
 
 
-def scan_repository(\n    root: str | Path, *, max_files: int = 10000, max_total_bytes: int = 50_000_000\n) -> ScanReport:
+def scan_repository(
+    root: str | Path, *, max_files: int = 10000, max_total_bytes: int = 50_000_000
+) -> ScanReport:
     target = Path(root).expanduser().resolve()
     if not target.is_dir():
         raise ValueError("repository path must be an existing directory")
-    if max_files < 1:
-        raise ValueError("max_files must be positive")
+    if max_files < 1 or max_total_bytes < 1:
+        raise ValueError("max_files and max_total_bytes must be positive")
 
     findings: list[Finding] = []
-    scanned = skipped = 0
-    for path in _iter_files(target):
-        if scanned + skipped >= max_files:
-            skipped += 1
-            continue
+    scanned = skipped = bytes_scanned = 0
+    truncated = False
+
+    for index, path in enumerate(_iter_files(target)):
+        if index >= max_files:
+            truncated = True
+            break
         try:
-            if path.stat().st_size > MAX_FILE_BYTES:
+            file_size = path.stat().st_size
+            if file_size > MAX_FILE_BYTES:
                 skipped += 1
                 continue
+            if bytes_scanned + file_size > max_total_bytes:
+                truncated = True
+                break
             content = path.read_text(encoding="utf-8")
         except (OSError, UnicodeError):
             skipped += 1
             continue
 
         scanned += 1
+        bytes_scanned += file_size
         relative = path.relative_to(target).as_posix()
         for line_number, line in enumerate(content.splitlines(), start=1):
             for rule in RULES:
-                match = rule.pattern.search(line)
-                if match:
+                if rule.pattern.search(line):
                     findings.append(Finding(
                         rule.rule_id, rule.title, rule.severity, relative, line_number,
                         line.strip()[:240], rule.explanation, rule.recommendation,
                     ))
-    return ScanReport(str(target), scanned, skipped, bytes_scanned, truncated, tuple(findings))
+
+    return ScanReport(
+        str(target), scanned, skipped, bytes_scanned, truncated, tuple(findings)
+    )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Read-only RepoForge risk-signal scan")
     parser.add_argument("repository", nargs="?", default=".")
-    parser.add_argument("--max-files", type=int, default=10000)\n    parser.add_argument("--max-total-bytes", type=int, default=50_000_000)
+    parser.add_argument("--max-files", type=int, default=10000)
+    parser.add_argument("--max-total-bytes", type=int, default=50_000_000)
     args = parser.parse_args()
     try:
-        report = scan_repository(\n            args.repository, max_files=args.max_files, max_total_bytes=args.max_total_bytes\n        )
+        report = scan_repository(
+            args.repository,
+            max_files=args.max_files,
+            max_total_bytes=args.max_total_bytes,
+        )
     except ValueError as exc:
         parser.error(str(exc))
     print(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
