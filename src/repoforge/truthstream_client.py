@@ -23,8 +23,15 @@ class TruthstreamClient:
         timeout: float = 5.0,
         max_response_bytes: int = 1_000_000,
     ) -> None:
-        parsed = urlparse(endpoint)
-        local_http = parsed.scheme == "http" and parsed.hostname in {
+        if not isinstance(endpoint, str) or not endpoint.strip():
+            raise ValueError("endpoint must be a non-empty URL")
+        try:
+            parsed = urlparse(endpoint)
+            hostname = parsed.hostname
+            _ = parsed.port
+        except ValueError as exc:
+            raise ValueError("endpoint URL is malformed") from exc
+        local_http = parsed.scheme == "http" and hostname in {
             "localhost",
             "127.0.0.1",
             "::1",
@@ -33,8 +40,17 @@ class TruthstreamClient:
             raise ValueError(
                 "TruthStream endpoint must use HTTPS (HTTP is allowed only on loopback)"
             )
-        if not parsed.netloc or parsed.username or parsed.password:
-            raise ValueError("endpoint must be absolute and contain no embedded credentials")
+        if (
+            not parsed.netloc
+            or not hostname
+            or parsed.username
+            or parsed.password
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError(
+                "endpoint must be absolute, have a host, and contain no credentials or query"
+            )
         if (
             isinstance(timeout, bool)
             or not isinstance(timeout, (int, float))
