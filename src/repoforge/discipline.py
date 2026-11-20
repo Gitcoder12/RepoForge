@@ -156,10 +156,13 @@ class RunDiscipline:
             EngineeringViolation.PROTECTED_PATH_CHANGE,
         }
         severe = evidence.severity >= 5 or (destructive and evidence.severity >= 4)
-        repeats = sum(
-            item.violation == evidence.violation and item.confidence >= self.confidence_floor
-            for item in self._events
-        ) >= 2
+        repeats = (
+            sum(
+                item.violation == evidence.violation and item.confidence >= self.confidence_floor
+                for item in self._events
+            )
+            >= 2
+        )
 
         if severe:
             self._level = max(self._level, EnforcementLevel.ISOLATED_REVIEW)
