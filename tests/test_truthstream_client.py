@@ -17,15 +17,19 @@ def test_client_allows_loopback_development_endpoint():
 
 
 def test_client_posts_and_parses_truthstream_response():
-    body = json.dumps([{
-        "claim": {"text": "test"},
-        "status": "likely_true",
-        "confidence_score": 0.9,
-        "provenance": {"status": "demo_or_incomplete"},
-        "supporting_evidence": [],
-        "contradicting_evidence": [],
-        "neutral_evidence": [],
-    }]).encode()
+    body = json.dumps(
+        [
+            {
+                "claim": {"text": "test"},
+                "status": "likely_true",
+                "confidence_score": 0.9,
+                "provenance": {"status": "demo_or_incomplete"},
+                "supporting_evidence": [],
+                "contradicting_evidence": [],
+                "neutral_evidence": [],
+            }
+        ]
+    ).encode()
 
     class Response(io.BytesIO):
         pass
