@@ -1,7 +1,10 @@
 import pytest
 
 from repoforge.discipline import (
-    EngineeringViolation, EnforcementLevel, RunDiscipline, RunEvidence,
+    EnforcementLevel,
+    EngineeringViolation,
+    RunDiscipline,
+    RunEvidence,
 )
 
 
@@ -11,8 +14,16 @@ def ev(run="r1", event="e1", violation=EngineeringViolation.REPEATED_VALIDATION_
                        severity, run)
 
 
-def test_repeated_validation_failure_removes_write_permission():
+def test_first_validation_failure_records_notice_without_removing_write():
     policy = RunDiscipline("r1").record(ev())
+    assert policy.level == EnforcementLevel.NOTICE
+    assert policy.writable
+
+
+def test_repeated_validation_failure_removes_write_permission():
+    engine = RunDiscipline("r1")
+    engine.record(ev(event="first"))
+    policy = engine.record(ev(event="second"))
     assert policy.level == EnforcementLevel.READ_ONLY
     assert not policy.writable
 
@@ -45,7 +56,7 @@ def test_duplicate_event_does_not_escalate():
     engine = RunDiscipline("r1")
     engine.record(ev(event="same", severity=3))
     policy = engine.record(ev(event="same", severity=5))
-    assert policy.level == EnforcementLevel.READ_ONLY
+    assert policy.level == EnforcementLevel.NOTICE
 
 
 def test_owner_halt_is_irreversible_for_current_run():
@@ -56,3 +67,21 @@ def test_owner_halt_is_irreversible_for_current_run():
     assert not policy.may_run_tests
     with pytest.raises(PermissionError):
         engine.halt(authenticated_owner=False, reason="agent says resume")
+
+
+def test_evidence_rejects_boolean_and_non_finite_values():
+    with pytest.raises(ValueError):
+        RunEvidence("e", EngineeringViolation.DRIFT_SIGNAL, "x", True, 1, "r1")
+    with pytest.raises(ValueError):
+        RunEvidence("e", EngineeringViolation.DRIFT_SIGNAL, "x", 0.9, True, "r1")
+    with pytest.raises(ValueError):
+        RunEvidence("e", EngineeringViolation.DRIFT_SIGNAL, "x", float("nan"), 1, "r1")
+
+
+def test_event_history_and_replay_cache_are_bounded():
+    engine = RunDiscipline("r1", history_limit=2)
+    engine.record(ev(event="one", severity=1))
+    engine.record(ev(event="two", severity=1))
+    engine.record(ev(event="three", severity=1))
+    assert [item.event_id for item in engine.evidence] == ["two", "three"]
+    assert len(engine._seen) == 2
