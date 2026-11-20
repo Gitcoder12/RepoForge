@@ -45,3 +45,25 @@ def test_client_posts_and_parses_truthstream_response():
         results = TruthstreamClient("https://truth.example").verify("A test claim")
     assert len(results) == 1
     assert not results[0].usable_as_context
+
+
+def test_client_rejects_non_object_response_items():
+    body = json.dumps([{"status": "likely_true"}, "malformed"]).encode()
+
+    class FakeResponse(io.BytesIO):
+        pass
+
+    class FakeOpener:
+        def open(self, request, timeout):
+            return FakeResponse(body)
+
+    with patch("repoforge.truthstream_client.build_opener", return_value=FakeOpener()):
+        with pytest.raises(ValueError, match="items must all be objects"):
+            TruthstreamClient("https://truth.example").verify("claim")
+
+
+def test_client_rejects_non_finite_timeout_and_boolean_size_limit():
+    with pytest.raises(ValueError):
+        TruthstreamClient("https://truth.example", timeout=float("nan"))
+    with pytest.raises(ValueError):
+        TruthstreamClient("https://truth.example", max_response_bytes=True)
