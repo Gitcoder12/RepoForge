@@ -8,10 +8,16 @@ def payload():
         "confidence_score": 0.91,
         "provenance": {"status": "source_backed"},
         "supporting_evidence": [
-            {"evidence_id": "a", "retrieved_at": "2026-11-20T08:00:00Z",
-             "source": {"url": "https://alpha.example/report"}},
-            {"evidence_id": "b", "retrieved_at": "2026-11-20T08:01:00Z",
-             "source": {"url": "https://beta.example/report"}},
+            {
+                "evidence_id": "a",
+                "retrieved_at": "2026-11-20T08:00:00Z",
+                "source": {"url": "https://alpha.example/report"},
+            },
+            {
+                "evidence_id": "b",
+                "retrieved_at": "2026-11-20T08:01:00Z",
+                "source": {"url": "https://beta.example/report"},
+            },
         ],
         "contradicting_evidence": [],
         "neutral_evidence": [],
