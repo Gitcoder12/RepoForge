@@ -70,3 +70,14 @@ def test_total_byte_budget_stops_scanning(tmp_path):
     report = scan_repository(tmp_path, max_total_bytes=150)
     assert report.bytes_scanned <= 150
     assert report.truncated is True
+
+
+def test_cli_sentinel_command_returns_json(tmp_path):
+    from typer.testing import CliRunner
+
+    from repoforge.cli import app
+
+    (tmp_path / "app.py").write_text("eval(user_input)", encoding="utf-8")
+    result = CliRunner().invoke(app, ["sentinel", str(tmp_path)])
+    assert result.exit_code == 0
+    assert '"RF-SEN-001"' in result.stdout
