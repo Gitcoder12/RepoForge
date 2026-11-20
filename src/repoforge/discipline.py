@@ -134,7 +134,7 @@ class RunDiscipline:
                 and item.confidence >= self.confidence_floor
                 for item in self._events
             )
-            if repeats < 2:
+            if repeats < 2 and evidence.severity < 4:
                 self._level = max(self._level, EnforcementLevel.NOTICE)
                 return self._policy(
                     "first validation failure recorded; revise the plan before retrying",
