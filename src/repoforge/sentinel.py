@@ -103,7 +103,7 @@ MAX_FILE_BYTES = 1_000_000
 
 
 def _iter_files(root: Path) -> Iterable[Path]:
-    for current, dirs, files in __import__("os").walk(root, followlinks=False):
+    for current, dirs, files in os.walk(root, followlinks=False):
         dirs[:] = sorted(
             name for name in dirs
             if name not in SKIP_DIRS and not (Path(current) / name).is_symlink()
