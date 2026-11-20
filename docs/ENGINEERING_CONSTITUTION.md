@@ -92,7 +92,7 @@ Implemented in the current feature branch:
 - `src/repoforge/action_runner.py` preflights the complete action batch before writing, rejects the whole batch if any action is denied, preserves existing create-only behavior, and requires separate `allow_delete=True` approval for deletion. Root-level legacy imports now route to this canonical implementation.
 - Dry runs can preview actions without mutation approval.
 - `src/repoforge/git_manager.py` no longer stages or commits user files as a checkpoint. It records a clean HEAD reference and refuses dirty trees.
-- Both the legacy pipeline and `src/core/workflow_engine.py` accept explicit approved paths; the workflow records a clean HEAD before mutation and does not perform an automatic hard reset after validation failure.
+- The legacy root pipeline accepts explicit approved paths, records a clean HEAD before mutation, and does not perform an automatic hard reset after validation failure.
 - Regression tests cover path approvals, dirty trees, protected branches, batch denial, dry-run behavior, deletion approval, safe checkpointing, symlink escapes, and create-only preservation.
 
 Not yet enforced: authenticated approval identity, remote fork/upstream write authorization, OS-level isolation for running repository-controlled code, secret scanning, dependency/workflow-specific approval rules, persistent tamper-evident audit storage, and a verified transactional rollback system. The installable CLI does not yet expose the full mutation workflow, and other legacy execution paths may not use this gate; do not describe these controls as universal RepoForge protection until all paths are consolidated and tested.
