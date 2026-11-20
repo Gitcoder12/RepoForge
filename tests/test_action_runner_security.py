@@ -13,17 +13,11 @@ def _git_repo(path: Path) -> None:
         check=True,
         capture_output=True,
     )
-    subprocess.run(
-        ["git", "config", "user.email", "tests@example.invalid"], cwd=path, check=True
-    )
-    subprocess.run(
-        ["git", "config", "user.name", "RepoForge Tests"], cwd=path, check=True
-    )
+    subprocess.run(["git", "config", "user.email", "tests@example.invalid"], cwd=path, check=True)
+    subprocess.run(["git", "config", "user.name", "RepoForge Tests"], cwd=path, check=True)
     (path / ".baseline").write_text("baseline", encoding="utf-8")
     subprocess.run(["git", "add", ".baseline"], cwd=path, check=True)
-    subprocess.run(
-        ["git", "commit", "-m", "baseline"], cwd=path, check=True, capture_output=True
-    )
+    subprocess.run(["git", "commit", "-m", "baseline"], cwd=path, check=True, capture_output=True)
 
 
 def test_create_action_writes_inside_repository(tmp_path: Path) -> None:
