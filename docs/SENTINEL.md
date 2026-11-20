@@ -22,7 +22,8 @@ The command emits JSON with rule IDs, severity, file/line locations, bounded evi
 
 - Read-only; no repository code is executed.
 - Skips common generated/vendor directories, symlinks and files over 1 MB.
-- Enforces a maximum file count, per-file size, and total byte budget; reports when a scan is truncated.\n- Uses bounded evidence snippets.
+- Enforces a maximum file count, per-file size, and total byte budget; reports when a scan is truncated.
+- Uses bounded evidence snippets.
 - Findings are heuristics, not proof of malicious intent, exploitability or vulnerability.
 - Absence of findings is not a clean security certification.
 - It does not yet scan secrets, dependencies, CI workflows, licenses or runtime behaviour.
