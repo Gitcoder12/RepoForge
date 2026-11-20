@@ -13,7 +13,10 @@ def test_reports_dangerous_code_patterns_without_executing_them(tmp_path):
     report = scan_repository(tmp_path)
     assert report.files_scanned == 1
     assert {item.rule_id for item in report.findings} == {
-        "RF-SEN-001",\n        "RF-SEN-002",\n        "RF-SEN-004",\n        "RF-SEN-005",
+        "RF-SEN-001",
+        "RF-SEN-002",
+        "RF-SEN-004",
+        "RF-SEN-005",
     }
 
 
