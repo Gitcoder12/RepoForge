@@ -1,4 +1,5 @@
 """Fail-closed engineering policy for RepoForge repository mutations."""
+
 from __future__ import annotations
 
 import subprocess
