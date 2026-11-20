@@ -2,6 +2,7 @@
 
 The module returns permissions and review requirements; adapters enforce them.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
