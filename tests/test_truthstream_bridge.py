@@ -46,3 +46,30 @@ def test_truthstream_context_never_authenticates_repo_events():
     result = assess_truthstream_result(payload())
     assert "runtime" not in result.__dataclass_fields__
     assert result.usable_as_context
+
+
+def test_invalid_timestamp_is_not_source_backed():
+    item = payload()
+    item["supporting_evidence"][0]["retrieved_at"] = "yesterday"
+    result = assess_truthstream_result(item)
+    assert not result.usable_as_context
+
+
+def test_duplicate_evidence_ids_are_not_counted_as_distinct_provenance():
+    item = payload()
+    item["supporting_evidence"][1]["evidence_id"] = "a"
+    result = assess_truthstream_result(item)
+    assert not result.usable_as_context
+
+
+def test_non_object_evidence_invalidates_provenance():
+    item = payload()
+    item["supporting_evidence"].append("not-an-evidence-object")
+    result = assess_truthstream_result(item)
+    assert not result.usable_as_context
+
+
+def test_missing_claim_text_cannot_be_used_as_context():
+    item = payload()
+    item["claim"]["text"] = " "
+    assert not assess_truthstream_result(item).usable_as_context
