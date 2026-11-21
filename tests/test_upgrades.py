@@ -103,6 +103,7 @@ def test_upgrade_cli_emits_profile_filtered_json(tmp_path):
     import json
 
     from typer.testing import CliRunner
+
     from repoforge.cli import app
 
     result = CliRunner().invoke(app, ["upgrade", str(tmp_path), "--profile", "security"])
