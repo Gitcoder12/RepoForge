@@ -3,6 +3,7 @@
 The built-in suite checks narrow response contracts. Its scores are not a
 general measure of intelligence, coding quality, or real-world safety.
 """
+
 from __future__ import annotations
 
 import json
