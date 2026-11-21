@@ -1,8 +1,8 @@
 import pytest
 
 from repoforge.resource_governor import (
-    GPUObservation,
     GovernorPolicy,
+    GPUObservation,
     ResourceState,
     RuntimeResourceGovernor,
 )
