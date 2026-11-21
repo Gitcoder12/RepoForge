@@ -15,13 +15,38 @@ from dataclasses import dataclass
 from pathlib import Path
 
 DEFAULT_EXTENSIONS = {
-    ".py", ".md", ".rst", ".txt", ".toml", ".yaml", ".yml", ".json",
-    ".ini", ".cfg", ".sql", ".sh", ".html", ".css", ".js", ".ts",
+    ".py",
+    ".md",
+    ".rst",
+    ".txt",
+    ".toml",
+    ".yaml",
+    ".yml",
+    ".json",
+    ".ini",
+    ".cfg",
+    ".sql",
+    ".sh",
+    ".html",
+    ".css",
+    ".js",
+    ".ts",
 }
 IGNORED_DIRS = {
-    ".git", ".hg", ".svn", ".venv", "venv", "env", "__pycache__",
-    "node_modules", ".mypy_cache", ".pytest_cache", ".ruff_cache",
-    "dist", "build", ".tox",
+    ".git",
+    ".hg",
+    ".svn",
+    ".venv",
+    "venv",
+    "env",
+    "__pycache__",
+    "node_modules",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "dist",
+    "build",
+    ".tox",
 }
 TOKEN_RE = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_.+#-]{1,}")
 
@@ -130,8 +155,7 @@ class LocalKnowledgeBase:
         if not root.is_dir():
             raise RetrievalError("indexing target must be a directory")
         if not any(
-            root == allowed or root.is_relative_to(allowed)
-            for allowed in self.allowed_roots
+            root == allowed or root.is_relative_to(allowed) for allowed in self.allowed_roots
         ):
             raise RetrievalError("indexing target is outside configured allowed roots")
         return root
@@ -148,8 +172,7 @@ class LocalKnowledgeBase:
             for current, dirs, filenames in os.walk(root, followlinks=False):
                 current_path = Path(current)
                 dirs[:] = [
-                    d for d in dirs
-                    if d not in IGNORED_DIRS and not (current_path / d).is_symlink()
+                    d for d in dirs if d not in IGNORED_DIRS and not (current_path / d).is_symlink()
                 ]
                 for filename in sorted(filenames):
                     path = current_path / filename
