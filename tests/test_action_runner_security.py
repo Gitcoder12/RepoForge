@@ -98,3 +98,43 @@ def test_modify_requires_existing_file(tmp_path: Path) -> None:
     assert result["completed"] == 0
     assert result["status"] == "blocked"
     assert result["errors"]
+
+
+def test_failed_batch_rolls_back_prior_successful_writes(tmp_path: Path, monkeypatch) -> None:
+    _git_repo(tmp_path)
+    original = tmp_path / "tracked.txt"
+    runner = ActionRunner(str(tmp_path))
+    real_execute = runner._execute_dict_action
+    calls = 0
+
+    def fail_second(action, dry_run):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise OSError("injected failure")
+        return real_execute(action, dry_run)
+
+    monkeypatch.setattr(runner, "_execute_dict_action", fail_second)
+    result = runner.run(
+        [
+            {"type": "modify", "file": "tracked.txt", "content": "changed"},
+            {"type": "create", "file": "new.txt", "content": "new"},
+        ],
+        approved_paths={"tracked.txt", "new.txt"},
+    )
+
+    assert result["status"] == "rolled_back"
+    assert original.read_text(encoding="utf-8") == "baseline"
+    assert not (tmp_path / "new.txt").exists()
+    assert result["completed"] == 0
+
+
+def test_write_rejects_windows_drive_and_backslash_traversal(tmp_path: Path) -> None:
+    _git_repo(tmp_path)
+    runner = ActionRunner(str(tmp_path))
+    for filepath in (r"C:\\temp\\outside.txt", r"..\\outside.txt"):
+        result = runner.run(
+            [{"type": "create", "file": filepath, "content": "unsafe"}],
+            approved_paths={filepath},
+        )
+        assert result["status"] == "blocked"
