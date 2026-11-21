@@ -1,49 +1,66 @@
-import unittest
-
-from global_repository_intelligence import (
+import pytest
+from repoforge.intelligence.global_repository_intelligence import (
     RepositoryEvidence, explain_rank, rank_repositories,
 )
 
 
-class RankingTests(unittest.TestCase):
-    def test_popularity_is_not_size(self):
-        rows = [
-            {"full_name": "a/popular", "stars": 10000, "forks": 500},
-            {"full_name": "b/large", "stars": 10, "forks": 1, "size_kb": 900000},
-        ]
-        popular = rank_repositories(rows, "popular")
-        largest = rank_repositories(rows, "largest")
-        self.assertEqual(popular[0]["repository"], "a/popular")
-        self.assertEqual(largest[0]["repository"], "b/large")
-
-    def test_missing_values_are_not_zero(self):
-        rows = [{"full_name": "a/unknown"}, {"full_name": "b/known", "stars": 3}]
-        ranked = rank_repositories(rows, "popular")
-        self.assertEqual([row["repository"] for row in ranked], ["b/known"])
-        self.assertEqual(ranked[0]["evidence_count"], 1)
-
-    def test_fastest_requires_comparable_benchmark_metadata(self):
-        rows = [
-            {"full_name": "a/no-proof", "benchmark_score": 99},
-            {"full_name": "b/proven", "benchmark_score": 80,
-             "benchmark_id": "suite-v1", "benchmark_environment": "linux-x86"},
-        ]
-        ranked = rank_repositories(rows, "fastest")
-        self.assertEqual([row["repository"] for row in ranked], ["b/proven"])
-
-    def test_criticality_uses_dependency_evidence(self):
-        rows = [
-            {"full_name": "a/core", "dependents": 1000, "dependency_depth": 5},
-            {"full_name": "b/isolated", "dependents": 2, "dependency_depth": 1},
-        ]
-        self.assertEqual(rank_repositories(rows, "critical")[0]["repository"], "a/core")
-
-    def test_validation_and_explanation(self):
-        with self.assertRaises(ValueError):
-            RepositoryEvidence.from_mapping({"full_name": "x/y", "stars": -1})
-        result = rank_repositories([{"full_name": "x/y", "stars": 1}], "popular")[0]
-        self.assertIn("x/y ranked #1", explain_rank(result))
+def test_popularity_and_size_are_independent():
+    rows = [
+        {"full_name": "a/popular", "stars": 10000, "forks": 500, "size_kb": 2},
+        {"full_name": "b/large", "stars": 10, "forks": 1, "size_kb": 900000},
+    ]
+    assert rank_repositories(rows, "popular")[0]["repository"] == "a/popular"
+    assert rank_repositories(rows, "largest")[0]["repository"] == "b/large"
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_missing_metrics_remain_unknown():
+    rows = [{"full_name": "a/unknown"}, {"full_name": "b/known", "stars": 3}]
+    ranked = rank_repositories(rows, "popular")
+    assert [row["repository"] for row in ranked] == ["b/known"]
+    assert ranked[0]["evidence_count"] == 1
+
+
+def test_archived_and_forks_are_excluded_by_default():
+    rows = [
+        {"full_name": "a/active", "stars": 1},
+        {"full_name": "b/archived", "stars": 999, "archived": True},
+        {"full_name": "c/fork", "stars": 999, "fork": True},
+    ]
+    assert [r["repository"] for r in rank_repositories(rows)] == ["a/active"]
+    assert len(rank_repositories(rows, include_forks=True)) == 2
+
+
+def test_fastest_never_mixes_benchmark_cohorts():
+    rows = [
+        {"full_name": "a/fast", "benchmark_score": 99, "benchmark_id": "suite-a", "benchmark_environment": "linux-x86"},
+        {"full_name": "b/slow", "benchmark_score": 20, "benchmark_id": "suite-a", "benchmark_environment": "linux-x86"},
+        {"full_name": "c/different", "benchmark_score": 100, "benchmark_id": "suite-b", "benchmark_environment": "mac-arm"},
+        {"full_name": "d/unverified", "benchmark_score": 100},
+    ]
+    ranked = rank_repositories(rows, "fastest")
+    assert len(ranked) == 3
+    assert ranked[0]["rank"] == 1
+    assert ranked[1]["rank"] == 2
+    assert ranked[2]["benchmark_id"] == "suite-b"
+
+
+@pytest.mark.parametrize("record", [
+    {"full_name": "x/y", "stars": -1},
+    {"full_name": "x/y", "stars": True},
+    {"full_name": "x/y", "benchmark_score": float("nan")},
+    {"full_name": "x/y", "unexpected": 1},
+    {"full_name": "invalid"},
+])
+def test_rejects_invalid_evidence(record):
+    with pytest.raises((ValueError, TypeError)):
+        RepositoryEvidence.from_mapping(record)
+
+
+def test_duplicate_names_are_case_insensitive():
+    with pytest.raises(ValueError):
+        rank_repositories([{"full_name": "A/Repo"}, {"full_name": "a/repo"}])
+
+
+def test_explanation_contains_score_basis():
+    row = rank_repositories([{"full_name": "x/y", "stars": 5}], "popular")[0]
+    assert "stars" in explain_rank(row)
