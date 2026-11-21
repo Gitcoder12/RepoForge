@@ -1,1 +1,5 @@
-"""RepoForge retrieval and knowledge tools."""\n\nfrom repoforge.rag.store import LocalKnowledgeBase, RetrievalError\n\n__all__ = ["LocalKnowledgeBase", "RetrievalError"]\n
+"""RepoForge retrieval and knowledge tools."""
+
+from repoforge.rag.store import LocalKnowledgeBase, RetrievalError
+
+__all__ = ["LocalKnowledgeBase", "RetrievalError"]
