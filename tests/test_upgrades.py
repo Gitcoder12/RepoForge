@@ -101,9 +101,9 @@ def test_blacksmith_report_includes_upgrade_catalogue(tmp_path):
 
 def test_upgrade_cli_emits_profile_filtered_json(tmp_path):
     import json
-    from typer.testing import CliRunner
 
     from repoforge.cli import app
+    from typer.testing import CliRunner
 
     result = CliRunner().invoke(app, ["upgrade", str(tmp_path), "--profile", "security"])
     assert result.exit_code == 0
