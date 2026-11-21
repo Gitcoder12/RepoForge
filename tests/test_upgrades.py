@@ -27,7 +27,7 @@ def test_upgrade_catalogue_lists_ranked_options_for_detected_gaps():
     } <= ids
     assert report["summary"]["options_available"] == 8
     assert report["options"] == sorted(
-        report["options"], key=lambda item: (-item["priority_score"], -item["rank_points_available"], item["id"])
+        report["options"], key=lambda item: (-item["priority_score"], -item["rank_points_available"], item["id"])  # noqa: E501
     )
 
 
@@ -101,8 +101,8 @@ def test_blacksmith_report_includes_upgrade_catalogue(tmp_path):
 
 def test_upgrade_cli_emits_profile_filtered_json(tmp_path):
     import json
-    from typer.testing import CliRunner
     from repoforge.cli import app
+    from typer.testing import CliRunner
 
     result = CliRunner().invoke(app, ["upgrade", str(tmp_path), "--profile", "security"])
     assert result.exit_code == 0

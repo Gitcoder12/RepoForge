@@ -276,7 +276,11 @@ def upgrade_command(
         snapshot = Blacksmith(repo_path).inspect()
         planner = UpgradePlanner()
         report = planner.build(snapshot)
-        option_ids = [item.strip() for item in select.split(",") if item.strip()] if select else None
+        option_ids = (
+            [item.strip() for item in select.split(",") if item.strip()]
+            if select
+            else None
+        )
         result = planner.select(report, profile=profile, option_ids=option_ids)
     except ValueError as exc:
         typer.echo(f"UpgradeForge error: {exc}", err=True)
