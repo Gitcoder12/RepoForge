@@ -92,7 +92,8 @@ class UpgradePlanner:
                 points=12,
                 implementation="Draft purpose, installation, quick start, configuration, examples, limitations and support from verified project files; require maintainer review.",  # noqa: E501
                 verification=(
-                    "Follow the instructions in a clean environment and check every command and feature claim."
+                    "Follow the instructions in a clean environment and check every command and"
+                    "feature claim."
                 ),
             )
         if not signals.get("tests", False):
@@ -108,7 +109,8 @@ class UpgradePlanner:
                 points=20,
                 implementation="Identify critical user workflows and write tests against real behavior. Do not generate placeholder tests that merely pass.",  # noqa: E501
                 verification=(
-                    "Run the suite in a clean environment; include failure-path and regression cases."
+                    "Run the suite in a clean environment; include failure-path and regression"
+                    "cases."
                 ),
             )
         if not signals.get("ci", False):
@@ -140,7 +142,8 @@ class UpgradePlanner:
                 points=15,
                 implementation="Identify the actual runtime and package manager, then add the matching manifest with explicit dependencies and supported versions.",  # noqa: E501
                 verification=(
-                    "Install/build from a clean checkout without relying on undeclared global packages."
+                    "Install/build from a clean checkout without relying on undeclared global"
+                    "packages."
                 ),
             )
         if not signals.get("license", False):
@@ -156,7 +159,8 @@ class UpgradePlanner:
                 points=10,
                 implementation="Ask the maintainer to choose a license after considering ownership and third-party assets; never select one automatically.",  # noqa: E501
                 verification=(
-                    "Confirm the license matches the owner's intent and dependency/asset obligations."
+                    "Confirm the license matches the owner's intent and dependency/asset"
+                    "obligations."
                 ),
             )
         if not signals.get("gitignore", False):
