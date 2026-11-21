@@ -144,8 +144,7 @@ class Fortress:
                     continue
                 entries = [p for p in root.iterdir() if p.is_dir() and p.name.startswith("lease-")]
                 with self._condition:
-                    active_count = sum(path.parent == root for path in self._active)
-                    if len(entries) + active_count >= backend.max_workspaces:
+                    if len(entries) >= backend.max_workspaces:
                         errors.append(f"{backend.name}: workspace capacity reached")
                         continue
                     path = Path(tempfile.mkdtemp(prefix="lease-", dir=root)).resolve()
