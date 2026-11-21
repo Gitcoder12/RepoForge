@@ -166,7 +166,9 @@ class UpgradePlanner:
                 evidence="No SECURITY.md, Dependabot configuration or CodeQL configuration was detected.",  # noqa: E501
                 impact="high", effort="medium", risk="medium", points=10,
                 implementation="Add a vulnerability reporting policy and configure dependency/code scanning appropriate to the repository's supported ecosystems.",  # noqa: E501
-                verification="Validate workflow syntax, permissions, alert routing and a sample dependency update.",
+                verification=(
+                    "Validate workflow syntax, permissions, alert routing and a sample dependency update."
+                ),
             )
         if not signals.get("quality_tooling", False):
             add(
@@ -180,7 +182,9 @@ class UpgradePlanner:
                 risk="low",
                 points=5,
                 implementation="Select tools supported by the detected languages; add non-destructive baseline configuration and document commands.",  # noqa: E501
-                verification="Run tools on a clean checkout and review all proposed formatting/lint changes.",
+                verification=(
+                    "Run tools on a clean checkout and review all proposed formatting/lint changes."
+                ),
             )
 
         options.sort(key=lambda item: (-item.priority_score, -item.rank_points_available, item.id))
