@@ -5,14 +5,14 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from repoforge.rag.store import LocalKnowledgeBase
-
 try:
     from fastmcp import FastMCP
 except ImportError as exc:  # pragma: no cover - exercised by optional-dependency users
     raise RuntimeError(
         "FastMCP is optional. Install RepoForge with: pip install 'repoforge[rag]'"
     ) from exc
+
+from repoforge.rag.store import LocalKnowledgeBase
 
 ROOTS = tuple(
     item for item in os.environ.get("REPOFORGE_RAG_ROOTS", "").split(os.pathsep) if item.strip()
