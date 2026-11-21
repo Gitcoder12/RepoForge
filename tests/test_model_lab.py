@@ -71,7 +71,9 @@ def test_model_lab_reports_failed_contracts_without_an_llm_judge():
     ][0]
     assert result["status"] == "failed"
     assert result["failed"] == 1
-    assert result["cases"][-1]["detail"] == "mismatch:tests_before_changes"
+    assert result["cases"][-1]["detail"] == (
+        "mismatch:tests_before_changes,human_approval_for_writes,rollback_plan_required"
+    )
 
 
 def test_model_lab_stops_after_provider_error_and_does_not_fallback():
