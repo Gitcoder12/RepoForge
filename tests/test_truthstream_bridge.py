@@ -1,0 +1,75 @@
+from repoforge.truthstream_bridge import assess_truthstream_result
+
+
+def payload():
+    return {
+        "claim": {"text": "A factual claim"},
+        "status": "likely_true",
+        "confidence_score": 0.91,
+        "provenance": {"status": "source_backed"},
+        "supporting_evidence": [
+            {
+                "evidence_id": "a",
+                "retrieved_at": "2026-11-20T08:00:00Z",
+                "source": {"url": "https://alpha.example/report"},
+            },
+            {
+                "evidence_id": "b",
+                "retrieved_at": "2026-11-20T08:01:00Z",
+                "source": {"url": "https://beta.example/report"},
+            },
+        ],
+        "contradicting_evidence": [],
+        "neutral_evidence": [],
+    }
+
+
+def test_two_provenanced_sources_can_be_used_as_context():
+    result = assess_truthstream_result(payload())
+    assert result.usable_as_context
+    assert result.distinct_source_host_count == 2
+
+
+def test_demo_or_missing_provenance_is_rejected():
+    item = payload()
+    item["provenance"] = {"status": "demo_or_incomplete"}
+    assert not assess_truthstream_result(item).usable_as_context
+
+
+def test_single_source_is_not_enough():
+    item = payload()
+    item["supporting_evidence"].pop()
+    assert not assess_truthstream_result(item).usable_as_context
+
+
+def test_truthstream_context_never_authenticates_repo_events():
+    result = assess_truthstream_result(payload())
+    assert "runtime" not in result.__dataclass_fields__
+    assert result.usable_as_context
+
+
+def test_invalid_timestamp_is_not_source_backed():
+    item = payload()
+    item["supporting_evidence"][0]["retrieved_at"] = "yesterday"
+    result = assess_truthstream_result(item)
+    assert not result.usable_as_context
+
+
+def test_duplicate_evidence_ids_are_not_counted_as_distinct_provenance():
+    item = payload()
+    item["supporting_evidence"][1]["evidence_id"] = "a"
+    result = assess_truthstream_result(item)
+    assert not result.usable_as_context
+
+
+def test_non_object_evidence_invalidates_provenance():
+    item = payload()
+    item["supporting_evidence"].append("not-an-evidence-object")
+    result = assess_truthstream_result(item)
+    assert not result.usable_as_context
+
+
+def test_missing_claim_text_cannot_be_used_as_context():
+    item = payload()
+    item["claim"]["text"] = " "
+    assert not assess_truthstream_result(item).usable_as_context
