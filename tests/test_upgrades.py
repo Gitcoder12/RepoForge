@@ -8,11 +8,18 @@ def snapshot_with_all_gaps():
         "name": "demo",
         "scan_incomplete": False,
         "signals": {
-            "readme": False, "tests": False, "ci": False, "license": False,
-            "gitignore": False, "security_process": False, "quality_tooling": False,
+            "readme": False,
+            "tests": False,
+            "ci": False,
+            "license": False,
+            "gitignore": False,
+            "security_process": False,
+            "quality_tooling": False,
         },
         "rank": {
-            "score": 0, "grade": "E", "maximum": 100,
+            "score": 0,
+            "grade": "E",
+            "maximum": 100,
             "dimensions": {"project_configuration": 0},
         },
     }
@@ -22,12 +29,19 @@ def test_upgrade_catalogue_lists_ranked_options_for_detected_gaps():
     report = UpgradePlanner().build(snapshot_with_all_gaps())
     ids = {item["id"] for item in report["options"]}
     assert {
-        "docs-readme", "tests-real", "ci-pipeline", "project-manifest",
-        "license-choice", "gitignore", "security-baseline", "quality-tooling",
+        "docs-readme",
+        "tests-real",
+        "ci-pipeline",
+        "project-manifest",
+        "license-choice",
+        "gitignore",
+        "security-baseline",
+        "quality-tooling",
     } <= ids
     assert report["summary"]["options_available"] == 8
     assert report["options"] == sorted(
-        report["options"], key=lambda item: (-item["priority_score"], -item["rank_points_available"], item["id"])  # noqa: E501
+        report["options"],
+        key=lambda item: (-item["priority_score"], -item["rank_points_available"], item["id"]),  # noqa: E501
     )
 
 
