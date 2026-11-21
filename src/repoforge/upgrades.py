@@ -4,6 +4,7 @@ UpgradeForge proposes options; it does not invent project-specific code or apply
 high-risk changes. Rank points describe available hygiene signals, not quality
 improvement guarantees.
 """
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
