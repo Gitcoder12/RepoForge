@@ -158,6 +158,25 @@ repoforge test . --execute --timeout 120
 
 Execution is **not sandboxed**. Tests can run arbitrary repository-controlled code; TestForge removes common credential environment variables, uses argument arrays instead of a shell, captures bounded output, and enforces a timeout, but it does not provide OS-level isolation or network denial. Do not run untrusted repositories with `--execute`. A container-backed isolated runner is a separate future milestone.
 
+## RepoRank & UpgradeForge — development branch
+
+RepoRank provides a transparent hygiene baseline. UpgradeForge turns missing engineering signals into selectable improvement paths rather than limiting RepoForge to repairs.
+
+```bash
+# Inspect current RepoRank and see all recommended upgrade paths
+repoforge blacksmith ./your-repository
+
+# Generate a focused upgrade plan
+repoforge upgrade ./your-repository --profile security
+repoforge upgrade ./your-repository --profile quality
+
+# Select exact recommendations for a review plan
+repoforge upgrade ./your-repository --select tests-real,ci-pipeline
+```
+
+Available profiles: `foundation`, `security`, `quality`, `delivery`, `maintainability`, and `all`. Each recommendation includes evidence, impact, effort, risk, implementation guidance and verification criteria. The score points shown are the maximum hygiene points associated with missing signals—not guaranteed quality gains.
+
+UpgradeForge is recommendation-only in this iteration. It does not invent tests, choose a license, overwrite files, delete files, execute target code or claim that a plan has been applied. Existing safe create-only `.gitignore` repair remains separate. Review and approve project-specific work before implementation.
 ## Blacksmith & Megazords
 
 **Blacksmith** audits a local repository, reports a transparent before/after RepoRank, and previews or applies safe create-only repairs.
