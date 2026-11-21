@@ -199,7 +199,11 @@ class LocalKnowledgeBase:
                 chunk_count=excluded.chunk_count""",
                 (name, str(root), files_indexed, chunks_indexed),
             )
-        return {\n            "collection": name,\n            "files_indexed": files_indexed,\n            "chunks_indexed": chunks_indexed,\n        }
+        return {
+            "collection": name,
+            "files_indexed": files_indexed,
+            "chunks_indexed": chunks_indexed,
+        }
 
     def search(self, query: str, collection: str, top_k: int = 5) -> list[dict[str, object]]:
         """Search a collection and return ranked chunks with exact source locations."""
