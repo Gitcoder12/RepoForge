@@ -22,9 +22,7 @@ if not ROOTS:
         "Set REPOFORGE_RAG_ROOTS to one or more trusted directories before starting the server."
     )
 
-DB_PATH = Path(
-    os.environ.get("REPOFORGE_RAG_DB", "~/.repoforge/rag.sqlite3")
-).expanduser()
+DB_PATH = Path(os.environ.get("REPOFORGE_RAG_DB", "~/.repoforge/rag.sqlite3")).expanduser()
 knowledge = LocalKnowledgeBase(DB_PATH, allowed_roots=ROOTS)
 mcp = FastMCP("RepoForge Knowledge Engine")
 
