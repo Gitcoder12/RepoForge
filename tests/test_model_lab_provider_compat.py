@@ -34,6 +34,8 @@ def test_gpt_62_omits_unsupported_temperature(model: str):
     assert provider.generate("Return ok", temperature=0.0) == "ok"
     assert completions.request is not None
     assert "temperature" not in completions.request
+    assert "max_tokens" not in completions.request
+    assert completions.request["max_completion_tokens"] == 2048
 
 
 def test_non_gpt_62_models_keep_temperature_parameter():
