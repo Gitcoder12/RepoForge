@@ -167,7 +167,8 @@ class UpgradePlanner:
                 impact="high", effort="medium", risk="medium", points=10,
                 implementation="Add a vulnerability reporting policy and configure dependency/code scanning appropriate to the repository's supported ecosystems.",  # noqa: E501
                 verification=(
-                    "Validate workflow syntax, permissions, alert routing and a sample dependency update."
+                    "Validate workflow syntax, permissions, alert routing and "
+                    "a sample dependency update."
                 ),
             )
         if not signals.get("quality_tooling", False):
