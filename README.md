@@ -175,24 +175,50 @@ repoforge megazords ../ARK ../Overdrive ../Chaos-Control
 
 The current Blacksmith repair adapter is intentionally narrow; arbitrary semantic code repair is not yet implemented. See [docs/BLACKSMITH_MEGazords.md](docs/BLACKSMITH_MEGazords.md) for scoring, safety boundaries and limitations.
 
-# Installation
+## Run RepoForge from VS Code
 
-## Requirements
+RepoForge is a terminal-first CLI; it does not require a separate website.
 
-* Python 3.10+
-* Git
+### Windows (PowerShell)
 
-Install:
-
-```bash
-pip install -e .
-```
-
-Verify:
-
-```bash
+```powershell
+git clone https://github.com/Gitcoder12/RepoForge.git
+cd RepoForge
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
 python -m repoforge --help
 ```
+
+If PowerShell blocks environment activation, allow it for this terminal session only:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+```
+
+### macOS / Linux
+
+```bash
+git clone https://github.com/Gitcoder12/RepoForge.git
+cd RepoForge
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+python -m repoforge --help
+```
+
+To inspect another local repository:
+
+```bash
+repoforge blacksmith /path/to/your/repository
+```
+
+Use `--apply` only after reviewing the preview. TestForge execution is not OS-sandboxed; do not execute tests from untrusted repositories. The `repoforge upgrade` command is not available on the current default branch unless its feature PR is merged.
+
+---
 
 ---
 
