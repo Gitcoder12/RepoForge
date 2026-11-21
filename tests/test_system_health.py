@@ -7,11 +7,6 @@ from utils import system_health
 
 def test_health_report_is_json_serializable(monkeypatch):
     monkeypatch.setattr(
-        system_health,
-        "psutil",
-        system_health.psutil,
-    )
-    monkeypatch.setattr(
         system_health.psutil,
         "virtual_memory",
         lambda: SimpleNamespace(
