@@ -103,7 +103,14 @@ def test_model_lab_rejects_empty_duplicate_and_oversized_target_sets():
 
 def test_model_suggestions_have_explicit_roles_and_cost_notes():
     models = suggested_models()
-    assert any(item["target"] == "openai:gpt-6.2-astra" for item in models)
+    targets = {item["target"] for item in models}
+    assert "openai:gpt-6.2-astra" in targets
+    assert "openai:gpt-6.2-sol" in targets
+    assert "openrouter:anthropic/claude-sonnet-5.5" in targets
+    assert "openrouter:anthropic/claude-opus-5.5" in targets
+    assert "openrouter:google/gemini-3.8-flash" in targets
+    assert "deepseek:deepseek-flash" in targets
+    assert "ollama:llama3.2" in targets
     assert all(item["role"] and item["reason"] and item["cost_note"] for item in models)
 
 
