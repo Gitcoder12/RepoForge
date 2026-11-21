@@ -1,6 +1,9 @@
 import pytest
+
 from repoforge.intelligence.global_repository_intelligence import (
-    RepositoryEvidence, explain_rank, rank_repositories,
+    RepositoryEvidence,
+    explain_rank,
+    rank_repositories,
 )
 
 
@@ -50,10 +53,24 @@ def test_fastest_never_mixes_benchmark_cohorts():
     {"full_name": "x/y", "benchmark_score": float("nan")},
     {"full_name": "x/y", "unexpected": 1},
     {"full_name": "invalid"},
+    {"full_name": "owner/repo/extra"},
+    {"full_name": " owner/repo"},
+    {"full_name": "owner/repo ", "fork": "false"},
 ])
 def test_rejects_invalid_evidence(record):
     with pytest.raises((ValueError, TypeError)):
         RepositoryEvidence.from_mapping(record)
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"stars": True},
+    {"benchmark_score": float("inf")},
+    {"archived": 1},
+    {"full_name": "bad/name/extra"},
+])
+def test_direct_dataclass_construction_cannot_bypass_validation(kwargs):
+    with pytest.raises((ValueError, TypeError)):
+        RepositoryEvidence(full_name="owner/repo", **kwargs)
 
 
 def test_duplicate_names_are_case_insensitive():
@@ -64,3 +81,13 @@ def test_duplicate_names_are_case_insensitive():
 def test_explanation_contains_score_basis():
     row = rank_repositories([{"full_name": "x/y", "stars": 5}], "popular")[0]
     assert "stars" in explain_rank(row)
+
+
+def test_explain_fastest_tolerates_partial_untrusted_mapping():
+    explanation = explain_rank({"category": "fastest", "repository": "x/y"})
+    assert "unknown benchmark" in explanation
+
+
+def test_include_forks_must_be_boolean():
+    with pytest.raises(TypeError):
+        rank_repositories([], include_forks=1)
