@@ -23,7 +23,7 @@ This snapshot is authoritative for current project status. Older example output,
 - **Open PR snapshot:** 13 PRs were open at audit time. #30 (System Health), #28 (RAG/FastMCP) and #26 (UpgradeForge) had green recorded CI; #30 is the strongest non-draft candidate from this snapshot. #34 (Resources Hub) fails lint due to undefined `timezone`; #33 (Resource Governor) fails Ruff formatting; #31 (Global Repository Intelligence) fails Ruff checks. #32 depends on #31. #5 has unresolved security/architecture findings, and #20 requires further mergeability/CI review.
 - **Verification status:** this audit inspected PR metadata, selected diffs, review threads and recorded CI jobs. It did not execute every feature against arbitrary external repositories. Historical “tested repositories” and sample reports in this README must be backed by reproducible logs before being used as current evidence.
 
-See [docs/CURRENT_STATUS.md](docs/CURRENT_STATUS.md) for the audit snapshot, PR triage, known failures, branch policy and next steps. Recheck live GitHub state before merging because CI and branch heads can change.
+See [docs/MAINTAINER_STATUS_2026-11-22.md](docs/MAINTAINER_STATUS_2026-11-22.md) for the audit snapshot, PR triage, known failures, branch policy and next steps. Recheck live GitHub state before merging because CI and branch heads can change.
 
 
 ## Autonomous AI Repository Engineering Platform
