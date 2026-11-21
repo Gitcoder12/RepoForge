@@ -298,3 +298,30 @@ def test_command(
     typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
     if execute and result["status"] in {"failed", "scan_incomplete"}:
         raise typer.Exit(code=1)
+
+
+@app.command("sentinel")
+def sentinel_command(
+    repo_path: Path = typer.Argument(
+        Path("."),
+        exists=True,
+        file_okay=False,
+        readable=True,
+        help="Repository to scan without executing its code.",
+    ),
+    max_files: int = typer.Option(10000, "--max-files", min=1),
+    max_total_bytes: int = typer.Option(50_000_000, "--max-total-bytes", min=1),
+) -> None:
+    """Scan repository source for security review signals without executing it."""
+    from repoforge.sentinel import scan_repository
+
+    try:
+        report = scan_repository(
+            repo_path,
+            max_files=max_files,
+            max_total_bytes=max_total_bytes,
+        )
+    except ValueError as exc:
+        typer.echo(f"Sentinel error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
