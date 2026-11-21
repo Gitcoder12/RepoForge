@@ -94,8 +94,7 @@ class BenchmarkCase:
             if not isinstance(actual, dict):
                 return False, "json_object_required"
             mismatches = [
-                key for key, expected in self.expected_json.items()
-                if actual.get(key) != expected
+                key for key, expected in self.expected_json.items() if actual.get(key) != expected
             ]
             return not mismatches, (
                 "required_fields_match" if not mismatches else "mismatch:" + ",".join(mismatches)
@@ -179,6 +178,7 @@ class ModelLab:
     def __init__(self, provider_factory: Any | None = None) -> None:
         if provider_factory is None:
             from repoforge.providers.factory import ProviderFactory
+
             provider_factory = ProviderFactory()
         self.provider_factory = provider_factory
 
@@ -225,8 +225,15 @@ class ModelLab:
             )
         except Exception as exc:
             return TargetResult(
-                target.provider, target.model, "error", 0, 0, 1, len(CORE_SUITE),
-                0.0, 0.0,
+                target.provider,
+                target.model,
+                "error",
+                0,
+                0,
+                1,
+                len(CORE_SUITE),
+                0.0,
+                0.0,
                 [
                     CaseResult(c.case_id, c.category, "not_run", 0.0, type(exc).__name__)
                     for c in CORE_SUITE
@@ -251,36 +258,53 @@ class ModelLab:
                 latencies.append(elapsed)
                 error_count += 1
                 cases.append(
-                    CaseResult(case.case_id, case.category, "error",
-                               round(elapsed, 2), type(exc).__name__)
+                    CaseResult(
+                        case.case_id, case.category, "error", round(elapsed, 2), type(exc).__name__
+                    )
                 )
                 cases.extend(
-                    CaseResult(item.case_id, item.category, "not_run", 0.0,
-                               "stopped_after_provider_error")
-                    for item in CORE_SUITE[index + 1:]
+                    CaseResult(
+                        item.case_id, item.category, "not_run", 0.0, "stopped_after_provider_error"
+                    )
+                    for item in CORE_SUITE[index + 1 :]
                 )
                 break
             elapsed = (perf_counter() - started) * 1000
             latencies.append(elapsed)
             passed, detail = case.evaluate(response)
             cases.append(
-                CaseResult(case.case_id, case.category,
-                           "passed" if passed else "failed", round(elapsed, 2), detail)
+                CaseResult(
+                    case.case_id,
+                    case.category,
+                    "passed" if passed else "failed",
+                    round(elapsed, 2),
+                    detail,
+                )
             )
 
         passed_count = sum(item.status == "passed" for item in cases)
         failed_count = sum(item.status == "failed" for item in cases)
         evaluated = passed_count + failed_count
         status = (
-            "error" if error_count and evaluated == 0
-            else "partial_error" if error_count
-            else "passed" if failed_count == 0
+            "error"
+            if error_count and evaluated == 0
+            else "partial_error"
+            if error_count
+            else "passed"
+            if failed_count == 0
             else "failed"
         )
         return TargetResult(
-            target.provider, target.model, status, passed_count, failed_count, error_count,
-            len(CORE_SUITE), round(passed_count / evaluated, 3) if evaluated else 0.0,
-            round(sum(latencies) / len(latencies), 2) if latencies else 0.0, cases,
+            target.provider,
+            target.model,
+            status,
+            passed_count,
+            failed_count,
+            error_count,
+            len(CORE_SUITE),
+            round(passed_count / evaluated, 3) if evaluated else 0.0,
+            round(sum(latencies) / len(latencies), 2) if latencies else 0.0,
+            cases,
         )
 
 
