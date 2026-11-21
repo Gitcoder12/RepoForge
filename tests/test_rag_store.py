@@ -72,9 +72,9 @@ def test_ignored_directories_and_symlinks_are_not_indexed(tmp_path):
 def test_collection_reindex_replaces_old_content(tmp_path):
     root, store = make_store(tmp_path)
     doc = root / "notes.md"
-    doc.write_text("old retrieval phrase", encoding="utf-8")
+    doc.write_text("oldalpha retrieval phrase", encoding="utf-8")
     store.index_directory(root, "notes")
-    doc.write_text("new retrieval phrase", encoding="utf-8")
+    doc.write_text("newbeta retrieval phrase", encoding="utf-8")
     store.index_directory(root, "notes")
-    assert store.search("old phrase", "notes") == []
-    assert store.search("new phrase", "notes")
+    assert store.search("oldalpha", "notes") == []
+    assert store.search("newbeta", "notes")
