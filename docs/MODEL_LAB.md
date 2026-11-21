@@ -24,12 +24,15 @@ that target after its first provider error.
 |---|---|---|
 | Frontier reasoning / difficult coding | `openai:gpt-6.2-astra` | High-capability reference |
 | Balanced agent / everyday coding | `openai:gpt-6.2-sol` | Quality and latency comparison |
+| Claude Sonnet — coding and document workflows | `openrouter:anthropic/claude-sonnet-5.5` | Independent coding and agent comparison |
+| Claude Opus — demanding reasoning | `openrouter:anthropic/claude-opus-5.5` | Higher-capability long-horizon comparison |
+| Gemini Flash — fast agentic baseline | `openrouter:google/gemini-3.8-flash` | Fast software engineering and agent-task comparison |
 | Cost-conscious hosted baseline | `deepseek:deepseek-flash` | Lower-cost hosted comparison |
 | Local / privacy-oriented baseline | `ollama:llama3.2` | Local endpoint comparison |
 
 These are starting points, not endorsements or permanent defaults. Model names,
 availability and prices can change; use exact IDs supported by your account.
-OpenRouter can be used with an exact model ID after `openrouter:`.
+OpenRouter can also route the Claude and Gemini presets above; it uses the exact model ID after `openrouter:`. Check live model availability and routed pricing before use.
 
 ## What is measured
 
