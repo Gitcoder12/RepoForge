@@ -15,9 +15,7 @@ class CaptureCompletions:
 
     def create(self, **kwargs):
         self.request = kwargs
-        return SimpleNamespace(
-            choices=[SimpleNamespace(message=SimpleNamespace(content="ok"))]
-        )
+        return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content="ok"))])
 
 
 @pytest.mark.parametrize(
