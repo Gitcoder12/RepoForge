@@ -101,14 +101,20 @@ class OpenAICompatibleProvider(BaseProvider):
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
 
+        request_options: dict[str, Any] = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            **kwargs,
+        }
+        # GPT-6.2 Astra/Sol reject sampling controls on Chat Completions.
+        # Match the terminal model ID so OpenRouter-prefixed IDs are handled too.
+        model_id = model.rsplit("/", 1)[-1]
+        if model_id not in {"gpt-6.2-astra", "gpt-6.2-sol"}:
+            request_options["temperature"] = temperature
+
         try:
-            response = self.client.chat.completions.create(
-                model=model,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                **kwargs,
-            )
+            response = self.client.chat.completions.create(**request_options)
         except Exception as exc:
             error_name = type(exc).__name__
             status_code = getattr(exc, "status_code", None)
