@@ -101,15 +101,21 @@ class OpenAICompatibleProvider(BaseProvider):
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
 
+        # GPT-6.2 Astra/Sol use the newer completion-token field and reject
+        # sampling controls on Chat Completions. Match OpenRouter-prefixed IDs too.
+        model_id = model.rsplit("/", 1)[-1]
         request_options: dict[str, Any] = {
             "model": model,
             "messages": messages,
-            "max_tokens": max_tokens,
             **kwargs,
         }
-        # GPT-6.2 Astra/Sol reject sampling controls on Chat Completions.
-        # Match the terminal model ID so OpenRouter-prefixed IDs are handled too.
-        model_id = model.rsplit("/", 1)[-1]
+        request_options.pop("max_tokens", None)
+        token_field = (
+            "max_completion_tokens"
+            if model_id in {"gpt-6.2-astra", "gpt-6.2-sol"}
+            else "max_tokens"
+        )
+        request_options[token_field] = max_tokens
         if model_id not in {"gpt-6.2-astra", "gpt-6.2-sol"}:
             request_options["temperature"] = temperature
 
