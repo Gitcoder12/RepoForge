@@ -237,13 +237,51 @@ def blacksmith_command(
         help="Apply safe create-if-absent repairs. The default is a dry run.",
     ),
 ) -> None:
-    """Rank a repository and propose/apply bounded, non-destructive repairs."""
+    """Rank a repository and report bounded repairs plus selectable upgrade paths."""
     from repoforge.blacksmith import Blacksmith
 
     try:
         result = Blacksmith(repo_path).run(apply_fixes=apply_fixes)
     except ValueError as exc:
         typer.echo(f"Blacksmith error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+
+
+@app.command("upgrade")
+def upgrade_command(
+    repo_path: Path = typer.Argument(
+        Path("."),
+        exists=True,
+        file_okay=False,
+        readable=True,
+        help="Local repository to assess and plan upgrades for.",
+    ),
+    profile: str = typer.Option(
+        "all",
+        "--profile",
+        help="Upgrade path: all, foundation, security, quality, delivery, or maintainability.",
+    ),
+    select: str | None = typer.Option(
+        None,
+        "--select",
+        help="Comma-separated option IDs to select from the generated upgrade catalogue.",
+    ),
+) -> None:
+    """Rank available repository upgrades and produce a review-only plan."""
+    from repoforge.blacksmith import Blacksmith
+    from repoforge.upgrades import UpgradePlanner
+
+    try:
+        snapshot = Blacksmith(repo_path).inspect()
+        planner = UpgradePlanner()
+        report = planner.build(snapshot)
+        option_ids = (
+            [item.strip() for item in select.split(",") if item.strip()] if select else None
+        )
+        result = planner.select(report, profile=profile, option_ids=option_ids)
+    except ValueError as exc:
+        typer.echo(f"UpgradeForge error: {exc}", err=True)
         raise typer.Exit(code=2) from exc
     typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
 

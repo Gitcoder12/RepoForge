@@ -18,6 +18,41 @@ RepoRank is a deterministic repository-hygiene score out of 100. Its dimensions 
 
 The scan is bounded to 20,000 files by default, skips common generated/dependency directories, and does not follow symbolic links. The before/after report recalculates the same score after applied changes.
 
+## UpgradeForge — selectable repository improvement paths
+
+Blacksmith remains the evidence-gathering and hygiene-ranking layer. UpgradeForge consumes its snapshot and offers a ranked catalogue of concrete improvement options. Owners can choose a profile or exact option IDs; the command produces a review plan and does not silently modify the target.
+
+```bash
+# All currently applicable options
+repoforge upgrade /path/to/repository
+
+# Focused programmes
+repoforge upgrade /path/to/repository --profile foundation
+repoforge upgrade /path/to/repository --profile security
+repoforge upgrade /path/to/repository --profile quality
+repoforge upgrade /path/to/repository --profile delivery
+repoforge upgrade /path/to/repository --profile maintainability
+
+# Select exact options
+repoforge upgrade /path/to/repository --select tests-real,ci-pipeline
+```
+
+Each option reports its evidence, impact, effort, risk, implementation guidance, verification criteria and priority score. The current catalogue covers README/documentation, real tests, CI, project manifests, license selection, ignore rules, security maintenance and quality tooling.
+
+The `rank_points_available` value represents the hygiene points attached to missing signals in the current scoring model. It is not a predicted quality gain, and it does not mean an upgrade has been applied. RepoRank is a transparent engineering-hygiene indicator, not a benchmark of correctness, performance, security or product value.
+
+### Safety contract
+
+- Recommendation-only by default; no target repository code is executed.
+- No placeholder tests are generated to manufacture green results.
+- No license is chosen automatically; the owner must decide.
+- No existing file is overwritten and no file is deleted.
+- Project-specific CI, security and test changes require maintainer review and verification.
+- The existing `.gitignore` create-only repair is still a separate safe-repair action.
+
+### Current implementation boundary
+
+UpgradeForge currently generates and filters a ranked recommendation catalogue. It does not yet implement the recommended test suites, CI workflows, security policies or language-specific refactors. Those require separate approved implementation adapters, validation and rollback. Do not present recommendations as completed upgrades.
 ## Megazords
 
 Megazords compares two to thirty local repository paths and ranks combinations by inferred capability complementarity and shared languages.
