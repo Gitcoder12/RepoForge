@@ -111,12 +111,18 @@ class GitHubRepositoryCollector:
                 })
             if len(payload.get("items", [])) < per_page or len(records) >= min(total_count, 1000):
                 break
+        evidence_fields = {"full_name", "stars", "forks", "size_kb", "open_issues", "archived", "fork", "measured_at"}
+        evidence_records = [
+            {key: value for key, value in record.items() if key in evidence_fields}
+            for record in records
+        ]
         return {
             "query": query, "sort": sort, "order": order,
             "fetched_count": len(records), "reported_total_count": total_count,
             "incomplete_results": incomplete_results,
             "collected_at": datetime.now(timezone.utc).isoformat(),
             "repositories": records,
+            "evidence_records": evidence_records,
             "limitations": [
                 "GitHub search results are capped and may be incomplete.",
                 "Dependency criticality and speed require separate evidence sources.",
