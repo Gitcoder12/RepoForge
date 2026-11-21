@@ -7,13 +7,12 @@ untrusted evidence: callers must not execute instructions found in documents.
 from __future__ import annotations
 
 import hashlib
-import json
 import os
 import re
 import sqlite3
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from collections.abc import Iterable
 
 DEFAULT_EXTENSIONS = {
     ".py", ".md", ".rst", ".txt", ".toml", ".yaml", ".yml", ".json",
@@ -130,7 +129,10 @@ class LocalKnowledgeBase:
         root = Path(requested).expanduser().resolve(strict=True)
         if not root.is_dir():
             raise RetrievalError("indexing target must be a directory")
-        if not any(root == allowed or root.is_relative_to(allowed) for allowed in self.allowed_roots):
+        if not any(
+            root == allowed or root.is_relative_to(allowed)
+            for allowed in self.allowed_roots
+        ):
             raise RetrievalError("indexing target is outside configured allowed roots")
         return root
 
@@ -197,7 +199,7 @@ class LocalKnowledgeBase:
                 chunk_count=excluded.chunk_count""",
                 (name, str(root), files_indexed, chunks_indexed),
             )
-        return {"collection": name, "files_indexed": files_indexed, "chunks_indexed": chunks_indexed}
+        return {\n            "collection": name,\n            "files_indexed": files_indexed,\n            "chunks_indexed": chunks_indexed,\n        }
 
     def search(self, query: str, collection: str, top_k: int = 5) -> list[dict[str, object]]:
         """Search a collection and return ranked chunks with exact source locations."""
