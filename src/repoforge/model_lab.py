@@ -56,6 +56,24 @@ SUGGESTED_MODELS = (
         "Paid API; check current pricing before running.",
     ),
     ModelSuggestion(
+        "Claude Sonnet — coding and document workflows",
+        "openrouter:anthropic/claude-sonnet-5.5",
+        "A strong cross-check for coding, agent and professional knowledge tasks.",
+        "Paid OpenRouter API; check current routed pricing.",
+    ),
+    ModelSuggestion(
+        "Claude Opus — demanding reasoning and long-horizon tasks",
+        "openrouter:anthropic/claude-opus-5.5",
+        "A high-capability independent comparison for complex repository work.",
+        "Premium OpenRouter API; check current routed pricing.",
+    ),
+    ModelSuggestion(
+        "Gemini Flash — fast agentic and multimodal baseline",
+        "openrouter:google/gemini-3.8-flash",
+        "A useful fast comparison for software engineering and multi-step agent tasks.",
+        "Paid OpenRouter API; check current routed pricing.",
+    ),
+    ModelSuggestion(
         "Fast, cost-conscious hosted baseline",
         "deepseek:deepseek-flash",
         "Useful lower-cost hosted comparison against a frontier model.",
