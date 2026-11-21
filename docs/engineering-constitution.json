@@ -1,0 +1,153 @@
+{
+  "policy_id": "repoforge-engineering-constitution",
+  "version": "1.0.0",
+  "status": "partially_enforced",
+  "default_on_policy_error": "DENY",
+  "risk_classes": [
+    "R0_READ_ONLY",
+    "R1_BOUNDED_LOCAL_WRITE",
+    "R2_HIGH_IMPACT",
+    "R3_DESTRUCTIVE_OR_EXTERNAL"
+  ],
+  "rules": [
+    {
+      "id": "RF-01",
+      "name": "inspect_before_acting",
+      "severity": "P1",
+      "effect": "REVIEW",
+      "summary": "Resolve repository, branch, dirty state, conventions, and relevant files before changes."
+    },
+    {
+      "id": "RF-02",
+      "name": "preserve_user_work",
+      "severity": "P0",
+      "effect": "DENY",
+      "summary": "Never discard, overwrite, reset, clean, or replace unapproved user changes."
+    },
+    {
+      "id": "RF-03",
+      "name": "protect_forks_and_upstreams",
+      "severity": "P0",
+      "effect": "DENY",
+      "summary": "No unauthorized fork, upstream, or protected-branch writes."
+    },
+    {
+      "id": "RF-04",
+      "name": "plan_before_mutation",
+      "severity": "P1",
+      "effect": "REVIEW",
+      "summary": "Require bounded paths, operations, risks, and acceptance criteria."
+    },
+    {
+      "id": "RF-05",
+      "name": "least_change",
+      "severity": "P2",
+      "effect": "REVIEW",
+      "summary": "Avoid unrelated refactors, mass formatting, and speculative scope."
+    },
+    {
+      "id": "RF-06",
+      "name": "approval_for_consequential_changes",
+      "severity": "P1",
+      "effect": "REQUIRE_APPROVAL",
+      "summary": "Require explicit approval for destructive, external, broad, or security-sensitive actions."
+    },
+    {
+      "id": "RF-07",
+      "name": "no_fabricated_quality",
+      "severity": "P0",
+      "effect": "DENY",
+      "summary": "Never fabricate tests, benchmarks, coverage, security results, or adoption metrics."
+    },
+    {
+      "id": "RF-08",
+      "name": "honest_validation",
+      "severity": "P1",
+      "effect": "REVIEW",
+      "summary": "Report exact commands, environment, commit, failures, and skipped checks."
+    },
+    {
+      "id": "RF-09",
+      "name": "untrusted_code_execution",
+      "severity": "P0",
+      "effect": "REQUIRE_APPROVAL_AND_ISOLATION",
+      "summary": "Do not execute repository-controlled code without explicit authorization and suitable isolation."
+    },
+    {
+      "id": "RF-10",
+      "name": "secrets_and_data_provenance",
+      "severity": "P0",
+      "effect": "DENY",
+      "summary": "Prevent secret exposure and preserve data provenance and licensing."
+    },
+    {
+      "id": "RF-11",
+      "name": "verify_every_write",
+      "severity": "P1",
+      "effect": "REVIEW",
+      "summary": "Inspect every diff and validate the final tree."
+    },
+    {
+      "id": "RF-12",
+      "name": "truthful_reporting",
+      "severity": "P1",
+      "effect": "REVIEW",
+      "summary": "Separate implemented, proposed, tested, untested, blocked, and failed work."
+    }
+  ],
+  "lifecycle": [
+    "DISCOVER",
+    "BASELINE",
+    "PLAN",
+    "APPROVAL",
+    "APPLY",
+    "DIFF_REVIEW",
+    "VALIDATE",
+    "CHECKPOINT",
+    "REPORT"
+  ],
+  "audit_fields": [
+    "timestamp",
+    "run_id",
+    "repository_url",
+    "repository",
+    "branch",
+    "base_commit",
+    "working_tree_baseline",
+    "actor",
+    "plan_id",
+    "approval_ref",
+    "operation",
+    "target_paths",
+    "before_after_hashes",
+    "validation_results",
+    "checkpoint_ref",
+    "final_status"
+  ],
+  "notes": [
+    "Controls apply to the canonical ActionRunner, canonical Git manager, canonical policy engine, and legacy compatibility imports; other execution paths may not use the gate.",
+    "The installable CLI does not yet expose the full repository-mutation workflow.",
+    "The incomplete src/core/workflow_engine.py is deliberately outside this change.",
+    "Dry-run preview does not mutate files and does not require approval.",
+    "Git checkpoint records a clean HEAD without staging or committing user files.",
+    "A passing test suite is required before claiming verified enforcement.",
+    "Never store secret values.",
+    "Repository-controlled code is untrusted."
+  ],
+  "implemented_controls": [
+    "RF-02: clean working-tree preflight and no staging user changes",
+    "RF-03: deny local writes on protected branch names",
+    "RF-04: relative-path and operation validation in canonical ActionRunner",
+    "RF-06: exact path approval and separate delete approval",
+    "RF-11: full-batch preflight before first mutation"
+  ],
+  "unverified_controls": [
+    "authenticated approval identity",
+    "remote fork/upstream write authorization",
+    "OS-level execution isolation",
+    "secret scanning",
+    "dependency and workflow approval gates",
+    "persistent tamper-evident audit storage",
+    "transactional rollback and recovery"
+  ]
+}

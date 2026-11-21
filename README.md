@@ -496,3 +496,8 @@ OpenHands, SWE-agent and Aider have more mature agent workflows and ecosystems; 
 
 ### Evidence and limitations
 Publish reproducible before/after metrics, exact tools and versions, test outcomes, rollback behavior and repair acceptance rates. Keep heuristic RepoRank distinct from measured code quality. Require human approval for changes and OS-level isolation before executing untrusted tests. This is an architecture comparison, not a coding-agent benchmark.
+
+
+## Demos
+
+Run the isolated approved-write example from a disposable Git repository: [docs/DEMOS.md](docs/DEMOS.md). The current example demonstrates the local ActionRunner boundary, not the planned autonomous cross-repository hook/chain workflow.
