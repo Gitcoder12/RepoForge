@@ -55,3 +55,14 @@ interface does not expose consistent usage metadata.
 For serious evaluation, use versioned task sets, blinded comparisons, multiple
 runs, domain experts, calibrated graders and separate adversarial evaluations.
 Do not describe this starter suite as a safety certification.
+
+
+## Provider references
+
+Verify current model IDs and endpoint behavior against the provider's official
+documentation before refreshing this catalogue:
+
+- OpenAI model catalogue: https://developers.openai.com/api/docs/models
+- OpenAI GPT-6.2 API migration notes: https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6.2-astra
+- DeepSeek model and pricing list: https://api-docs.deepseek.com/quick_start/pricing/
+- DeepSeek model discovery endpoint: https://api-docs.deepseek.com/api/list-models/
