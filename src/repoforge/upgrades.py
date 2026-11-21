@@ -58,7 +58,7 @@ class UpgradePlanner:
             impact_weight = {"high": 3, "medium": 2, "low": 1}[impact]
             effort_weight = {"low": 1, "medium": 2, "high": 3}[effort]
             risk_weight = {"low": 0, "medium": 1, "high": 2}[risk]
-            priority = round((impact_weight * 2 + points / 10) / effort_weight - risk_weight * 0.5, 2)  # noqa: E501
+            priority = round(\n                (impact_weight * 2 + points / 10) / effort_weight - risk_weight * 0.5, 2\n            )
             options.append(
                 UpgradeOption(
                     id,
@@ -89,7 +89,7 @@ class UpgradePlanner:
                 risk="low",
                 points=12,
                 implementation="Draft purpose, installation, quick start, configuration, examples, limitations and support from verified project files; require maintainer review.",  # noqa: E501
-                verification="Follow the instructions in a clean environment and check every command and feature claim.")  # noqa: E501
+                verification="Follow the instructions in a clean environment and check every command and feature claim.",\n            )
         if not signals.get("tests", False):
             add(
                 id="tests-real",
@@ -102,7 +102,7 @@ class UpgradePlanner:
                 risk="medium",
                 points=20,
                 implementation="Identify critical user workflows and write tests against real behavior. Do not generate placeholder tests that merely pass.",  # noqa: E501
-                verification="Run the suite in a clean environment; include failure-path and regression cases.")  # noqa: E501
+                verification="Run the suite in a clean environment; include failure-path and regression cases.",\n            )
         if not signals.get("ci", False):
             add(
                 id="ci-pipeline",
@@ -115,7 +115,7 @@ class UpgradePlanner:
                 risk="medium",
                 points=20,
                 implementation="Choose commands from the actual manifest and language stack; add lint, tests and build checks with pinned/runtime-supported versions.",  # noqa: E501
-                verification="Run the workflow on a branch and confirm clean-install, test and lint jobs.")  # noqa: E501
+                verification="Run the workflow on a branch and confirm clean-install, test and lint jobs.",\n            )
         if not dimensions.get("project_configuration", 0):
             add(
                 id="project-manifest",
@@ -128,7 +128,7 @@ class UpgradePlanner:
                 risk="medium",
                 points=15,
                 implementation="Identify the actual runtime and package manager, then add the matching manifest with explicit dependencies and supported versions.",  # noqa: E501
-                verification="Install/build from a clean checkout without relying on undeclared global packages.")  # noqa: E501
+                verification="Install/build from a clean checkout without relying on undeclared global packages.",\n            )
         if not signals.get("license", False):
             add(
                 id="license-choice",
@@ -141,7 +141,7 @@ class UpgradePlanner:
                 risk="high",
                 points=10,
                 implementation="Ask the maintainer to choose a license after considering ownership and third-party assets; never select one automatically.",  # noqa: E501
-                verification="Confirm the license matches the owner's intent and dependency/asset obligations.")  # noqa: E501
+                verification="Confirm the license matches the owner's intent and dependency/asset obligations.",\n            )
         if not signals.get("gitignore", False):
             add(
                 id="gitignore",
@@ -164,7 +164,7 @@ class UpgradePlanner:
                 title="Establish a security maintenance baseline",
                 why="No recognised security policy or dependency-update configuration was detected.",  # noqa: E501
                 evidence="No SECURITY.md, Dependabot configuration or CodeQL configuration was detected.",  # noqa: E501
-                impact="high", effort="medium", risk="medium", points=10,
+                impact="high",\n                effort="medium",\n                risk="medium",\n                points=10,
                 implementation="Add a vulnerability reporting policy and configure dependency/code scanning appropriate to the repository's supported ecosystems.",  # noqa: E501
                 verification=(
                     "Validate workflow syntax, permissions, alert routing and "
