@@ -1,4 +1,5 @@
 """Tests for the explicit Model Lab evaluation harness."""
+
 from __future__ import annotations
 
 from repoforge.model_lab import CORE_SUITE, ModelLab, ModelTarget, suggested_models
@@ -75,9 +76,9 @@ def test_model_lab_reports_failed_contracts_without_an_llm_judge():
 
 def test_model_lab_stops_after_provider_error_and_does_not_fallback():
     provider = StubProvider(correct_responses(), error_at=1)
-    result = ModelLab(StubFactory(provider)).run([ModelTarget("openai", "test-model")])[
-        "results"
-    ][0]
+    result = ModelLab(StubFactory(provider)).run([ModelTarget("openai", "test-model")])["results"][
+        0
+    ]
     assert result["status"] == "partial_error"
     assert result["errors"] == 1
     assert result["cases"][1]["status"] == "error"
