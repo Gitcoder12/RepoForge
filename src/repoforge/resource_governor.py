@@ -10,10 +10,10 @@ from __future__ import annotations
 import math
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from enum import StrEnum
+from enum import Enum
 
 
-class ResourceState(StrEnum):
+class ResourceState(str, Enum):
     NORMAL = "normal"
     PRESSURE = "pressure"
     THERMAL_PAUSE = "thermal_pause"
