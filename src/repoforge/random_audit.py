@@ -194,9 +194,7 @@ def run_random_audit(
     if not isinstance(remember, bool):
         raise ValueError("remember must be a boolean")
     if remember and (
-        not isinstance(memory_context, str)
-        or not memory_context
-        or len(memory_context) > 48
+        not isinstance(memory_context, str) or not memory_context or len(memory_context) > 48
     ):
         raise ValueError("memory_context must be a non-empty context name of at most 48 characters")
 
