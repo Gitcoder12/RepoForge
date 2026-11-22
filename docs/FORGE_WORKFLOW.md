@@ -47,3 +47,13 @@ a security boundary and is not a production autonomous coding guarantee.
 ## Report file
 
 Use `--output forge-report.json` to save the complete machine-readable report.
+
+
+## Model context boundary
+
+The proposal prompt receives at most 16 selected text files and 36,000 source
+characters. It skips common generated/dependency directories, symlinks, obvious
+credential filenames, environment files, and lockfiles; it redacts common
+credential-style assignments. This reduces accidental exposure but is not a
+guarantee that source context contains no secrets. Review the repository and
+provider policy before using a remote model.
