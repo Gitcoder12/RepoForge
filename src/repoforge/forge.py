@@ -288,6 +288,8 @@ class ForgeWorkflow:
                 "delete_actions_enabled": False,
                 "apply_requires_exact_path_approval": True,
                 "target_tests_are_sandboxed": False,
+                "batch_writes_are_transactional": False,
+                "automatic_rollback": False,
             },
         }
 
