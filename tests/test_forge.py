@@ -59,3 +59,17 @@ def test_forge_defaults_to_read_only_inspection(tmp_path):
     assert report["status"] == "plan_only"
     assert report["safety"]["default_read_only"] is True
     assert report["mutation"]["status"] == "not_requested"
+
+
+def test_repository_context_is_bounded_and_skips_sensitive_files(tmp_path):
+    source_dir = tmp_path / "src"
+    source_dir.mkdir()
+    (source_dir / "module.py").write_text("VALUE = 42\n", encoding="utf-8")
+    (tmp_path / ".env.local").write_text("API_KEY=do-not-read\n", encoding="utf-8")
+    (tmp_path / "secrets.json").write_text('{"token":"do-not-read"}', encoding="utf-8")
+
+    context = ForgeWorkflow._read_repository_context(tmp_path)
+
+    assert [item["path"] for item in context] == ["src/module.py"]
+    assert "VALUE = 42" in context[0]["content"]
+    assert "do-not-read" not in json.dumps(context)
