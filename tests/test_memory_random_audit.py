@@ -118,7 +118,9 @@ def test_discovery_finds_nested_git_and_worktree_markers_without_following_symli
 
     found = discover_repositories(workspace)
 
-    assert found == sorted([one.resolve(), two.resolve()], key=lambda item: item.as_posix().casefold())
+    assert found == sorted(
+        [one.resolve(), two.resolve()], key=lambda item: item.as_posix().casefold()
+    )
 
 
 def test_random_audit_is_seeded_read_only_and_never_executes_tests(tmp_path: Path) -> None:
@@ -147,8 +149,14 @@ def test_random_audit_is_seeded_read_only_and_never_executes_tests(tmp_path: Pat
     assert first["mode"] == "static_read_only"
     assert first["repository_files_modified"] is False
     assert first["dictionary_files_written"] is False
-    assert all(item["checks"]["test_discovery"]["execution_performed"] is False for item in first["repositories"])
-    assert all(item["checks"]["codebase_index"]["persisted"] is False for item in first["repositories"])
+    assert all(
+        item["checks"]["test_discovery"]["execution_performed"] is False
+        for item in first["repositories"]
+    )
+    assert all(
+        item["checks"]["codebase_index"]["persisted"] is False
+        for item in first["repositories"]
+    )
     assert not any((repository / "EXECUTED_BY_REPOFORGE").exists() for repository in repositories)
     after = {
         str(path.relative_to(workspace)): path.read_bytes()
@@ -185,7 +193,9 @@ def test_random_audit_can_store_summary_in_separate_repo_contexts(tmp_path: Path
 def test_random_audit_cli_outputs_json_and_does_not_write_targets(tmp_path: Path) -> None:
     workspace = tmp_path / "workspace"
     repository = _make_git_repo(workspace / "repo")
-    result = CliRunner().invoke(app, ["random-check", str(workspace), "--count", "1", "--seed", "5"])
+    result = CliRunner().invoke(
+        app, ["random-check", str(workspace), "--count", "1", "--seed", "5"]
+    )
 
     assert result.exit_code == 0, result.output
     report = json.loads(result.stdout)
