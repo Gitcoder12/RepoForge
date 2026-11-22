@@ -262,6 +262,16 @@ class ForgeWorkflow:
         repository_dictionary: dict[str, Any],
     ) -> str:
         # Keep the structural map first so it survives the bounded prompt budget.
+        all_files = repository_dictionary.get("files", [])
+        ranked_paths = ForgeWorkflow._rank_dictionary_paths(
+            request, repository_dictionary, limit=120
+        )
+        files_by_path = {item.get("path", ""): item for item in all_files}
+        selected_files = [files_by_path[path] for path in ranked_paths if path in files_by_path]
+        selected_names = {item.get("path", "") for item in selected_files}
+        selected_files.extend(
+            item for item in all_files if item.get("path", "") not in selected_names
+        )
         compact_files = [
             {
                 "path": item.get("path", ""),
@@ -269,7 +279,7 @@ class ForgeWorkflow:
                 "symbols": item.get("symbols", [])[:30],
                 "imports": item.get("imports", [])[:20],
             }
-            for item in repository_dictionary.get("files", [])[:120]
+            for item in selected_files[:120]
         ]
         selected_paths = {item["path"] for item in compact_files}
         compact_dictionary = {
