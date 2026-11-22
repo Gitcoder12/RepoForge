@@ -483,6 +483,11 @@ def forge_command(
     ),
     timeout: int = typer.Option(120, "--timeout", min=1, max=1800),
     output: Path | None = typer.Option(None, "--output", help="Optional JSON report path."),
+    memory_context_name: str | None = typer.Option(
+        None,
+        "--memory-context",
+        help="Use this repository-specific memory context; otherwise use the active context.",
+    ),
 ) -> None:
     """Run the integrated inspect → plan → propose → approve → validate workflow."""
     from repoforge.forge import ForgeWorkflow
@@ -497,6 +502,7 @@ def forge_command(
             approved_paths=set(approve),
             run_tests=run_tests,
             timeout=timeout,
+            memory_context_name=memory_context_name,
         )
         rendered = json.dumps(report, indent=2, ensure_ascii=False, default=str)
         if output is not None:
@@ -507,3 +513,170 @@ def forge_command(
     except (ValueError, OSError, RuntimeError) as exc:
         typer.echo(f"Forge failed safely: {exc}", err=True)
         raise typer.Exit(code=2) from exc
+
+
+memory_app = typer.Typer(
+    name="memory",
+    help="Manage isolated, local project memory contexts.",
+    no_args_is_help=True,
+    add_completion=False,
+)
+app.add_typer(memory_app, name="memory")
+
+
+@memory_app.command("list")
+def memory_list(
+    repo_path: Path = typer.Argument(..., exists=True, file_okay=False, readable=True),
+) -> None:
+    """List memory contexts for exactly this repository path."""
+    from repoforge.memory import MemoryContextStore
+
+    try:
+        result = MemoryContextStore().list_contexts(repo_path)
+    except (OSError, ValueError) as exc:
+        typer.echo(f"Memory error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+
+
+@memory_app.command("create")
+def memory_create(
+    repo_path: Path = typer.Argument(..., exists=True, file_okay=False, readable=True),
+    name: str = typer.Argument(..., help="Context name, e.g. backend-audit or research."),
+    activate: bool = typer.Option(True, "--activate/--no-activate"),
+) -> None:
+    """Create a separate project context and optionally make it active."""
+    from repoforge.memory import MemoryContextStore
+
+    try:
+        result = MemoryContextStore().create(repo_path, name, switch=activate)
+    except (FileExistsError, OSError, ValueError) as exc:
+        typer.echo(f"Memory error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(
+        json.dumps(
+            {"repository": result["repository"], "context": name, "active": activate},
+            indent=2,
+        )
+    )
+
+
+@memory_app.command("switch")
+def memory_switch(
+    repo_path: Path = typer.Argument(..., exists=True, file_okay=False, readable=True),
+    name: str = typer.Argument(..., help="Existing context to activate for this repository."),
+) -> None:
+    """Switch the active context for one repository without affecting any other project."""
+    from repoforge.memory import MemoryContextStore
+
+    try:
+        result = MemoryContextStore().switch(repo_path, name)
+    except (OSError, ValueError) as exc:
+        typer.echo(f"Memory error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(json.dumps(result, indent=2))
+
+
+@memory_app.command("note")
+def memory_note(
+    repo_path: Path = typer.Argument(..., exists=True, file_okay=False, readable=True),
+    note: str = typer.Argument(..., help="User-authored note to remember for this project."),
+    context: str | None = typer.Option(
+        None, "--context", help="Context name; defaults to this repository's active context."
+    ),
+) -> None:
+    """Append a note to one repository's active or explicitly named context."""
+    from repoforge.memory import MemoryContextStore
+
+    try:
+        result = MemoryContextStore().add_note(repo_path, note, name=context)
+    except (OSError, ValueError) as exc:
+        typer.echo(f"Memory error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(json.dumps({"saved": True, **result}, indent=2, ensure_ascii=False))
+
+
+@memory_app.command("show")
+def memory_show(
+    repo_path: Path = typer.Argument(..., exists=True, file_okay=False, readable=True),
+    context: str | None = typer.Option(
+        None, "--context", help="Context name; defaults to this repository's active context."
+    ),
+) -> None:
+    """Show only the selected repository's active or named context."""
+    from repoforge.memory import MemoryContextStore
+
+    try:
+        result = MemoryContextStore().show(repo_path, name=context)
+    except (OSError, ValueError) as exc:
+        typer.echo(f"Memory error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    if result is None:
+        typer.echo("No active memory context for this repository.")
+        return
+    typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
+
+
+@app.command("random-check")
+def random_check_command(
+    workspace: Path = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=False,
+        readable=True,
+        help="Workspace containing local Git repositories to sample.",
+    ),
+    count: int = typer.Option(3, "--count", "-n", min=1, max=100),
+    seed: int | None = typer.Option(None, "--seed", help="Integer seed for a reproducible sample."),
+    max_depth: int = typer.Option(5, "--max-depth", min=0, max=12),
+    max_files: int = typer.Option(20_000, "--max-files", min=1, max=100_000),
+    remember: bool = typer.Option(
+        False, "--remember", help="Save a short audit summary in each repository's isolated memory."
+    ),
+    context: str = typer.Option(
+        "random-audits", "--context", help="Per-repository memory context used with --remember."
+    ),
+    output: Path | None = typer.Option(
+        None, "--output", help="Optional JSON report path outside every discovered Git repository."
+    ),
+) -> None:
+    """Randomly sample local Git repositories and run static, read-only checks only."""
+    from repoforge.random_audit import discover_repositories, run_random_audit
+
+    try:
+        if output is not None:
+            destination = output.expanduser()
+            if destination.is_symlink():
+                raise ValueError("report output must not be a symlink")
+            destination = destination.resolve(strict=False)
+            candidates = discover_repositories(workspace, max_depth=max_depth)
+            for repository in candidates:
+                try:
+                    destination.relative_to(repository)
+                except ValueError:
+                    continue
+                raise ValueError(
+                    f"report output must be outside scanned repositories: {repository}"
+                )
+
+        report = run_random_audit(
+            workspace,
+            count=count,
+            seed=seed,
+            max_depth=max_depth,
+            max_files=max_files,
+            remember=remember,
+            memory_context=context,
+        )
+        rendered = json.dumps(report, indent=2, ensure_ascii=False)
+        if output is not None:
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            if destination.exists() and destination.is_symlink():
+                raise ValueError("report output must not be a symlink")
+            destination.write_text(rendered + "\n", encoding="utf-8")
+            typer.echo(f"Report written to {destination}")
+        typer.echo(rendered if output is None else f"Audited {report['selected_count']} repositories.")
+    except (OSError, ValueError) as exc:
+        typer.echo(f"Random audit failed safely: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+
