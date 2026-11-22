@@ -12,6 +12,12 @@ def test_quick_profile_is_bounded_and_stops_after_validation():
     assert plan["stop_after"] == "validate"
 
 
+def test_standard_profile_defaults_to_validation_stop():
+    plan = ExecutionProfilePlanner().resolve(profile="standard")
+    assert plan["stop_after"] == "validate"
+    assert plan["stages"] == ["inspect", "plan", "patch", "validate"]
+
+
 def test_speed_mode_and_evolution_depth_are_independent():
     planner = ExecutionProfilePlanner()
     quick = planner.resolve(profile="quick", evolution="E4")
