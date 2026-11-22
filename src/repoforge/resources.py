@@ -13,7 +13,7 @@ import math
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from enum import Enum
 from typing import Any
@@ -103,7 +103,7 @@ class FeatureProposal:
 
 
 def _utc_now() -> str:
-    return datetime.now(UTC).isoformat()
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _clean_text(value: Any, limit: int = 4000) -> str:
@@ -125,8 +125,8 @@ def _parse_date(value: Any) -> str | None:
         except (TypeError, ValueError, OverflowError):
             return None
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=UTC)
-    return parsed.astimezone(UTC).isoformat()
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc).isoformat()
 
 
 def _severity(value: Any) -> Severity:
