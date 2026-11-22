@@ -29,6 +29,7 @@ def test_parse_actions_accepts_valid_json_and_fenced_json():
         {"type": "modify", "file": "/etc/passwd", "content": ""},
         {"type": "create", "file": "C:/Windows/file", "content": ""},
         {"type": "modify", "file": ".env", "content": "SECRET=value"},
+        {"type": "modify", "file": ".env.production", "content": "SECRET=value"},
         {"type": "create", "file": ".git/config", "content": "unsafe"},
         {"type": "create", "file": ".github/workflows/ci.yml", "content": "unsafe"},
         {"type": "create", "file": "safe.py", "content": 42},
