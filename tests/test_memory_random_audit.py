@@ -192,3 +192,13 @@ def test_random_audit_cli_outputs_json_and_does_not_write_targets(tmp_path: Path
     assert report["selected_count"] == 1
     assert report["repositories"][0]["path"] == str(repository.resolve())
     assert not (repository / "repo_dictionary.json").exists()
+
+
+def test_memory_store_refuses_to_write_inside_a_target_repository(tmp_path: Path) -> None:
+    repository = _make_git_repo(tmp_path / "repo")
+    store = MemoryContextStore(repository / ".repoforge")
+
+    with pytest.raises(ValueError, match="outside the target repository"):
+        store.create(repository, "must-not-write")
+
+    assert not (repository / ".repoforge").exists()
