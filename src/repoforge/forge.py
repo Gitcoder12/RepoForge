@@ -69,10 +69,7 @@ class ForgeWorkflow:
             normalized = filepath.replace("\\", "/")
             path = PurePosixPath(normalized)
             raw_parts = normalized.split("/")
-            if (
-                path.is_absolute()
-                or any(part in {"", ".", ".."} for part in raw_parts)
-            ):
+            if path.is_absolute() or any(part in {"", ".", ".."} for part in raw_parts):
                 raise ValueError(f"unsafe repository-relative path: {filepath!r}")
             if ":" in path.parts[0] or normalized.startswith("//"):
                 raise ValueError(f"unsafe repository-relative path: {filepath!r}")
