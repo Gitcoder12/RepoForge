@@ -55,29 +55,21 @@ IGNORED_DIRECTORIES = {
     ".vscode",
     ".repoforge",
 }
-JS_IMPORT = re.compile(
-    r"""(?m)^\s*import\s+(?:[^;\n]*?\s+from\s+)?["']([^"']+)["']"""
-)
+JS_IMPORT = re.compile(r"""(?m)^\s*import\s+(?:[^;\n]*?\s+from\s+)?["']([^"']+)["']""")
 JS_EXPORT_FROM = re.compile(r"""(?m)^\s*export\s+[^;\n]*?\s+from\s+["']([^"']+)["']""")
 JS_DYNAMIC_IMPORT = re.compile(r"""\b(?:require|import)\s*\(\s*["']([^"']+)["']\s*\)""")
 JS_FUNCTION = re.compile(
     r"(?m)^\s*(?:(?:export|default|async)\s+)*function\s*\*?\s*"
     r"([A-Za-z_$][\w$]*)\s*\("
 )
-JS_CLASS = re.compile(
-    r"(?m)^\s*(?:(?:export|default|abstract)\s+)*class\s+([A-Za-z_$][\w$]*)\b"
-)
+JS_CLASS = re.compile(r"(?m)^\s*(?:(?:export|default|abstract)\s+)*class\s+([A-Za-z_$][\w$]*)\b")
 JS_VARIABLE = re.compile(
     r"(?m)^\s*(?:(?:export|default)\s+)*(const|let|var)\s+([A-Za-z_$][\w$]*)\b"
 )
-GO_FUNCTION = re.compile(
-    r"(?m)^\s*func\s+(?:\([^\n)]*\)\s*)?([A-Za-z_]\w*)\s*\("
-)
+GO_FUNCTION = re.compile(r"(?m)^\s*func\s+(?:\([^\n)]*\)\s*)?([A-Za-z_]\w*)\s*\(")
 GO_TYPE = re.compile(r"(?m)^\s*type\s+([A-Za-z_]\w*)\s+")
 GO_CONST = re.compile(r"(?m)^\s*const\s+([A-Za-z_]\w*)\b")
-GO_IMPORT_DECL = re.compile(
-    r'(?m)^\s*import\s+(?:\(\s*([\s\S]*?)\s*\)|"([^"]+)")'
-)
+GO_IMPORT_DECL = re.compile(r'(?m)^\s*import\s+(?:\(\s*([\s\S]*?)\s*\)|"([^"]+)")')
 GO_QUOTED_IMPORT = re.compile(r'"([^"]+)"')
 GO_MODULE = re.compile(r"(?m)^\s*module\s+([^\s]+)")
 
@@ -105,9 +97,7 @@ class CodebaseIndexer:
     def _discover(self) -> tuple[list[tuple[str, Path, os.stat_result]], list[dict[str, Any]]]:
         candidates: list[tuple[str, Path, os.stat_result]] = []
         inventory: list[dict[str, Any]] = []
-        for current, directories, filenames in os.walk(
-            self.root, topdown=True, followlinks=False
-        ):
+        for current, directories, filenames in os.walk(self.root, topdown=True, followlinks=False):
             current_path = Path(current)
             directories[:] = sorted(
                 name
@@ -282,9 +272,7 @@ class CodebaseIndexer:
             )
         return self._sort_symbols(symbols), self._sort_imports(imports), None
 
-    def _extract_go(
-        self, source: str
-    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], None]:
+    def _extract_go(self, source: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]], None]:
         symbols: list[dict[str, Any]] = []
         imports: list[dict[str, Any]] = []
         for pattern, kind in ((GO_FUNCTION, "function"), (GO_TYPE, "type"), (GO_CONST, "constant")):
@@ -359,8 +347,7 @@ class CodebaseIndexer:
             bases = [Path(*base_parts).as_posix() if base_parts else ""]
             if not module_parts:
                 bases.extend(
-                    (Path(*base_parts, name).as_posix() if base_parts else name)
-                    for name in names
+                    (Path(*base_parts, name).as_posix() if base_parts else name) for name in names
                 )
         else:
             base_parts = [part for part in module.split(".") if part]
@@ -375,9 +362,7 @@ class CodebaseIndexer:
         return resolved
 
     @staticmethod
-    def _resolve_javascript_import(
-        current: str, module: str, indexed_paths: set[str]
-    ) -> set[str]:
+    def _resolve_javascript_import(current: str, module: str, indexed_paths: set[str]) -> set[str]:
         if not module.startswith("."):
             return set()
         base = posixpath.normpath(posixpath.join(posixpath.dirname(current), module))
@@ -462,9 +447,7 @@ class CodebaseIndexer:
             resolved: set[str] = set()
             for spec in item["imports"]:
                 if item["language"] == "python":
-                    resolved.update(self._resolve_python_import(current, spec, indexed_paths))
-                elif item["language"] in {"javascript", "typescript"}:
-                    resolved.update(
+                    resolved.update(self._resolve_go_import(spec["module"], go_module, go_packages))
                         self._resolve_javascript_import(current, spec["module"], indexed_paths)
                     )
                 elif item["language"] == "go":
@@ -483,9 +466,9 @@ class CodebaseIndexer:
             import_count += len(item["imports"])
         dependency_edges = sum(len(targets) for targets in dependencies.values())
 
-        repository_id = hashlib.sha256(
-            self.root.as_posix().casefold().encode("utf-8")
-        ).hexdigest()[:16]
+        repository_id = hashlib.sha256(self.root.as_posix().casefold().encode("utf-8")).hexdigest()[
+            :16
+        ]
         return {
             "schema_version": SCHEMA_VERSION,
             "repository": self.root.name,
