@@ -845,7 +845,11 @@ class CodebaseIndexer:
         resolved: set[str] = set()
         for base in bases:
             normalized = posixpath.normpath(base)
-            if (normalized in {"", ".", ".."} or normalized.startswith("../") or normalized.startswith("/")):
+            if (
+                normalized in {"", ".", ".."}
+                or normalized.startswith("../")
+                or normalized.startswith("/")
+            ):
                 continue
             candidates = {normalized}
             if not Path(normalized).suffix:
