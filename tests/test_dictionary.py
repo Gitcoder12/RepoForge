@@ -16,17 +16,7 @@ def _write(path: Path, text: str) -> None:
 
 
 def test_indexes_python_typescript_and_go_symbols_and_local_dependencies(tmp_path) -> None:
-    app_source = (
-        "import os\n"
-        "from helpers import greet\n"
-        "\n"
-        "class App:\n"
-        "    pass\n"
-        "\n"
-        "def main():\n"
-        "    greet()\n"
-    )
-    _write(tmp_path / "app.py", app_source)
+    app_source = "import os\nfrom helpers import greet\n\nclass App:\n    pass\n\ndef main():\n    greet()\n"
     _write(tmp_path / "helpers.py", "def greet(name: str = 'world'):\n    return name\n")
     _write(
         tmp_path / "src/index.ts",
@@ -38,11 +28,11 @@ def test_indexes_python_typescript_and_go_symbols_and_local_dependencies(tmp_pat
     _write(
         tmp_path / "cmd/main.go",
         'package main\n\nimport (\n    "fmt"\n    "example.com/demo/internal/util"\n)\n'
-        "const AppName = \"RepoForge\"\nfunc main() { fmt.Println(util.Lookup()) }\n",
+        'const AppName = "RepoForge"\nfunc main() { fmt.Println(util.Lookup()) }\n',
     )
     _write(
         tmp_path / "internal/util/util.go",
-        "package util\n\ntype Config struct {}\nfunc Lookup() string { return \"ok\" }\n",
+        'package util\n\ntype Config struct {}\nfunc Lookup() string { return "ok" }\n',
     )
 
     index = CodebaseIndexer(tmp_path).build()
@@ -63,8 +53,7 @@ def test_indexes_python_typescript_and_go_symbols_and_local_dependencies(tmp_pat
     assert ("function", "main") in go_kinds
     assert ("constant", "AppName") in go_kinds
     assert ("type", "Config") in {
-        (symbol["kind"], symbol["name"])
-        for symbol in files["internal/util/util.go"]["symbols"]
+        (symbol["kind"], symbol["name"]) for symbol in files["internal/util/util.go"]["symbols"]
     }
 
     assert index["dependencies"]["app.py"] == ["helpers.py"]
