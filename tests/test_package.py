@@ -232,8 +232,6 @@ def test_generate_cli_uses_the_orchestrator_for_explicit_provider():
         max_tokens=1024,
     )
 
-
-
 def test_validate_cli_only_reports_failed_files_and_shows_threats(tmp_path) -> None:
     threat_message = "REVIEW: Potentially destructive operation 'subprocess.run()' at line 4"
     result_data = {
