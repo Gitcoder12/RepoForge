@@ -17,6 +17,7 @@ def _write(path: Path, text: str) -> None:
 
 def test_indexes_python_typescript_and_go_symbols_and_local_dependencies(tmp_path) -> None:
     app_source = "import os\nfrom helpers import greet\n\nclass App:\n    pass\n\ndef main():\n    greet()\n"
+    _write(tmp_path / "app.py", app_source)
     _write(tmp_path / "helpers.py", "def greet(name: str = 'world'):\n    return name\n")
     _write(
         tmp_path / "src/index.ts",
@@ -28,7 +29,7 @@ def test_indexes_python_typescript_and_go_symbols_and_local_dependencies(tmp_pat
     _write(
         tmp_path / "cmd/main.go",
         'package main\n\nimport (\n    "fmt"\n    "example.com/demo/internal/util"\n)\n'
-        'const AppName = "RepoForge"\nfunc main() { fmt.Println(util.Lookup()) }\n',
+        'const AppName = "RepoForge"\nconst (\n    BuildVersion = "dev"\n    DefaultPort = 8080\n)\nfunc main() { fmt.Println(util.Lookup()) }\n',
     )
     _write(
         tmp_path / "internal/util/util.go",
@@ -52,6 +53,7 @@ def test_indexes_python_typescript_and_go_symbols_and_local_dependencies(tmp_pat
     go_kinds = {(item["kind"], item["name"]) for item in files["cmd/main.go"]["symbols"]}
     assert ("function", "main") in go_kinds
     assert ("constant", "AppName") in go_kinds
+    assert ("constant", "BuildVersion") in go_kinds
     assert ("type", "Config") in {
         (symbol["kind"], symbol["name"]) for symbol in files["internal/util/util.go"]["symbols"]
     }
@@ -59,6 +61,11 @@ def test_indexes_python_typescript_and_go_symbols_and_local_dependencies(tmp_pat
     assert index["dependencies"]["app.py"] == ["helpers.py"]
     assert index["dependencies"]["src/index.ts"] == ["src/helper.ts"]
     assert index["dependencies"]["cmd/main.go"] == ["internal/util/util.go"]
+    go_import = next(
+        item for item in files["cmd/main.go"]["imports"]
+        if item["module"] == "example.com/demo/internal/util"
+    )
+    assert go_import["line"] == 5
     assert index["summary"]["dependency_edges"] == 3
 
 
