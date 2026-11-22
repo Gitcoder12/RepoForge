@@ -72,4 +72,5 @@ def test_repository_context_is_bounded_and_skips_sensitive_files(tmp_path):
 
     assert [item["path"] for item in context] == ["src/module.py"]
     assert "VALUE = 42" in context[0]["content"]
+    assert "[REDACTED]" in context[0]["content"]
     assert "do-not-read" not in json.dumps(context)
