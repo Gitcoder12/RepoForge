@@ -225,7 +225,11 @@ def _register_builtin_adapters() -> None:
                     r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:struct|enum|trait|type|mod)\s+"
                     r"(?P<name>(?:r#)?\w+)",
                 ),
-                ("constant", r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:const|static)\s+(?P<name>(?:r#)?\w+)"),
+                (
+                    "constant",
+                    r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:const|static)\s+"
+                    r"(?P<name>(?:r#)?\w+)",
+                ),
             ),
             import_patterns=(r"^\s*(?:pub\s+)?use\s+(?P<module>[^;]+);",),
         ),
