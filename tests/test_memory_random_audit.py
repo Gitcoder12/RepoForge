@@ -23,8 +23,7 @@ def _make_git_repo(path: Path, *, language: str = "python") -> Path:
         tests = path / "tests"
         tests.mkdir()
         (tests / "test_side_effect.py").write_text(
-            "from pathlib import Path\n"
-            "Path('EXECUTED_BY_REPOFORGE').write_text('bad')\n",
+            "from pathlib import Path\nPath('EXECUTED_BY_REPOFORGE').write_text('bad')\n",
             encoding="utf-8",
         )
     elif language == "javascript":
@@ -153,10 +152,7 @@ def test_random_audit_is_seeded_read_only_and_never_executes_tests(tmp_path: Pat
         item["checks"]["test_discovery"]["execution_performed"] is False
         for item in first["repositories"]
     )
-    assert all(
-        item["checks"]["codebase_index"]["persisted"] is False
-        for item in first["repositories"]
-    )
+    assert all(item["checks"]["codebase_index"]["persisted"] is False for item in first["repositories"])
     assert not any((repository / "EXECUTED_BY_REPOFORGE").exists() for repository in repositories)
     after = {
         str(path.relative_to(workspace)): path.read_bytes()
