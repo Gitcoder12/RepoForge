@@ -49,8 +49,8 @@ def test_parse_actions_rejects_duplicate_paths():
         ForgeWorkflow.parse_actions(json.dumps({"actions": actions}))
 
 
-def test_parse_actions_rejects_non_object_envelope():
-    with pytest.raises(ValueError, match="JSON object"):
+def test_parse_actions_rejects_non_list_actions():
+    with pytest.raises(ValueError, match="actions array"):
         ForgeWorkflow.parse_actions('{"actions": "not-a-list"}')
 
 
