@@ -178,3 +178,74 @@ def test_forge_prompt_keeps_relevant_index_entries_ahead_of_large_repositories()
 
     assert '"path": "src/router/routes.py"' in prompt
     assert '"name": "Router"' in prompt
+
+
+def test_forge_prompt_includes_only_the_selected_project_memory():
+    dictionary = {
+        "schema_version": 1,
+        "languages": {},
+        "summary": {},
+        "files": [],
+        "dependencies": {},
+    }
+    prompt = ForgeWorkflow._model_prompt(
+        "Review this API",
+        {},
+        {},
+        [],
+        dictionary,
+        memory_context={
+            "name": "api-audit",
+            "notes": [
+                {
+                    "created_at": "2026-11-22T00:00:00+00:00",
+                    "text": "Keep v1 response fields stable.",
+                }
+            ],
+        },
+    )
+
+    assert prompt.index('"project_memory"') < prompt.index('"repo_dictionary"')
+    assert '"context": "api-audit"' in prompt
+    assert "Keep v1 response fields stable." in prompt
+    assert "historical context" in prompt
+
+
+def test_forge_uses_active_memory_context_for_that_repository_only(tmp_path, monkeypatch):
+    from repoforge.memory import MemoryContextStore
+
+    repository = tmp_path / "service"
+    repository.mkdir()
+    other_repository = tmp_path / "other-service"
+    other_repository.mkdir()
+    monkeypatch.setenv("REPOFORGE_HOME", str(tmp_path / "repoforge-home"))
+    store = MemoryContextStore()
+    store.create(repository, "service-context")
+    store.add_note(repository, "Do not break the existing REST routes.")
+    store.create(other_repository, "other-context")
+
+    report = ForgeWorkflow().run(repository, "Review the service")
+
+    assert report["status"] == "plan_only"
+    assert report["memory_context"] == {"name": "service-context", "notes_loaded": 1}
+
+
+def test_forge_can_explicitly_select_an_inactive_memory_context(tmp_path, monkeypatch):
+    from repoforge.memory import MemoryContextStore
+
+    repository = tmp_path / "service"
+    repository.mkdir()
+    monkeypatch.setenv("REPOFORGE_HOME", str(tmp_path / "repoforge-home"))
+    store = MemoryContextStore()
+    store.create(repository, "active-context")
+    store.create(repository, "alternate-context", switch=False)
+    store.add_note(repository, "Alternate-context-only note.", name="alternate-context")
+
+    report = ForgeWorkflow().run(
+        repository,
+        "Review the service",
+        memory_context_name="alternate-context",
+    )
+
+    assert report["memory_context"] == {"name": "alternate-context", "notes_loaded": 1}
+    assert store.load(repository)["name"] == "active-context"
