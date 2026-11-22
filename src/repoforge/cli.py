@@ -397,3 +397,44 @@ def model_lab_command(
     except (ValueError, OSError) as exc:
         typer.echo(f"Model Lab error: {exc}", err=True)
         raise typer.Exit(code=2) from exc
+
+
+
+@app.command("profile")
+def execution_profile_command(
+    mode: str = typer.Option(
+        "standard", "--mode",
+        help="Execution speed: quick, standard, or deep.",
+    ),
+    stop_after: str | None = typer.Option(
+        None, "--stop-after",
+        help="Inclusive stop point: inspect, plan, patch, validate, iterate, release_ready.",
+    ),
+    evolution: str = typer.Option(
+        "E2", "--evolution",
+        help="Maximum evolution scope: E0, E1, E2, E3, or E4.",
+    ),
+    max_minutes: int | None = typer.Option(
+        None, "--max-minutes", min=1,
+        help="Optional lower time budget; cannot exceed the selected mode's cap.",
+    ),
+    max_iterations: int | None = typer.Option(
+        None, "--max-iterations", min=0,
+        help="Optional lower iteration budget; cannot exceed the selected mode's cap.",
+    ),
+) -> None:
+    """Resolve a user-controlled execution plan without modifying a repository."""
+    from repoforge.execution_profiles import ExecutionProfilePlanner
+
+    try:
+        plan = ExecutionProfilePlanner().resolve(
+            profile=mode,
+            stop_after=stop_after,
+            evolution=evolution,
+            max_minutes=max_minutes,
+            max_iterations=max_iterations,
+        )
+    except ValueError as exc:
+        typer.echo(f"Execution profile error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(json.dumps(plan, indent=2, ensure_ascii=False))
