@@ -57,12 +57,25 @@ def validate(
         return
 
     typer.echo(f"Validation failed: {result.get('reason')}", err=True)
-    for key in ("results", "invalid_paths"):
-        for item in result.get(key, []):
-            if isinstance(item, dict):
-                location = item.get("file", item.get("path", "unknown"))
-                detail = item.get("error", item.get("reason", "validation failed"))
-                typer.echo(f"  {location}: {detail}", err=True)
+    for item in result.get("results", []):
+        if not isinstance(item, dict) or item.get("passed") is True:
+            continue
+        if item.get("passed") is not False and not item.get("error") and not item.get("threats"):
+            continue
+        location = item.get("file", "unknown")
+        threats = item.get("threats", [])
+        if isinstance(threats, list) and threats:
+            for threat in threats:
+                typer.echo(f"  {location}: {threat}", err=True)
+        else:
+            detail = item.get("error", item.get("reason", "validation failed"))
+            typer.echo(f"  {location}: {detail}", err=True)
+
+    for item in result.get("invalid_paths", []):
+        if isinstance(item, dict):
+            location = item.get("file", item.get("path", "unknown"))
+            detail = item.get("error", item.get("reason", "invalid path"))
+            typer.echo(f"  {location}: {detail}", err=True)
     output = result.get("output")
     if isinstance(output, str) and output.strip():
         typer.echo("Test output:", err=True)

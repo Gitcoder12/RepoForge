@@ -231,3 +231,33 @@ def test_generate_cli_uses_the_orchestrator_for_explicit_provider():
         provider="deepseek",
         max_tokens=1024,
     )
+
+
+def test_validate_cli_only_reports_failed_files_and_shows_threats(tmp_path) -> None:
+    threat_message = "REVIEW: Potentially destructive operation 'subprocess.run()' at line 4"
+    result_data = {
+        "passed": False,
+        "reason": "validation_failed",
+        "results": [
+            {"file": "safe.py", "passed": True},
+            {
+                "file": "review.py",
+                "passed": False,
+                "threats": [threat_message],
+            },
+            {"file": "broken.py", "passed": False, "error": "line 2: invalid syntax"},
+        ],
+        "invalid_paths": [{"file": "escape.py", "error": "path escapes repository root"}],
+        "test_run": {"status": "not_started"},
+    }
+    with patch(
+        "repoforge.cli.Validator.validate",
+        new=AsyncMock(return_value=result_data),
+    ):
+        result = CliRunner().invoke(app, ["validate", str(tmp_path)])
+
+    assert result.exit_code == 1
+    assert "safe.py" not in result.output
+    assert "review.py: REVIEW: Potentially destructive operation" in result.output
+    assert "broken.py: line 2: invalid syntax" in result.output
+    assert "escape.py: path escapes repository root" in result.output
