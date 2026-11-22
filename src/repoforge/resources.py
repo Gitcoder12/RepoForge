@@ -4,6 +4,7 @@ Network access is intentionally injected by the application. This module only
 normalizes supplied RSS/Atom or JSON payloads; it never fetches URLs or executes
 content. External text is untrusted evidence, not instructions.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -146,8 +147,10 @@ def _stable_id(source_id: str, title: str, url: str | None) -> str:
 
 
 def parse_resource_payload(
-    source: ResourceSource, payload: str | bytes | Mapping[str, Any] | list[Any],
-    *, observed_at: str | None = None,
+    source: ResourceSource,
+    payload: str | bytes | Mapping[str, Any] | list[Any],
+    *,
+    observed_at: str | None = None,
 ) -> tuple[ResourceItem, ...]:
     """Parse RSS/Atom XML or a JSON mapping/list into normalized evidence records."""
     if not source.enabled:
@@ -172,8 +175,14 @@ def parse_resource_payload(
                     if key == "link":
                         values[key] = child.attrib.get("href") or child.text
                     elif key in {
-                        "title", "description", "summary", "content",
-                        "pubdate", "published", "updated", "category",
+                        "title",
+                        "description",
+                        "summary",
+                        "content",
+                        "pubdate",
+                        "published",
+                        "updated",
+                        "category",
                     }:
                         values[key] = child.attrib.get("term") or child.text
                 records.append(values)
@@ -201,8 +210,10 @@ def parse_resource_payload(
             if parsed.scheme not in {"https", "http"} or not parsed.hostname:
                 link = None
         published = _parse_date(
-            record.get("published_at") or record.get("published")
-            or record.get("updated") or record.get("pubdate")
+            record.get("published_at")
+            or record.get("published")
+            or record.get("updated")
+            or record.get("pubdate")
         )
         raw_tags = record.get("tags") or record.get("category") or ()
         if isinstance(raw_tags, str):
@@ -211,31 +222,40 @@ def parse_resource_payload(
             tags = tuple(_clean_text(tag, 100) for tag in raw_tags if _clean_text(tag, 100))
         else:
             tags = ()
-        output.append(ResourceItem(
-            item_id=_stable_id(source.source_id, title, link),
-            source_id=source.source_id,
-            source_name=source.name,
-            kind=source.kind,
-            title=title,
-            summary=summary,
-            url=link,
-            published_at=published,
-            observed_at=observed,
-            tags=tags,
-            declared_severity=_severity(record.get("severity") or record.get("cvss_severity")),
-            evidence=summary,
-        ))
+        output.append(
+            ResourceItem(
+                item_id=_stable_id(source.source_id, title, link),
+                source_id=source.source_id,
+                source_name=source.name,
+                kind=source.kind,
+                title=title,
+                summary=summary,
+                url=link,
+                published_at=published,
+                observed_at=observed,
+                tags=tags,
+                declared_severity=_severity(record.get("severity") or record.get("cvss_severity")),
+                evidence=summary,
+            )
+        )
     return tuple(output)
 
 
 def assess_problem_severity(
-    *, impact: float, likelihood: float, urgency: float,
-    exposure: float, evidence_quality: float,
+    *,
+    impact: float,
+    likelihood: float,
+    urgency: float,
+    exposure: float,
+    evidence_quality: float,
 ) -> SeverityAssessment:
     """Transparent weighted triage score; this is prioritization, not probability."""
     values = {
-        "impact": impact, "likelihood": likelihood, "urgency": urgency,
-        "exposure": exposure, "evidence_quality": evidence_quality,
+        "impact": impact,
+        "likelihood": likelihood,
+        "urgency": urgency,
+        "exposure": exposure,
+        "evidence_quality": evidence_quality,
     }
     for name, value in values.items():
         if (
@@ -246,8 +266,11 @@ def assess_problem_severity(
         ):
             raise ValueError(f"{name} must be a finite number between 0 and 1")
     weights = {
-        "impact": 0.30, "likelihood": 0.25, "urgency": 0.20,
-        "exposure": 0.15, "evidence_quality": 0.10,
+        "impact": 0.30,
+        "likelihood": 0.25,
+        "urgency": 0.20,
+        "exposure": 0.15,
+        "evidence_quality": 0.10,
     }
     score = round(sum(values[key] * weights[key] for key in weights) * 100, 2)
     if score >= 85:
@@ -262,8 +285,7 @@ def assess_problem_severity(
         band = Severity.INFO
     confidence = round(0.25 + 0.75 * evidence_quality, 3)
     rationale = tuple(
-        f"{key}={value:.2f} (weight {weights[key]:.2f})"
-        for key, value in values.items()
+        f"{key}={value:.2f} (weight {weights[key]:.2f})" for key, value in values.items()
     )
     return SeverityAssessment(score, band, confidence, values, rationale)
 
@@ -271,6 +293,7 @@ def assess_problem_severity(
 @dataclass
 class ResourceHub:
     """In-memory bounded-by-caller resource catalog with deterministic deduplication."""
+
     sources: dict[str, ResourceSource] = field(default_factory=dict)
     items: dict[str, ResourceItem] = field(default_factory=dict)
 
@@ -278,8 +301,7 @@ class ResourceHub:
         existing = self.sources.get(source.source_id)
         if existing is not None and existing != source:
             raise ValueError(
-                "source_id already registered with different metadata: "
-                f"{source.source_id}"
+                f"source_id already registered with different metadata: {source.source_id}"
             )
         self.sources[source.source_id] = source
 
@@ -319,8 +341,13 @@ class ResourceHub:
         return tuple(sorted(assessments.items(), key=lambda pair: (-pair[1].score, pair[0])))
 
     def propose_feature(
-        self, *, title: str, problem: str, proposed_capability: str,
-        supporting_items: tuple[str, ...], assessment: SeverityAssessment,
+        self,
+        *,
+        title: str,
+        problem: str,
+        proposed_capability: str,
+        supporting_items: tuple[str, ...],
+        assessment: SeverityAssessment,
     ) -> FeatureProposal:
         known = set(self.items)
         if not supporting_items or any(item_id not in known for item_id in supporting_items):
@@ -329,7 +356,13 @@ class ResourceHub:
 
 
 __all__ = [
-    "FeatureProposal", "ResourceHub", "ResourceItem", "ResourceKind",
-    "ResourceSource", "Severity", "SeverityAssessment",
-    "assess_problem_severity", "parse_resource_payload",
+    "FeatureProposal",
+    "ResourceHub",
+    "ResourceItem",
+    "ResourceKind",
+    "ResourceSource",
+    "Severity",
+    "SeverityAssessment",
+    "assess_problem_severity",
+    "parse_resource_payload",
 ]
