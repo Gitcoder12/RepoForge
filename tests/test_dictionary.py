@@ -34,11 +34,23 @@ def main():
     )
     _write(tmp_path / "src/helper.ts", "export function helper() { return 1; }\n")
     _write(tmp_path / "go.mod", "module example.com/demo\n\ngo 1.22\n")
-    _write(
-        tmp_path / "cmd/main.go",
-        'package main\n\nimport (\n    "fmt"\n    "example.com/demo/internal/util"\n)\n'
-        'const AppName = "RepoForge"\nconst (\n    BuildVersion = "dev"\n    DefaultPort = 8080\n)\nfunc main() { fmt.Println(util.Lookup()) }\n',
-    )
+    go_source = "\n".join(
+        [
+            "package main",
+            "",
+            "import (",
+            '    "fmt"',
+            '    "example.com/demo/internal/util"',
+            ")",
+            'const AppName = "RepoForge"',
+            "const (",
+            '    BuildVersion = "dev"',
+            "    DefaultPort = 8080",
+            ")",
+            "func main() { fmt.Println(util.Lookup()) }",
+        ]
+    ) + "\n"
+    _write(tmp_path / "cmd/main.go", go_source)
     _write(
         tmp_path / "internal/util/util.go",
         'package util\n\ntype Config struct {}\nfunc Lookup() string { return "ok" }\n',
