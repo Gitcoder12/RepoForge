@@ -26,6 +26,25 @@ This snapshot is authoritative for current project status. Older example output,
 See [docs/MAINTAINER_STATUS_2026-11-22.md](docs/MAINTAINER_STATUS_2026-11-22.md) for the audit snapshot, PR triage, known failures, branch policy and next steps. Recheck live GitHub state before merging because CI and branch heads can change.
 
 
+## Contributor entry point
+
+Start with [START_HERE.md](START_HERE.md) for the canonical source map and
+safe contributor workflow.
+
+## Model Lab
+
+Compare explicitly selected model endpoints on a small deterministic smoke
+suite. See [docs/MODEL_LAB.md](docs/MODEL_LAB.md).
+
+```bash
+repoforge model-lab --catalog
+repoforge model-lab --target openai:gpt-6.2-sol --target deepseek:deepseek-flash
+```
+
+This suite is not a general model ranking or a safety certification. Remote
+models may incur provider charges; no provider is selected or switched
+automatically.
+
 ## Autonomous AI Repository Engineering Platform
 
 RepoForge is an AI-powered repository engineering platform that analyzes software projects, understands repository structure, creates improvement strategies, executes engineering actions, validates changes, and generates detailed reports.

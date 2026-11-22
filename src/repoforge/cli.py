@@ -336,3 +336,64 @@ def test_command(
     typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
     if execute and result["status"] in {"failed", "scan_incomplete"}:
         raise typer.Exit(code=1)
+
+
+@app.command("model-lab")
+def model_lab_command(
+    target: list[str] = typer.Option(
+        [],
+        "--target",
+        "-t",
+        help="Explicit provider:model target; repeat to compare several models.",
+    ),
+    catalog: bool = typer.Option(
+        False,
+        "--catalog",
+        help="Show suggested model targets and provider configuration status.",
+    ),
+    timeout: float = typer.Option(45.0, "--timeout", min=1.0, max=180.0),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        help="Optional path for the JSON evaluation report.",
+    ),
+) -> None:
+    """Compare selected model endpoints on the deterministic Model Lab smoke suite."""
+    from repoforge.model_lab import ModelLab, ModelTarget, suggested_models
+
+    _load_environment()
+    if catalog:
+        from repoforge.providers.factory import ProviderFactory
+
+        typer.echo("Suggested model starting points")
+        for item in suggested_models():
+            typer.echo(f"  {item['role']}: {item['target']}")
+            typer.echo(f"    {item['reason']} {item['cost_note']}")
+        typer.echo("\nProvider configuration")
+        for item in ProviderFactory().list_status():
+            state = (
+                "local endpoint (connectivity not checked)"
+                if item["kind"] == "local"
+                else "configured"
+                if item["configured"]
+                else f"missing {item['credential_variable']}"
+            )
+            typer.echo(f"  {item['name']}: {state}")
+        return
+
+    if not target:
+        typer.echo("Select at least one model with --target provider:model.", err=True)
+        raise typer.Exit(code=2)
+
+    try:
+        selected = [ModelTarget.parse(item) for item in target]
+        report = ModelLab().run(selected, timeout=timeout)
+        rendered = json.dumps(report, indent=2, ensure_ascii=False)
+        if output is not None:
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_text(rendered + "\n", encoding="utf-8")
+            typer.echo(f"Report written to {output}")
+        typer.echo(rendered)
+    except (ValueError, OSError) as exc:
+        typer.echo(f"Model Lab error: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
