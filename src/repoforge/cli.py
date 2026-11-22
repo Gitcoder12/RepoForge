@@ -398,6 +398,7 @@ def model_lab_command(
         typer.echo(f"Model Lab error: {exc}", err=True)
         raise typer.Exit(code=2) from exc
 
+
 @app.command("forge")
 def forge_command(
     repo_path: Path = typer.Argument(
