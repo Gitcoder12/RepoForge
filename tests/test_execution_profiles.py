@@ -26,6 +26,8 @@ def test_speed_mode_and_evolution_depth_are_independent():
     assert quick["evolution_level"] == "E4"
     assert deep["speed_mode"] == "deep"
     assert deep["evolution_level"] == "E1"
+    assert deep["evolution_scope"]["name"] == "Stabilize"
+    assert deep["evolution_scope"]["change_policy"] == "small_bounded_changes"
 
 
 def test_user_can_stop_after_any_supported_stage():
