@@ -299,11 +299,21 @@ class CodebaseIndexer:
                     signature=self._line_signature(source, line),
                 )
         for match in GO_IMPORT_DECL.finditer(source):
-            block = match.group(1) or match.group(2) or ""
-            block_start = match.start(1) if match.group(1) is not None else match.start(2)
-            for quoted in GO_QUOTED_IMPORT.finditer(block):
-                module = quoted.group(1)
-                line = source.count("\n", 0, block_start + quoted.start()) + 1
+            if match.group(2) is not None:
+                module = match.group(2)
+                line = source.count("\n", 0, match.start()) + 1
+                modules = [(module, line)]
+            else:
+                block = match.group(1) or ""
+                block_start = match.start(1)
+                modules = [
+                    (
+                        quoted.group(1),
+                        source.count("\n", 0, block_start + quoted.start()) + 1,
+                    )
+                    for quoted in GO_QUOTED_IMPORT.finditer(block)
+                ]
+            for module, line in modules:
                 imports.append({"module": module, "line": line, "names": []})
                 self._add_symbol(
                     symbols,
