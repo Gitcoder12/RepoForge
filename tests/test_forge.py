@@ -58,6 +58,8 @@ def test_forge_defaults_to_read_only_inspection(tmp_path):
     report = ForgeWorkflow().run(tmp_path, "add tests")
     assert report["status"] == "plan_only"
     assert report["safety"]["default_read_only"] is True
+    assert report["safety"]["batch_writes_are_transactional"] is False
+    assert report["safety"]["automatic_rollback"] is False
     assert report["mutation"]["status"] == "not_requested"
 
 
