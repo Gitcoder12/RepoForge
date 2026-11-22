@@ -169,11 +169,11 @@ class ForgeWorkflow:
                 continue
             if "\x00" in source:
                 continue
-            source = re.sub(
-                r"""(?im)(api[_-]?key|secret|token|password|authorization|private[_-]?key)\s*([=:]\s*)(["'][^"']*["']|[^\s,;]+)""",
-                r"\1\2[REDACTED]",
-                source,
+            credential_pattern = (
+                r"(?im)(api[_-]?key|secret|token|password|authorization|private[_-]?key)"
+                r"\s*([=:]\s*)([\"'][^\"']*[\"']|[^\s,;]+)"
             )
+            source = re.sub(credential_pattern, r"\1\2[REDACTED]", source)
             remaining = max_chars - used_chars
             excerpt = source[: min(5_000, remaining)]
             if not excerpt:
