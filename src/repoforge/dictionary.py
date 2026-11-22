@@ -461,13 +461,13 @@ class CodebaseIndexer:
             resolved: set[str] = set()
             for spec in item["imports"]:
                 if item["language"] == "python":
-                    resolved.update(self._resolve_go_import(spec["module"], go_module, go_packages))
+                    resolved.update(self._resolve_python_import(current, spec, indexed_paths))
+                elif item["language"] in {"javascript", "typescript"}:
+                    resolved.update(
                         self._resolve_javascript_import(current, spec["module"], indexed_paths)
                     )
                 elif item["language"] == "go":
-                    resolved.update(
-                        self._resolve_go_import(spec["module"], go_module, go_packages)
-                    )
+                    resolved.update(self._resolve_go_import(spec["module"], go_module, go_packages))
             resolved.discard(current)
             dependencies[current] = sorted(resolved)
 
