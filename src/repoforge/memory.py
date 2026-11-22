@@ -79,6 +79,8 @@ class MemoryContextStore:
         return hashlib.sha256(identity.encode("utf-8")).hexdigest()[:32]
 
     def _directory(self, root: Path, *, create: bool) -> Path:
+        if not self.root.exists() and not create:
+            return self.root / self._repository_key(root)
         if create:
             self.root.mkdir(parents=True, exist_ok=True)
         if self.root.is_symlink() or not self.root.is_dir():
@@ -229,7 +231,7 @@ class MemoryContextStore:
             return None
         payload = self._read_json(self._context_path(directory, selected))
         if payload is None:
-            raise ValueError(f"active memory context is missing: {selected}")
+            raise ValueError(f"memory context does not exist for this repository: {selected}")
         repository_meta = payload.get("repository")
         if (
             not isinstance(repository_meta, dict)
