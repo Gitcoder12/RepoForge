@@ -7,7 +7,6 @@ or silently grant permission to apply changes.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from typing import Any
 
 
 STAGES = ("inspect", "plan", "patch", "validate", "iterate", "release_ready")
@@ -51,7 +50,7 @@ class ExecutionProfilePlanner:
         evolution: str = "E2",
         max_minutes: int | None = None,
         max_iterations: int | None = None,
-    ) -> dict[str, Any]:
+    ) -> dict[str, object]:
         if profile not in PROFILES:
             raise ValueError(f"profile must be one of: {', '.join(PROFILES)}")
         if evolution not in EVOLUTION_LEVELS:
