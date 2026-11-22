@@ -32,10 +32,12 @@ RepoForge is a local CLI. Open a terminal in the repository folder and use these
 
 ### 1. Install (Windows PowerShell)
 
+Python 3.10 or newer is supported. This command uses your active `python` installation (your machine currently reports Python 3.13).
+
 ```powershell
 git clone https://github.com/Gitcoder12/RepoForge.git
 cd RepoForge
-py -3.11 -m venv .venv
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -e ".[dev]"
