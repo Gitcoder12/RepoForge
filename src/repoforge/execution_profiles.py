@@ -6,8 +6,9 @@ or silently grant permission to apply changes.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
 from typing import Any
+
+from dataclasses import asdict, dataclass
 
 
 STAGES = ("inspect", "plan", "patch", "validate", "iterate", "release_ready")
@@ -74,7 +75,9 @@ class ExecutionProfilePlanner:
         ):
             raise ValueError("max_iterations must be a non-negative integer")
 
-        minute_budget = min(max_minutes, selected.max_minutes) if max_minutes else selected.max_minutes
+        minute_budget = (
+            min(max_minutes, selected.max_minutes) if max_minutes else selected.max_minutes
+        )
         iteration_budget = (
             min(max_iterations, selected.max_iterations)
             if max_iterations is not None
