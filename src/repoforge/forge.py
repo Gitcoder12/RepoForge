@@ -299,24 +299,24 @@ class ForgeWorkflow:
         memory_name = None
         if isinstance(memory_context, dict):
             memory_name = memory_context.get("name")
-            for note in memory_context.get("notes", [])[-20:]:
+            for note in memory_context.get("notes", [])[-6:]:
                 if not isinstance(note, dict) or not isinstance(note.get("text"), str):
                     continue
                 memory_notes.append(
                     {
                         "created_at": str(note.get("created_at", "")),
-                        "text": note["text"][:2_000],
+                        "text": note["text"][:1_200],
                     }
                 )
         context = json.dumps(
             {
-                "repo_dictionary": compact_dictionary,
-                "repository_snapshot": snapshot,
-                "test_plan": test_plan,
                 "project_memory": {
                     "context": memory_name,
                     "notes": memory_notes,
                 },
+                "repo_dictionary": compact_dictionary,
+                "repository_snapshot": snapshot,
+                "test_plan": test_plan,
                 "source_context": repository_context,
             },
             ensure_ascii=False,
