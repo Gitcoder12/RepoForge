@@ -141,7 +141,7 @@ class ExecutionProfilePlanner:
         }
 
     @staticmethod
-    def should_stop(plan: dict[str, Any], completed_stage: str) -> bool:
+    def should_stop(plan: dict[str, object], completed_stage: str) -> bool:
         """Return True at or beyond the configured stop stage."""
         stages = plan.get("stages", [])
         stop_after = plan.get("stop_after")
@@ -150,7 +150,7 @@ class ExecutionProfilePlanner:
         return stages.index(completed_stage) >= stages.index(stop_after)
 
     @staticmethod
-    def remaining_stages(plan: dict[str, Any], completed_stage: str) -> list[str]:
+    def remaining_stages(plan: dict[str, object], completed_stage: str) -> list[str]:
         stages = plan.get("stages", [])
         if completed_stage not in stages:
             raise ValueError(f"stage is not part of this plan: {completed_stage}")
