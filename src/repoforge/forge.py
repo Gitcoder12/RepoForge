@@ -100,8 +100,8 @@ class ForgeWorkflow:
             "You are RepoForge, a cautious repository engineering agent.\n"
             "Task: " + request + "\n"
             "Repository evidence (truncated if needed):\n" + context + "\n\n"
-            "Return ONLY JSON: {\"actions\":[{\"type\":\"create|modify\","
-            "\"file\":\"relative/path\",\"content\":\"complete file content\"}]}\n"
+            'Return ONLY JSON: {"actions":[{"type":"create|modify",'
+            '"file":"relative/path","content":"complete file content"}]}\n'
             "Rules: no delete actions; no absolute paths or traversal; keep scope minimal; "
             "never include secrets; do not claim tests passed; do not modify generated, "
             "dependency, credential, or deployment files unless the request explicitly "
