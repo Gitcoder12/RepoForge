@@ -78,7 +78,6 @@ def test_repository_context_is_bounded_and_skips_sensitive_files(tmp_path):
     assert "do-not-read" not in json.dumps(context)
 
 
-
 def test_forge_prefers_indexed_source_files_that_match_the_request(tmp_path):
     from repoforge.forge import ForgeWorkflow
 
