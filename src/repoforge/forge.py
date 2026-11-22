@@ -29,6 +29,9 @@ class ForgeWorkflow:
         ".env",
         ".ssh",
         ".aws",
+        ".npmrc",
+        ".pypirc",
+        ".netrc",
         ".venv",
         "venv",
         "node_modules",
@@ -73,7 +76,11 @@ class ForgeWorkflow:
                 raise ValueError(f"unsafe repository-relative path: {filepath!r}")
             if ":" in path.parts[0] or normalized.startswith("//"):
                 raise ValueError(f"unsafe repository-relative path: {filepath!r}")
-            if any(part.casefold() in cls.DENIED_PATH_PARTS for part in path.parts):
+            if any(
+                part.casefold() in cls.DENIED_PATH_PARTS
+                or part.casefold().startswith(".env.")
+                for part in path.parts
+            ):
                 raise ValueError(f"protected or sensitive path denied: {filepath!r}")
             if path.parts[0].casefold() == ".github" and len(path.parts) > 1:
                 if path.parts[1].casefold() == "workflows":
