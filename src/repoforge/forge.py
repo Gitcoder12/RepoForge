@@ -57,7 +57,11 @@ class ForgeWorkflow:
                 raise ValueError("each action requires a non-empty file path")
             normalized = filepath.replace("\\", "/")
             path = PurePosixPath(normalized)
-            if path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
+            raw_parts = normalized.split("/")
+            if (
+                path.is_absolute()
+                or any(part in {"", ".", ".."} for part in raw_parts)
+            ):
                 raise ValueError(f"unsafe repository-relative path: {filepath!r}")
             if ":" in path.parts[0] or normalized.startswith("//"):
                 raise ValueError(f"unsafe repository-relative path: {filepath!r}")
@@ -172,16 +176,27 @@ class ForgeWorkflow:
             report["mutation"] = runner.run(actions, dry_run=True)
 
         if report["mutation"].get("status") != "completed":
-            report["status"] = "blocked_or_previewed"
+            report["status"] = "blocked"
             return report
 
-        report["status"] = "applied"
+        if not apply:
+            report["status"] = "previewed"
+            return report
+
         report["post_validation"] = asyncio.run(Validator(root).validate())
+        if not report["post_validation"].get("passed"):
+            report["status"] = "applied_validation_failed"
+            return report
+
         if run_tests:
             report["test_execution"] = TestForge(root).run(execute=True, timeout=timeout)
+            if report["test_execution"].get("status") != "passed":
+                report["status"] = "applied_tests_failed"
+                return report
         else:
             report["test_execution"] = {
                 "status": "skipped",
                 "reason": "Pass --run-tests only for a repository whose code you trust.",
             }
+        report["status"] = "applied_and_validated"
         return report
