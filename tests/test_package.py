@@ -20,6 +20,8 @@ def test_package_version_and_cli_help() -> None:
     assert "generate" in result.stdout
     assert "blacksmith" in result.stdout
     assert "megazords" in result.stdout
+    assert "random-check" in result.stdout
+    assert "memory" in result.stdout
 
 
 def test_offline_provider_orchestration() -> None:
