@@ -13,7 +13,7 @@ import posixpath
 import re
 import tempfile
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 SCHEMA_VERSION = 1
@@ -479,9 +479,13 @@ class CodebaseIndexer:
             import_count += len(item["imports"])
         dependency_edges = sum(len(targets) for targets in dependencies.values())
 
+        repository_id = hashlib.sha256(
+            self.root.as_posix().casefold().encode("utf-8")
+        ).hexdigest()[:16]
         return {
             "schema_version": SCHEMA_VERSION,
             "repository": self.root.name,
+            "repository_id": repository_id,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "languages": dict(sorted(language_counts.items())),
             "summary": {
@@ -514,9 +518,24 @@ class CodebaseIndexer:
             not isinstance(cached, dict)
             or cached.get("schema_version") != SCHEMA_VERSION
             or cached.get("repository") != self.root.name
+            or cached.get("repository_id")
+            != hashlib.sha256(self.root.as_posix().casefold().encode("utf-8")).hexdigest()[:16]
             or not isinstance(cached.get("files"), list)
             or not isinstance(cached.get("inventory"), list)
             or not isinstance(cached.get("dependencies"), dict)
+            or any(
+                not isinstance(item, dict)
+                or not isinstance(item.get("path"), str)
+                or not isinstance(item.get("symbols"), list)
+                or not isinstance(item.get("imports"), list)
+                for item in cached.get("files", [])
+            )
+            or any(
+                not isinstance(path_item, str)
+                or not isinstance(targets, list)
+                or any(not isinstance(target, str) for target in targets)
+                for path_item, targets in cached.get("dependencies", {}).items()
+            )
         ):
             return None
         _, current_inventory = self._discover()
