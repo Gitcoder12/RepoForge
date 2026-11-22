@@ -14,6 +14,7 @@ def test_package_version_and_cli_help() -> None:
     result = CliRunner().invoke(app, ["--help"])
     assert result.exit_code == 0
     assert "validate" in result.stdout
+    assert "index" in result.stdout
     assert "version" in result.stdout
     assert "providers" in result.stdout
     assert "generate" in result.stdout

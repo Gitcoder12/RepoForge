@@ -76,3 +76,105 @@ def test_repository_context_is_bounded_and_skips_sensitive_files(tmp_path):
     assert "VALUE = 42" in context[0]["content"]
     assert "[REDACTED]" in context[0]["content"]
     assert "do-not-read" not in json.dumps(context)
+
+
+def test_forge_prefers_indexed_source_files_that_match_the_request(tmp_path):
+    from repoforge.forge import ForgeWorkflow
+
+    _write = tmp_path / "README.md"
+    _write.write_text("# Overview\n", encoding="utf-8")
+    router = tmp_path / "src" / "router.ts"
+    router.parent.mkdir()
+    router.write_text("export class Router {}\n", encoding="utf-8")
+
+    context = ForgeWorkflow._read_repository_context(
+        tmp_path, max_files=1, preferred_paths=["src/router.ts"]
+    )
+
+    assert context[0]["path"] == "src/router.ts"
+
+
+def test_forge_ranks_dictionary_paths_using_symbol_names_and_route_alias():
+    dictionary = {
+        "files": [
+            {
+                "path": "src/server.ts",
+                "symbols": [{"name": "startServer"}],
+            },
+            {
+                "path": "src/router/index.ts",
+                "symbols": [{"name": "Router"}],
+            },
+        ]
+    }
+
+    paths = ForgeWorkflow._rank_dictionary_paths("Add a route to Express", dictionary)
+
+    assert paths == ["src/router/index.ts"]
+
+
+def test_forge_prompt_places_repo_dictionary_before_source_context():
+    dictionary = {
+        "schema_version": 1,
+        "languages": {"typescript": 1},
+        "summary": {"indexed_files": 1, "symbols": 1},
+        "files": [
+            {
+                "path": "src/router.ts",
+                "language": "typescript",
+                "symbols": [{"kind": "class", "name": "Router", "line": 4, "end_line": 20}],
+                "imports": [],
+            }
+        ],
+        "dependencies": {"src/router.ts": []},
+    }
+
+    prompt = ForgeWorkflow._model_prompt(
+        "Add a route",
+        {"quality": 80},
+        {"commands": []},
+        [{"path": "src/router.ts", "content": "export class Router {}"}],
+        dictionary,
+    )
+
+    assert prompt.index('"repo_dictionary"') < prompt.index('"source_context"')
+    assert "Router" in prompt
+    assert "untrusted structural evidence" in prompt
+
+
+def test_forge_prompt_keeps_relevant_index_entries_ahead_of_large_repositories():
+    files = [
+        {
+            "path": f"src/module_{number:03}.py",
+            "language": "python",
+            "symbols": [],
+            "imports": [],
+        }
+        for number in range(150)
+    ]
+    files.append(
+        {
+            "path": "src/router/routes.py",
+            "language": "python",
+            "symbols": [{"kind": "class", "name": "Router", "line": 10, "end_line": 80}],
+            "imports": [],
+        }
+    )
+    dictionary = {
+        "schema_version": 1,
+        "languages": {"python": len(files)},
+        "summary": {"indexed_files": len(files)},
+        "files": files,
+        "dependencies": {},
+    }
+
+    prompt = ForgeWorkflow._model_prompt(
+        "Add a route",
+        {},
+        {},
+        [],
+        dictionary,
+    )
+
+    assert '"path": "src/router/routes.py"' in prompt
+    assert '"name": "Router"' in prompt
