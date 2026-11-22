@@ -12,8 +12,8 @@ from typing import Any
 from repoforge.action_runner import ActionRunner
 from repoforge.blacksmith import Blacksmith
 from repoforge.dictionary import CodebaseIndexer
-from repoforge.testing import TestForge
 from repoforge.memory import MemoryContextStore
+from repoforge.testing import TestForge
 from repoforge.validator import Validator
 
 
