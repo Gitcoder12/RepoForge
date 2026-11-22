@@ -69,6 +69,8 @@ JS_VARIABLE = re.compile(
 GO_FUNCTION = re.compile(r"(?m)^\s*func\s+(?:\([^\n)]*\)\s*)?([A-Za-z_]\w*)\s*\(")
 GO_TYPE = re.compile(r"(?m)^\s*type\s+([A-Za-z_]\w*)\s+")
 GO_CONST = re.compile(r"(?m)^\s*const\s+([A-Za-z_]\w*)\b")
+GO_CONST_GROUP = re.compile(r"(?ms)^\s*const\s*\((.*?)^\s*\)")
+GO_CONST_ENTRY = re.compile(r"(?m)^\s*([A-Za-z_]\w*)\b")
 GO_IMPORT_DECL = re.compile(r'(?m)^\s*import\s+(?:\(\s*([\s\S]*?)\s*\)|"([^"]+)")')
 GO_QUOTED_IMPORT = re.compile(r'"([^"]+)"')
 GO_MODULE = re.compile(r"(?m)^\s*module\s+([^\s]+)")
@@ -285,11 +287,23 @@ class CodebaseIndexer:
                     line=line,
                     signature=self._line_signature(source, line),
                 )
+        for group in GO_CONST_GROUP.finditer(source):
+            block = group.group(1)
+            for match in GO_CONST_ENTRY.finditer(block):
+                line = source.count("\n", 0, group.start(1) + match.start()) + 1
+                self._add_symbol(
+                    symbols,
+                    kind="constant",
+                    name=match.group(1),
+                    line=line,
+                    signature=self._line_signature(source, line),
+                )
         for match in GO_IMPORT_DECL.finditer(source):
             block = match.group(1) or match.group(2) or ""
+            block_start = match.start(1) if match.group(1) is not None else match.start(2)
             for quoted in GO_QUOTED_IMPORT.finditer(block):
                 module = quoted.group(1)
-                line = source.count("\n", 0, match.start() + quoted.start()) + 1
+                line = source.count("\n", 0, block_start + quoted.start()) + 1
                 imports.append({"module": module, "line": line, "names": []})
                 self._add_symbol(
                     symbols,
