@@ -152,7 +152,8 @@ def test_random_audit_is_seeded_read_only_and_never_executes_tests(tmp_path: Pat
         item["checks"]["test_discovery"]["execution_performed"] is False
         for item in first["repositories"]
     )
-    assert all(item["checks"]["codebase_index"]["persisted"] is False for item in first["repositories"])
+    for item in first["repositories"]:
+        assert item["checks"]["codebase_index"]["persisted"] is False
     assert not any((repository / "EXECUTED_BY_REPOFORGE").exists() for repository in repositories)
     after = {
         str(path.relative_to(workspace)): path.read_bytes()
