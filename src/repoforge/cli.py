@@ -442,7 +442,7 @@ def forge_command(
         rendered = json.dumps(report, indent=2, ensure_ascii=False, default=str)
         if output is not None:
             output.parent.mkdir(parents=True, exist_ok=True)
-            output.write_text(rendered + "\\n", encoding="utf-8")
+            output.write_text(rendered + "\n", encoding="utf-8")
             typer.echo(f"Report written to {output}")
         typer.echo(rendered)
     except (ValueError, OSError, RuntimeError) as exc:
