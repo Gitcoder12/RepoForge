@@ -181,7 +181,13 @@ def test_forge_prompt_keeps_relevant_index_entries_ahead_of_large_repositories()
 
 
 def test_forge_prompt_includes_only_the_selected_project_memory():
-    dictionary = {"schema_version": 1, "languages": {}, "summary": {}, "files": [], "dependencies": {}}
+    dictionary = {
+        "schema_version": 1,
+        "languages": {},
+        "summary": {},
+        "files": [],
+        "dependencies": {},
+    }
     prompt = ForgeWorkflow._model_prompt(
         "Review this API",
         {},
@@ -191,7 +197,10 @@ def test_forge_prompt_includes_only_the_selected_project_memory():
         memory_context={
             "name": "api-audit",
             "notes": [
-                {"created_at": "2026-11-22T00:00:00+00:00", "text": "Keep v1 response fields stable."}
+                {
+                    "created_at": "2026-11-22T00:00:00+00:00",
+                    "text": "Keep v1 response fields stable.",
+                }
             ],
         },
     )
