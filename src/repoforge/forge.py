@@ -77,8 +77,7 @@ class ForgeWorkflow:
             if ":" in path.parts[0] or normalized.startswith("//"):
                 raise ValueError(f"unsafe repository-relative path: {filepath!r}")
             if any(
-                part.casefold() in cls.DENIED_PATH_PARTS
-                or part.casefold().startswith(".env.")
+                part.casefold() in cls.DENIED_PATH_PARTS or part.casefold().startswith(".env.")
                 for part in path.parts
             ):
                 raise ValueError(f"protected or sensitive path denied: {filepath!r}")
