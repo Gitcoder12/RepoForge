@@ -11,13 +11,14 @@ def test_parse_actions_accepts_valid_json_and_fenced_json():
             {
                 "type": "create",
                 "file": "tests/test_new.py",
-                "content": "def test_ok():\\n    assert True\\n",
+                "content": "def test_ok():\n    assert True\n",
             }
         ]
     }
     encoded = json.dumps(payload)
     assert ForgeWorkflow.parse_actions(encoded) == payload["actions"]
-    assert ForgeWorkflow.parse_actions(f"```json\\n{encoded}\\n```") == payload["actions"]
+    fenced = "```json\n" + encoded + "\n```"
+    assert ForgeWorkflow.parse_actions(fenced) == payload["actions"]
 
 
 @pytest.mark.parametrize(
