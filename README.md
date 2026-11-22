@@ -80,6 +80,45 @@ Adapters are extensible from Python code with the public `LanguageAdapter` and `
 
 Forge checks an existing dictionary against the current source-file inventory before reusing it. If it is missing or stale, Forge builds a fresh in-memory index for that run instead of silently trusting old metadata. The index guides file and symbol discovery; Forge must still inspect the actual source before proposing a patch.
 
+### Randomly sample repositories and run safe checks
+
+Point RepoForge at a workspace containing local Git repositories. It randomly selects a bounded sample and runs metadata-only checks: repository hygiene, test-command discovery, and an in-memory RepoDictionary index.
+
+\`\`\`powershell
+# Pick 4 local repositories; the seed makes the selection repeatable
+repoforge random-check "C:\Users\satvik\Projects" --count 4 --seed 123
+
+# Optionally save a short audit summary in each selected repository's separate memory
+repoforge random-check "C:\Users\satvik\Projects" --count 4 --remember --context random-audits
+\`\`\`
+
+\`random-check\` never clones repositories, executes their test suites, writes \`repo_dictionary.json\`, or edits target files. TestForge only discovers candidate commands. The returned seed can be reused to reproduce the same selection while the workspace contents remain unchanged. The hygiene score is a heuristic, not a security certification. An optional \`--output report.json\` must point outside every discovered Git repository.
+
+### Isolated project memory and context switching
+
+Project memory is stored outside repository folders and keyed by the canonical local repository path. Each clone therefore gets its own context list and active-context pointer; switching one project does not switch another.
+
+\`\`\`powershell
+# Create independent contexts
+repoforge memory create ..\service-api backend-audit
+repoforge memory create ..\service-api release-notes --no-activate
+
+# Add a note to the active context or select one explicitly
+repoforge memory note ..\service-api "Keep existing REST response fields backwards compatible."
+repoforge memory note ..\service-api "Release window is next Friday." --context release-notes
+
+# Switch, inspect, and list contexts for that repository
+repoforge memory switch ..\service-api release-notes
+repoforge memory list ..\service-api
+repoforge memory show ..\service-api
+
+# Forge automatically loads that repository's active context.
+# --memory-context selects an inactive context for one run without switching it.
+repoforge forge ..\service-api "Review the release checklist" --memory-context release-notes
+\`\`\`
+
+Memory is user-controlled note storage, not automatic conversation capture. Notes are bounded and obvious key/value credentials are redacted before saving. Forge treats project notes as historical context, not trusted instructions; current source and the current request take precedence. Memory storage defaults to the user data directory (\`%LOCALAPPDATA%\RepoForge\memory\` on Windows, or \`$XDG_DATA_HOME/repoforge/memory\` on Linux/macOS). Set \`REPOFORGE_HOME\` to choose another storage base. Moving a clone to a different local path creates a separate memory identity.
+
 ### 3. Safely inspect a repository (read-only)
 
 ```bash
