@@ -205,7 +205,11 @@ class CodebaseIndexer:
             elif isinstance(node, ast.Import):
                 for alias in node.names:
                     imports.append(
-                        {"module": alias.name, "names": [alias.asname or alias.name], "line": node.lineno}
+                        {
+                            "module": alias.name,
+                            "names": [alias.asname or alias.name],
+                            "line": node.lineno,
+                        }
                     )
                     self._add_symbol(
                         symbols,
