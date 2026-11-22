@@ -929,10 +929,14 @@ class CodebaseIndexer:
             value = value.split("::", 1)[1] if "::" in value else value
         if "::" in value and not value.startswith(":"):
             value = value.replace("::", "/")
-        dotted_module = bool(re.fullmatch(r"[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+", value))
+        indexed_suffixes = {Path(path).suffix.casefold() for path in indexed_paths}
+        has_known_suffix = Path(value).suffix.casefold() in indexed_suffixes
+        dotted_module = (
+            not has_known_suffix
+            and bool(re.fullmatch(r"[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+", value))
+        )
         if dotted_module:
             value = value.replace(".", "/")
-        indexed_suffixes = {Path(path).suffix.casefold() for path in indexed_paths}
         has_path_shape = (
             rust_module
             or dotted_module
