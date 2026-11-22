@@ -931,9 +931,8 @@ class CodebaseIndexer:
             value = value.replace("::", "/")
         indexed_suffixes = {Path(path).suffix.casefold() for path in indexed_paths}
         has_known_suffix = Path(value).suffix.casefold() in indexed_suffixes
-        dotted_module = (
-            not has_known_suffix
-            and bool(re.fullmatch(r"[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+", value))
+        dotted_module = not has_known_suffix and bool(
+            re.fullmatch(r"[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+", value)
         )
         if dotted_module:
             value = value.replace(".", "/")
