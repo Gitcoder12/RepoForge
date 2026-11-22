@@ -20,8 +20,13 @@ modify files.
 repoforge forge ./repo "add focused unit tests" --provider ollama
 ```
 
-Select a provider explicitly. Remote providers may incur charges. RepoForge
-does not silently switch providers or fabricate model output.
+Select a provider explicitly. RepoForge sends a bounded sample of relevant
+source, test, README, and manifest content to that provider to ground its patch
+proposal. Obvious credential assignments are redacted and sensitive filenames
+are excluded, but this is not a perfect secret scanner. Do not send confidential
+repositories to a remote provider unless your organization's policy permits it;
+use a local provider such as Ollama when appropriate. Remote providers may incur
+charges. RepoForge does not silently switch providers or fabricate model output.
 
 ## Apply only after reviewing exact paths
 
