@@ -4,6 +4,7 @@ This module never controls clocks, fans, power limits, or device resets. It emit
 bounded recommendations for an orchestrator; the driver remains responsible for
 hardware thermal protection.
 """
+
 from __future__ import annotations
 
 import math
