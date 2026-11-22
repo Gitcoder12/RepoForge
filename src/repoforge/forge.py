@@ -170,8 +170,8 @@ class ForgeWorkflow:
             if "\x00" in source:
                 continue
             source = re.sub(
-                r"""(?im)(api[_-]?key|secret|token|password|authorization|private[_-]?key)\\s*([=:]\\s*)(["'][^"']*["']|[^\\s,;]+)""",
-                r"\\1\\2[REDACTED]",
+                r"""(?im)(api[_-]?key|secret|token|password|authorization|private[_-]?key)\s*([=:]\s*)(["'][^"']*["']|[^\s,;]+)""",
+                r"\1\2[REDACTED]",
                 source,
             )
             remaining = max_chars - used_chars
