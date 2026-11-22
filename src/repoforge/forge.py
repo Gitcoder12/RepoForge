@@ -206,13 +206,19 @@ class ForgeWorkflow:
 
         if run_tests:
             report["test_execution"] = TestForge(root).run(execute=True, timeout=timeout)
-            if report["test_execution"].get("status") != "passed":
+            test_status = report["test_execution"].get("status")
+            if test_status in {"failed", "scan_incomplete"}:
                 report["status"] = "applied_tests_failed"
                 return report
-        else:
-            report["test_execution"] = {
-                "status": "skipped",
-                "reason": "Pass --run-tests only for a repository whose code you trust.",
-            }
+            if test_status == "passed":
+                report["status"] = "applied_and_tested"
+                return report
+            report["status"] = "applied_validated_no_tests_detected"
+            return report
+
+        report["test_execution"] = {
+            "status": "skipped",
+            "reason": "Pass --run-tests only for a repository whose code you trust.",
+        }
         report["status"] = "applied_and_validated"
         return report
