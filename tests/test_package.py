@@ -243,7 +243,10 @@ def test_validate_cli_only_reports_failed_files_and_shows_threats(tmp_path) -> N
             {
                 "file": "review.py",
                 "passed": False,
-                "threats": ["REVIEW: Potentially destructive operation 'subprocess.run()' at line 4"],
+                "threats": [
+                    "REVIEW: Potentially destructive operation "
+                    "'subprocess.run()' at line 4"
+                ],
             },
             {"file": "broken.py", "passed": False, "error": "line 2: invalid syntax"},
         ],
