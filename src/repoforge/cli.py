@@ -22,6 +22,52 @@ def version() -> None:
     typer.echo(f"RepoForge {__version__}")
 
 
+@app.command("index")
+def index_command(
+    repo_path: Path = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=False,
+        readable=True,
+        help="Repository to index (Python, JavaScript/TypeScript, and Go).",
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="JSON destination; defaults to <repository>/repo_dictionary.json.",
+    ),
+    max_files: int = typer.Option(10_000, "--max-files", min=1, max=100_000),
+    max_file_bytes: int = typer.Option(1_000_000, "--max-file-bytes", min=1),
+) -> None:
+    """Build a JSON dictionary of source files, symbols, imports, and local dependencies."""
+    from repoforge.dictionary import CodebaseIndexer
+
+    try:
+        indexer = CodebaseIndexer(
+            repo_path,
+            max_files=max_files,
+            max_file_bytes=max_file_bytes,
+        )
+        index = indexer.build()
+        destination = output or (repo_path / "repo_dictionary.json")
+        written = indexer.write_json(index, destination)
+    except (OSError, ValueError) as exc:
+        typer.echo(f"Index failed: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+
+    summary = index["summary"]
+    typer.echo(
+        f"Indexed {summary['indexed_files']} files, {summary['symbols']} symbols, "
+        f"{summary['dependency_edges']} local dependency edges."
+    )
+    if summary["skipped_files"]:
+        typer.echo(f"Skipped {summary['skipped_files']} files (limits or unsupported content).")
+    if summary["parse_errors"]:
+        typer.echo(f"Python parse errors: {summary['parse_errors']}.")
+    typer.echo(f"Dictionary written: {written}")
+
+
 @app.command()
 def validate(
     repo_path: Path = typer.Argument(Path("."), exists=True, file_okay=False, readable=True),
