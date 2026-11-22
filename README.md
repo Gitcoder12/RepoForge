@@ -41,7 +41,18 @@ python -m pip install --upgrade pip
 pip install -e ".[dev]"
 ```
 
-If PowerShell blocks activation:
+### Install (macOS / Linux)
+
+```bash
+git clone https://github.com/Gitcoder12/RepoForge.git
+cd RepoForge
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+```
+
+### If PowerShell blocks activation:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
@@ -118,101 +129,6 @@ pytest -q
 ```
 
 **Important safety boundary:** TestForge's `--execute` and Forge's `--run-tests` execute target-repository test code. Execution is not OS-sandboxed. Do not run tests from untrusted repositories. Start with the read-only commands above; do not use `--apply` on ARK or another important working tree during your first test.
-
----
-
-## Commands — copy, paste, run
-
-RepoForge is a local terminal CLI. Run these from the RepoForge folder.
-
-### Install (Windows PowerShell)
-
-```powershell
-git clone https://github.com/Gitcoder12/RepoForge.git
-cd RepoForge
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -e ".[dev]"
-```
-
-If PowerShell blocks activation:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\.venv\Scripts\Activate.ps1
-```
-
-### 1. See commands
-
-```bash
-repoforge --help
-repoforge version
-```
-
-### 2. Safely inspect a repository (read-only)
-
-```bash
-repoforge blacksmith ../ARK
-repoforge validate ../ARK
-```
-
-### 3. Discover tests without executing them
-
-```bash
-repoforge test ../ARK
-```
-
-This prints detected test commands. It does not run them by default.
-
-### 4. Preview Forge (read-only)
-
-```bash
-repoforge forge ../ARK "Review the repository, identify risks, and propose prioritized improvements"
-```
-
-No model provider is selected and no files are changed in this default preview.
-
-### 5. Ask a model for a proposal (still no file changes)
-
-Configure a provider credential in your environment, then check it:
-
-```bash
-repoforge providers
-repoforge forge ../ARK "Propose a small documentation improvement" --provider deepseek
-```
-
-Provider availability depends on your credentials and network. Model calls may incur charges. Review the proposed paths and changes before applying anything.
-
-### 6. Apply only exact approved paths
-
-Use a disposable test repository or a clean Git branch. Replace `README.md` with the exact repository-relative path you reviewed:
-
-```bash
-repoforge forge ../ARK "Improve installation instructions" --provider deepseek --apply --approve README.md
-```
-
-Repeat `--approve PATH` for every path you explicitly authorize. Forge requires explicit apply approval and a clean working tree. Inspect the result immediately:
-
-```bash
-git -C ../ARK status --short
-git -C ../ARK diff
-```
-
-### 7. Compare model endpoints
-
-```bash
-repoforge model-lab --catalog
-repoforge model-lab --target deepseek:deepseek-flash --output model-lab.json
-```
-
-### 8. Run RepoForge's own tests
-
-```bash
-pytest -q
-```
-
-**Important:** TestForge's `--execute` and Forge's `--run-tests` execute target-repository test code. This is not OS-sandboxed. Never run tests from an untrusted repository. For your first test, stick to the read-only commands above and do not apply changes to ARK or another important working tree.
 
 ---
 
@@ -418,48 +334,9 @@ repoforge megazords ../ARK ../Overdrive ../Chaos-Control
 
 The current Blacksmith repair adapter is intentionally narrow; arbitrary semantic code repair is not yet implemented. See [docs/BLACKSMITH_MEGazords.md](docs/BLACKSMITH_MEGazords.md) for scoring, safety boundaries and limitations.
 
-## Run RepoForge from VS Code
+## Running from VS Code
 
-RepoForge is a terminal-first CLI; it does not require a separate website.
-
-### Windows (PowerShell)
-
-```powershell
-git clone https://github.com/Gitcoder12/RepoForge.git
-cd RepoForge
-py -3 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -e ".[dev]"
-python -m repoforge --help
-```
-
-If PowerShell blocks environment activation, allow it for this terminal session only:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\.venv\Scripts\Activate.ps1
-```
-
-### macOS / Linux
-
-```bash
-git clone https://github.com/Gitcoder12/RepoForge.git
-cd RepoForge
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -e ".[dev]"
-python -m repoforge --help
-```
-
-To inspect another local repository:
-
-```bash
-repoforge blacksmith /path/to/your/repository
-```
-
-Use `--apply` only after reviewing the preview. TestForge execution is not OS-sandboxed; do not execute tests from untrusted repositories. The `repoforge upgrade` command is not available on the current default branch unless its feature PR is merged.
+Open the integrated terminal at the repository root and follow the single [Commands guide](#commands--copy-paste-run) above. It contains the installation and usage commands for Windows, macOS and Linux.
 
 ---
 
@@ -467,19 +344,7 @@ Use `--apply` only after reviewing the preview. TestForge execution is not OS-sa
 
 # Usage
 
-Run RepoForge:
-
-```bash
-python -m repoforge forge <repository> "<task>"
-```
-
-Example:
-
-```bash
-python -m repoforge forge ../FastAPI-Test "Analyze architecture and improve quality"
-```
-
----
+Use the central [Commands guide](#commands--copy-paste-run) for the current CLI entry points and examples.
 
 # Example Execution
 
