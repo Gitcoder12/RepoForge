@@ -111,14 +111,22 @@ class ForgeWorkflow:
             ".md", ".toml",
         }
         denied_names = {
-            ".env", ".npmrc", ".pypirc", ".netrc", "credentials", "credentials.json",
-            "secrets.json", "id_rsa", "id_ed25519",
+            ".env",
+            ".npmrc",
+            ".pypirc",
+            ".netrc",
+            "credentials",
+            "credentials.json",
+            "secrets.json",
+            "id_rsa",
+            "id_ed25519",
         }
         candidates: list[Path] = []
         for current, directories, filenames in os.walk(root, topdown=True, followlinks=False):
             current_path = Path(current)
             directories[:] = [
-                name for name in directories
+                name
+                for name in directories
                 if name.casefold() not in ignored_dirs and not (current_path / name).is_symlink()
             ]
             for filename in filenames:
@@ -178,9 +186,7 @@ class ForgeWorkflow:
             excerpt = source[: min(5_000, remaining)]
             if not excerpt:
                 break
-            context.append(
-                {"path": candidate.relative_to(root).as_posix(), "content": excerpt}
-            )
+            context.append({"path": candidate.relative_to(root).as_posix(), "content": excerpt})
             used_chars += len(excerpt)
         return context
 
