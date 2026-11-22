@@ -4,8 +4,6 @@ This module resolves an execution contract. It does not execute target-repositor
 or silently grant permission to apply changes.
 """
 
-from __future__ import annotations
-
 from dataclasses import asdict, dataclass
 
 
