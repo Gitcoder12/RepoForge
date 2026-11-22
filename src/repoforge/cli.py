@@ -397,3 +397,54 @@ def model_lab_command(
     except (ValueError, OSError) as exc:
         typer.echo(f"Model Lab error: {exc}", err=True)
         raise typer.Exit(code=2) from exc
+
+
+@app.command("forge")
+def forge_command(
+    repo_path: Path = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=False,
+        readable=True,
+        help="Local Git repository to inspect and improve.",
+    ),
+    request: str = typer.Argument(..., help="Requested repository improvement."),
+    provider: str | None = typer.Option(
+        None, "--provider", help="Explicit model provider; omitted means read-only inspection."
+    ),
+    model: str | None = typer.Option(None, "--model", help="Optional model override."),
+    apply: bool = typer.Option(
+        False, "--apply", help="Apply proposed changes after exact path approvals."
+    ),
+    approve: list[str] = typer.Option(
+        [], "--approve", help="Exact repository-relative path to approve; repeat as needed."
+    ),
+    run_tests: bool = typer.Option(
+        False, "--run-tests", help="Run target tests after apply; only for trusted repositories."
+    ),
+    timeout: int = typer.Option(120, "--timeout", min=1, max=1800),
+    output: Path | None = typer.Option(None, "--output", help="Optional JSON report path."),
+) -> None:
+    """Run the integrated inspect → plan → propose → approve → validate workflow."""
+    from repoforge.forge import ForgeWorkflow
+
+    try:
+        report = ForgeWorkflow().run(
+            repo_path,
+            request,
+            provider=provider,
+            model=model,
+            apply=apply,
+            approved_paths=set(approve),
+            run_tests=run_tests,
+            timeout=timeout,
+        )
+        rendered = json.dumps(report, indent=2, ensure_ascii=False, default=str)
+        if output is not None:
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_text(rendered + "\n", encoding="utf-8")
+            typer.echo(f"Report written to {output}")
+        typer.echo(rendered)
+    except (ValueError, OSError, RuntimeError) as exc:
+        typer.echo(f"Forge failed safely: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
