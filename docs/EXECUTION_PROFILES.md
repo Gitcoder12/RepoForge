@@ -38,3 +38,14 @@ reduce, but never expand, the profile's hard limits.
 
 Evolution depth does not force changes. E4 is a maximum requested scope, not a
 goal; if the repository is already healthy, the correct outcome may be no change.
+
+## Evolution levels
+
+- **E0 Discover** — inventory and baseline; no changes.
+- **E1 Stabilize** — bounded bug, test and reliability fixes.
+- **E2 Improve** — targeted security, maintainability, documentation and test improvements.
+- **E3 Optimize** — measured performance and architecture optimization.
+- **E4 Evolve** — major architecture or capability proposals; proposal-first and human-approved.
+
+Evolution level expresses the maximum requested scope. It does not require RepoForge to
+make changes, and higher levels are not automatically better.
