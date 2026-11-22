@@ -185,7 +185,11 @@ def run_random_audit(
         raise ValueError("count must be an integer between 1 and 100")
     if seed is not None and (isinstance(seed, bool) or not isinstance(seed, int)):
         raise ValueError("seed must be an integer")
-    if isinstance(max_files, bool) or not isinstance(max_files, int) or not 1 <= max_files <= 100_000:
+    if (
+        isinstance(max_files, bool)
+        or not isinstance(max_files, int)
+        or not 1 <= max_files <= 100_000
+    ):
         raise ValueError("max_files must be an integer between 1 and 100000")
     if not isinstance(remember, bool):
         raise ValueError("remember must be a boolean")
@@ -253,7 +257,8 @@ def run_random_audit(
         "limitations": [
             "Only local Git repositories under the supplied workspace are eligible.",
             "TestForge discovers test commands but does not execute them.",
-            "Repository hygiene scores are heuristics, not code-quality or security certifications.",
+            "Repository hygiene scores are heuristics, not code-quality "
+            "or security certifications.",
             "The random sample is reproducible when the returned seed is reused.",
         ],
     }
