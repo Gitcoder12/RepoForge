@@ -235,6 +235,7 @@ def test_generate_cli_uses_the_orchestrator_for_explicit_provider():
 
 
 def test_validate_cli_only_reports_failed_files_and_shows_threats(tmp_path) -> None:
+    threat_message = "REVIEW: Potentially destructive operation 'subprocess.run()' at line 4"
     result_data = {
         "passed": False,
         "reason": "validation_failed",
@@ -243,7 +244,7 @@ def test_validate_cli_only_reports_failed_files_and_shows_threats(tmp_path) -> N
             {
                 "file": "review.py",
                 "passed": False,
-                "threats": ["REVIEW: Potentially destructive operation 'subprocess.run()' at line 4"],
+                "threats": [threat_message],
             },
             {"file": "broken.py", "passed": False, "error": "line 2: invalid syntax"},
         ],
