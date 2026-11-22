@@ -28,6 +28,9 @@ def test_parse_actions_accepts_valid_json_and_fenced_json():
         {"type": "create", "file": "../escape.py", "content": ""},
         {"type": "modify", "file": "/etc/passwd", "content": ""},
         {"type": "create", "file": "C:/Windows/file", "content": ""},
+        {"type": "modify", "file": ".env", "content": "SECRET=value"},
+        {"type": "create", "file": ".git/config", "content": "unsafe"},
+        {"type": "create", "file": ".github/workflows/ci.yml", "content": "unsafe"},
         {"type": "create", "file": "safe.py", "content": 42},
     ],
 )
@@ -48,3 +51,11 @@ def test_parse_actions_rejects_duplicate_paths():
 def test_parse_actions_rejects_non_object_envelope():
     with pytest.raises(ValueError, match="JSON object"):
         ForgeWorkflow.parse_actions('{"actions": "not-a-list"}')
+
+
+
+def test_forge_defaults_to_read_only_inspection(tmp_path):
+    report = ForgeWorkflow().run(tmp_path, "add tests")
+    assert report["status"] == "plan_only"
+    assert report["safety"]["default_read_only"] is True
+    assert report["mutation"]["status"] == "not_requested"
