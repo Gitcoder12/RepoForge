@@ -53,7 +53,6 @@ def test_parse_actions_rejects_non_object_envelope():
         ForgeWorkflow.parse_actions('{"actions": "not-a-list"}')
 
 
-
 def test_forge_defaults_to_read_only_inspection(tmp_path):
     report = ForgeWorkflow().run(tmp_path, "add tests")
     assert report["status"] == "plan_only"
