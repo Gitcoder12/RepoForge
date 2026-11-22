@@ -21,19 +21,21 @@ class ExecutionProfile:
     max_minutes: int
     max_iterations: int
     stages: tuple[str, ...]
+    default_stop_after: str
 
 
 PROFILES = {
     "quick": ExecutionProfile(
         "quick", "Fast, focused repository pass.", 3, 0,
-        ("inspect", "plan", "patch", "validate"),
+        ("inspect", "plan", "patch", "validate"), "validate",
     ),
     "standard": ExecutionProfile(
         "standard", "Balanced improvement with a bounded iteration.", 15, 1,
-        ("inspect", "plan", "patch", "validate", "iterate"),
+        ("inspect", "plan", "patch", "validate", "iterate"), "validate",
     ),
     "deep": ExecutionProfile(
         "deep", "Thorough, multi-stage repository evolution.", 45, 3, STAGES,
+        "release_ready",
     ),
 }
 
@@ -56,7 +58,7 @@ class ExecutionProfilePlanner:
             raise ValueError(f"evolution must be one of: {', '.join(EVOLUTION_LEVELS)}")
 
         selected = PROFILES[profile]
-        stop = stop_after or selected.stages[-1]
+        stop = stop_after or selected.default_stop_after
         if stop not in selected.stages:
             raise ValueError(
                 f"stop_after must be one of this profile's stages: {', '.join(selected.stages)}"
