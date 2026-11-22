@@ -205,6 +205,7 @@ def test_forge_prompt_includes_only_the_selected_project_memory():
         },
     )
 
+    assert prompt.index('"project_memory"') < prompt.index('"repo_dictionary"')
     assert '"context": "api-audit"' in prompt
     assert "Keep v1 response fields stable." in prompt
     assert "historical context" in prompt
