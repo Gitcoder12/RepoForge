@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import re
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -96,12 +97,99 @@ class ForgeWorkflow:
         return actions
 
     @staticmethod
-    def _model_prompt(request: str, snapshot: dict[str, Any], test_plan: dict[str, Any]) -> str:
+    def _read_repository_context(root: Path, *, max_files: int = 16, max_chars: int = 36_000) -> list[dict[str, str]]:
+        """Read a small, safe source sample without following symlinks or reading secrets."""
+        ignored_dirs = {
+            ".git", ".venv", "venv", "node_modules", "__pycache__", "dist", "build",
+            ".pytest_cache", ".mypy_cache", ".ruff_cache", ".idea", ".next",
+        }
+        allowed_suffixes = {
+            ".py", ".pyi", ".js", ".jsx", ".mjs", ".ts", ".tsx", ".go", ".rs",
+            ".java", ".kt", ".cs", ".rb", ".php", ".swift", ".dart", ".sql",
+            ".md", ".toml", ".yaml", ".yml", ".json",
+        }
+        denied_names = {
+            ".env", ".npmrc", ".pypirc", ".netrc", "credentials", "credentials.json",
+            "secrets.json", "id_rsa", "id_ed25519",
+        }
+        candidates: list[Path] = []
+        for current, directories, filenames in os.walk(root, topdown=True, followlinks=False):
+            current_path = Path(current)
+            directories[:] = [
+                name for name in directories
+                if name.casefold() not in ignored_dirs and not (current_path / name).is_symlink()
+            ]
+            for filename in filenames:
+                candidate = current_path / filename
+                folded = filename.casefold()
+                if (
+                    candidate.is_symlink()
+                    or candidate.suffix.casefold() not in allowed_suffixes
+                    or folded in denied_names
+                    or folded.startswith(".env.")
+                    or any(token in folded for token in ("secret", "credential", "private_key"))
+                    or folded in {"package-lock.json", "pnpm-lock.yaml", "yarn.lock", "poetry.lock"}
+                ):
+                    continue
+                try:
+                    resolved = candidate.resolve(strict=True)
+                    resolved.relative_to(root)
+                    if resolved.stat().st_size > 16_000:
+                        continue
+                except (OSError, RuntimeError, ValueError):
+                    continue
+                candidates.append(resolved)
+
+        def priority(candidate: Path) -> tuple[int, str]:
+            relative = candidate.relative_to(root).as_posix()
+            name = candidate.name.casefold()
+            if name.startswith("readme") or name in {"pyproject.toml", "package.json", "go.mod"}:
+                rank = 0
+            elif "src" in candidate.relative_to(root).parts:
+                rank = 1
+            elif "tests" in candidate.relative_to(root).parts or "test" in candidate.parts:
+                rank = 2
+            else:
+                rank = 3
+            return rank, relative
+
+        context: list[dict[str, str]] = []
+        used_chars = 0
+        for candidate in sorted(set(candidates), key=priority):
+            if len(context) >= max_files or used_chars >= max_chars:
+                break
+            try:
+                source = candidate.read_text(encoding="utf-8")
+            except (OSError, UnicodeError):
+                continue
+            if "\\x00" in source:
+                continue
+            remaining = max_chars - used_chars
+            excerpt = source[: min(5_000, remaining)]
+            if not excerpt:
+                break
+            context.append(
+                {"path": candidate.relative_to(root).as_posix(), "content": excerpt}
+            )
+            used_chars += len(excerpt)
+        return context
+
+    @staticmethod
+    def _model_prompt(
+        request: str,
+        snapshot: dict[str, Any],
+        test_plan: dict[str, Any],
+        repository_context: list[dict[str, str]],
+    ) -> str:
         context = json.dumps(
-            {"repository_snapshot": snapshot, "test_plan": test_plan},
+            {
+                "repository_snapshot": snapshot,
+                "test_plan": test_plan,
+                "source_context": repository_context,
+            },
             ensure_ascii=False,
             default=str,
-        )[:14_000]
+        )[:40_000]
         return (
             "You are RepoForge, a cautious repository engineering agent.\n"
             "Task: " + request + "\n"
@@ -139,6 +227,7 @@ class ForgeWorkflow:
         snapshot = Blacksmith(root).inspect()
         test_plan = TestForge(root).plan()
         validation = asyncio.run(Validator(root).validate())
+        repository_context = self._read_repository_context(root)
         report: dict[str, Any] = {
             "engine": "RepoForge Forge",
             "repository": str(root),
@@ -147,6 +236,7 @@ class ForgeWorkflow:
             "inspection": snapshot,
             "test_plan": test_plan,
             "preflight_validation": validation,
+            "context_files": [item["path"] for item in repository_context],
             "actions": [],
             "mutation": {"status": "not_requested"},
             "post_validation": None,
@@ -172,7 +262,7 @@ class ForgeWorkflow:
         orchestrator = AIOrchestrator()
         orchestrator.register_real_provider(provider, model=model)
         response = orchestrator.generate(
-            self._model_prompt(request, snapshot, test_plan),
+            self._model_prompt(request, snapshot, test_plan, repository_context),
             provider=provider.strip().lower(),
             max_tokens=8192,
         )
