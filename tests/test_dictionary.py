@@ -16,7 +16,15 @@ def _write(path: Path, text: str) -> None:
 
 
 def test_indexes_python_typescript_and_go_symbols_and_local_dependencies(tmp_path) -> None:
-    app_source = "import os\nfrom helpers import greet\n\nclass App:\n    pass\n\ndef main():\n    greet()\n"
+    app_source = """import os
+from helpers import greet
+
+class App:
+    pass
+
+def main():
+    greet()
+"""
     _write(tmp_path / "app.py", app_source)
     _write(tmp_path / "helpers.py", "def greet(name: str = 'world'):\n    return name\n")
     _write(
