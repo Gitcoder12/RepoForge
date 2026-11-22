@@ -38,6 +38,9 @@ MAX_OUTPUT_BYTES = 8_000
 class TestForge:
     """Detect conventional test runners and execute them only after opt-in."""
 
+    # Prevent pytest from treating this imported helper as a test class.
+    __test__ = False
+
     def __init__(self, repo_path: str | Path = ".", *, max_files: int = DEFAULT_MAX_FILES) -> None:
         self.repo_path = Path(repo_path).expanduser().resolve()
         if not self.repo_path.is_dir():
