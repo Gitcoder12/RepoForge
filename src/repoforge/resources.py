@@ -15,13 +15,13 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 from urllib.parse import urlparse
 from xml.etree import ElementTree
 
 
-class ResourceKind(StrEnum):
+class ResourceKind(str, Enum):
     NEWS = "news"
     RESEARCH = "research"
     SECURITY = "security"
@@ -30,7 +30,7 @@ class ResourceKind(StrEnum):
     OTHER = "other"
 
 
-class Severity(StrEnum):
+class Severity(str, Enum):
     INFO = "info"
     LOW = "low"
     MEDIUM = "medium"
