@@ -79,6 +79,8 @@ class MemoryContextStore:
         return hashlib.sha256(identity.encode("utf-8")).hexdigest()[:32]
 
     def _directory(self, root: Path, *, create: bool) -> Path:
+        if self.root == root or root in self.root.parents:
+            raise ValueError("memory storage must be outside the target repository")
         if not self.root.exists() and not create:
             return self.root / self._repository_key(root)
         if create:
