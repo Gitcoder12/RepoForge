@@ -34,6 +34,7 @@ def main():
     )
     _write(tmp_path / "src/helper.ts", "export function helper() { return 1; }\n")
     _write(tmp_path / "go.mod", "module example.com/demo\n\ngo 1.22\n")
+    _write(tmp_path / "cmd/single.go", 'package main\nimport "fmt"\nfunc Print() { fmt.Println("single") }\n')
     go_source = (
         "\n".join(
             [
@@ -61,7 +62,7 @@ def main():
 
     index = CodebaseIndexer(tmp_path).build()
 
-    assert index["languages"] == {"go": 2, "python": 2, "typescript": 2}
+    assert index["languages"] == {"go": 3, "python": 2, "typescript": 2}
     files = {item["path"]: item for item in index["files"]}
     python_kinds = {(item["kind"], item["name"]) for item in files["app.py"]["symbols"]}
     assert ("class", "App") in python_kinds
@@ -91,6 +92,9 @@ def main():
     )
     assert go_import["line"] == 5
     assert index["summary"]["dependency_edges"] == 3
+    single_import = files["cmd/single.go"]["imports"][0]
+    assert single_import["module"] == "fmt"
+    assert single_import["line"] == 2
 
 
 def test_index_records_python_syntax_errors_without_crashing(tmp_path) -> None:
