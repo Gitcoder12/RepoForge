@@ -10,7 +10,7 @@ from repoforge.validator import Validator
 
 app = typer.Typer(
     name="repoforge",
-    help="Inspect and validate Python repositories.",
+    help="Inspect, index, and validate software repositories.",
     no_args_is_help=True,
     add_completion=False,
 )
