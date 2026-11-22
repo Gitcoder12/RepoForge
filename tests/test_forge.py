@@ -141,3 +141,42 @@ def test_forge_prompt_places_repo_dictionary_before_source_context():
     assert prompt.index('"repo_dictionary"') < prompt.index('"source_context"')
     assert "Router" in prompt
     assert "untrusted structural evidence" in prompt
+
+
+
+def test_forge_prompt_keeps_relevant_index_entries_ahead_of_large_repositories():
+    files = [
+        {
+            "path": f"src/module_{number:03}.py",
+            "language": "python",
+            "symbols": [],
+            "imports": [],
+        }
+        for number in range(150)
+    ]
+    files.append(
+        {
+            "path": "src/router/routes.py",
+            "language": "python",
+            "symbols": [{"kind": "class", "name": "Router", "line": 10, "end_line": 80}],
+            "imports": [],
+        }
+    )
+    dictionary = {
+        "schema_version": 1,
+        "languages": {"python": len(files)},
+        "summary": {"indexed_files": len(files)},
+        "files": files,
+        "dependencies": {},
+    }
+
+    prompt = ForgeWorkflow._model_prompt(
+        "Add a route",
+        {},
+        {},
+        [],
+        dictionary,
+    )
+
+    assert '"path": "src/router/routes.py"' in prompt
+    assert '"name": "Router"' in prompt
