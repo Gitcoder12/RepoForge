@@ -97,7 +97,9 @@ class ForgeWorkflow:
         return actions
 
     @staticmethod
-    def _read_repository_context(root: Path, *, max_files: int = 16, max_chars: int = 36_000) -> list[dict[str, str]]:
+    def _read_repository_context(
+        root: Path, *, max_files: int = 16, max_chars: int = 36_000
+    ) -> list[dict[str, str]]:
         """Read a small, safe source sample without following symlinks or reading secrets."""
         ignored_dirs = {
             ".git", ".venv", "venv", "node_modules", "__pycache__", "dist", "build",
@@ -162,7 +164,7 @@ class ForgeWorkflow:
                 source = candidate.read_text(encoding="utf-8")
             except (OSError, UnicodeError):
                 continue
-            if "\\x00" in source:
+            if "\x00" in source:
                 continue
             remaining = max_chars - used_chars
             excerpt = source[: min(5_000, remaining)]
