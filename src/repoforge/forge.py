@@ -24,6 +24,17 @@ class ForgeWorkflow:
 
     MAX_ACTIONS = 30
     MAX_FILE_BYTES = 1_000_000
+    DENIED_PATH_PARTS = {
+        ".git",
+        ".env",
+        ".ssh",
+        ".aws",
+        ".venv",
+        "venv",
+        "node_modules",
+        "secrets",
+        "credentials",
+    }
 
     @classmethod
     def parse_actions(cls, response: str) -> list[dict[str, str]]:
@@ -65,6 +76,11 @@ class ForgeWorkflow:
                 raise ValueError(f"unsafe repository-relative path: {filepath!r}")
             if ":" in path.parts[0] or normalized.startswith("//"):
                 raise ValueError(f"unsafe repository-relative path: {filepath!r}")
+            if any(part.casefold() in cls.DENIED_PATH_PARTS for part in path.parts):
+                raise ValueError(f"protected or sensitive path denied: {filepath!r}")
+            if path.parts[0].casefold() == ".github" and len(path.parts) > 1:
+                if path.parts[1].casefold() == "workflows":
+                    raise ValueError("workflow-file changes require a separate reviewed process")
             relative = path.as_posix()
             if relative in seen:
                 raise ValueError(f"duplicate action path: {relative}")
