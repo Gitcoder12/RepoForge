@@ -5,7 +5,7 @@
 
 **Development — no verified release tag recorded**
 
-**Implemented according to current documentation:** repository scanning and analysis; quality/difficulty scoring; planning/orchestration and action execution pipeline; validation, Git checkpointing and reporting; TestForge test-command discovery; Blacksmith bounded create-only repair workflow; Megazords repository comparison; RepoDictionary structural indexing for Python, JavaScript/TypeScript, and Go.
+**Implemented according to current documentation:** repository scanning and analysis; quality/difficulty scoring; planning/orchestration and action execution pipeline; validation, Git checkpointing and reporting; TestForge test-command discovery; Blacksmith bounded create-only repair workflow; Megazords repository comparison; RepoDictionary structural indexing for a broad set of languages through built-in and custom adapters.
 
 **Known limitations:** TestForge execution is not OS-sandboxed and must not be used on untrusted repositories. Blacksmith does not implement arbitrary semantic code repair. A documented pipeline or example output is not proof of successful end-to-end execution on arbitrary repositories.
 
@@ -74,7 +74,9 @@ repoforge version
 repoforge index ..\flask
 ```
 
-This writes `repo_dictionary.json` into the target repository. The index records supported source files, symbol names and line ranges, imports, and resolvable local dependencies for Python, JavaScript/TypeScript, and Go. It does not execute or modify source files. Use `--output <path>` to choose another destination.
+This writes `repo_dictionary.json` into the target repository. The index records supported source files, symbols, imports, and resolvable local dependencies. Built-in adapters cover Python, JavaScript/TypeScript, Go, Java, Kotlin, C#, C/C++, Rust, Ruby, PHP, Swift, Dart, Scala/Groovy, shell, SQL, Lua, Elixir/Erlang, Haskell, R, Julia, Perl, PowerShell, Terraform/HCL, GraphQL, Protocol Buffers, Objective-C, F#, Visual Basic, OCaml, Clojure, Vue, Svelte, and Elm. Python uses the standard-library AST; several other language adapters use conservative lexical patterns, not full compiler parsers. They are structural hints and may miss constructs or report false positives. Indexing does not execute source code or modify source files. Use `--output <path>` to choose another destination.
+
+Adapters are extensible from Python code with the public `LanguageAdapter` and `register_language_adapter()` API. A regex adapter declares file suffixes, symbol patterns with a named `name` group, and import patterns with a named `module` group. A custom extractor callback can integrate a dedicated parser; extractors must remain non-executing. See `tests/test_dictionary_universal.py` for a minimal registration example.
 
 Forge checks an existing dictionary against the current source-file inventory before reusing it. If it is missing or stale, Forge builds a fresh in-memory index for that run instead of silently trusting old metadata. The index guides file and symbol discovery; Forge must still inspect the actual source before proposing a patch.
 
