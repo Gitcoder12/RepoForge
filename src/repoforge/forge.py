@@ -352,9 +352,7 @@ class ForgeWorkflow:
         test_plan = TestForge(root).plan()
         validation = asyncio.run(Validator(root).validate())
         preferred_paths = self._rank_dictionary_paths(request, repository_dictionary)
-        repository_context = self._read_repository_context(
-            root, preferred_paths=preferred_paths
-        )
+        repository_context = self._read_repository_context(root, preferred_paths=preferred_paths)
         report: dict[str, Any] = {
             "engine": "RepoForge Forge",
             "repository": str(root),
