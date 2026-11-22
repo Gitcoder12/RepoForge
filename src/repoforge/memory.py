@@ -218,9 +218,7 @@ class MemoryContextStore:
             )
         return {"repository": str(root), "active": active, "contexts": contexts}
 
-    def load(
-        self, repository: str | Path, *, name: str | None = None
-    ) -> dict[str, Any] | None:
+    def load(self, repository: str | Path, *, name: str | None = None) -> dict[str, Any] | None:
         """Load a named context or the active context; never search other repos."""
         root = self._repository_path(repository)
         directory = self._directory(root, create=False)
@@ -228,8 +226,8 @@ class MemoryContextStore:
             if name is not None:
                 raise ValueError(f"memory context does not exist for this repository: {name}")
             return None
-        selected = _validate_context_name(name) if name is not None else self._read_active_name(
-            directory
+        selected = (
+            _validate_context_name(name) if name is not None else self._read_active_name(directory)
         )
         if selected is None:
             return None
