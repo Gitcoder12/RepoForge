@@ -29,7 +29,7 @@ def index_command(
         exists=True,
         file_okay=False,
         readable=True,
-        help="Repository to index (Python, JavaScript/TypeScript, and Go).",
+        help="Repository to index using the built-in or registered language adapters.",
     ),
     output: Path | None = typer.Option(
         None,
@@ -64,7 +64,7 @@ def index_command(
     if summary["skipped_files"]:
         typer.echo(f"Skipped {summary['skipped_files']} files (limits or unsupported content).")
     if summary["parse_errors"]:
-        typer.echo(f"Python parse errors: {summary['parse_errors']}.")
+        typer.echo(f"Source parse errors: {summary['parse_errors']}.")
     typer.echo(f"Dictionary written: {written}")
 
 
