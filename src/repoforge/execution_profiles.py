@@ -11,6 +11,33 @@ from dataclasses import asdict, dataclass
 
 STAGES = ("inspect", "plan", "patch", "validate", "iterate", "release_ready")
 EVOLUTION_LEVELS = ("E0", "E1", "E2", "E3", "E4")
+EVOLUTION_SCOPES = {
+    "E0": {
+        "name": "Discover",
+        "scope": ["repository inventory", "baseline and risk discovery"],
+        "change_policy": "no_changes",
+    },
+    "E1": {
+        "name": "Stabilize",
+        "scope": ["bug fixes", "broken tests", "reliability and safety gaps"],
+        "change_policy": "small_bounded_changes",
+    },
+    "E2": {
+        "name": "Improve",
+        "scope": ["security", "maintainability", "documentation", "test coverage"],
+        "change_policy": "targeted_improvements",
+    },
+    "E3": {
+        "name": "Optimize",
+        "scope": ["performance", "architecture bottlenecks", "dependency efficiency"],
+        "change_policy": "measured_optimization",
+    },
+    "E4": {
+        "name": "Evolve",
+        "scope": ["major architecture proposals", "new capabilities", "migration plans"],
+        "change_policy": "proposal_first_human_approval",
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -91,6 +118,7 @@ class ExecutionProfilePlanner:
             "profile": asdict(selected),
             "speed_mode": profile,
             "evolution_level": evolution,
+            "evolution_scope": dict(EVOLUTION_SCOPES[evolution]),
             "stop_after": stop,
             "stages": stages,
             "budgets": {
