@@ -31,14 +31,12 @@ def test_indexes_additional_languages_and_resolves_local_dependencies(tmp_path) 
     )
     _write(tmp_path / "infra/modules/network/main.tf", 'output "id" {}\n')
     _write(tmp_path / "api/schema.graphql", "type Query {\n  status: String\n}\n")
-    _write(tmp_path / "api/service.proto", 'message Request {}\nservice Api {}\n')
+    _write(tmp_path / "api/service.proto", "message Request {}\nservice Api {}\n")
 
     index = CodebaseIndexer(tmp_path).build()
     files = {item["path"]: item for item in index["files"]}
 
-    assert {"java", "rust", "ruby", "c", "terraform", "graphql", "proto"} <= set(
-        index["languages"]
-    )
+    assert {"java", "rust", "ruby", "c", "terraform", "graphql", "proto"} <= set(index["languages"])
     assert ("type", "Main") in {
         (item["kind"], item["name"]) for item in files["src/Main.java"]["symbols"]
     }
