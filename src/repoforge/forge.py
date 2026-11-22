@@ -108,7 +108,7 @@ class ForgeWorkflow:
         allowed_suffixes = {
             ".py", ".pyi", ".js", ".jsx", ".mjs", ".ts", ".tsx", ".go", ".rs",
             ".java", ".kt", ".cs", ".rb", ".php", ".swift", ".dart", ".sql",
-            ".md", ".toml", ".yaml", ".yml", ".json",
+            ".md", ".toml",
         }
         denied_names = {
             ".env", ".npmrc", ".pypirc", ".netrc", "credentials", "credentials.json",
@@ -126,7 +126,10 @@ class ForgeWorkflow:
                 folded = filename.casefold()
                 if (
                     candidate.is_symlink()
-                    or candidate.suffix.casefold() not in allowed_suffixes
+                    or (
+                        candidate.suffix.casefold() not in allowed_suffixes
+                        and folded != "package.json"
+                    )
                     or folded in denied_names
                     or folded.startswith(".env.")
                     or any(token in folded for token in ("secret", "credential", "private_key"))
@@ -166,6 +169,11 @@ class ForgeWorkflow:
                 continue
             if "\x00" in source:
                 continue
+            source = re.sub(
+                r"""(?im)(api[_-]?key|secret|token|password|authorization|private[_-]?key)\\s*([=:]\\s*)(["'][^"']*["']|[^\\s,;]+)""",
+                r"\\1\\2[REDACTED]",
+                source,
+            )
             remaining = max_chars - used_chars
             excerpt = source[: min(5_000, remaining)]
             if not excerpt:
