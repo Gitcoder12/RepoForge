@@ -26,6 +26,101 @@ This snapshot is authoritative for current project status. Older example output,
 See [docs/MAINTAINER_STATUS_2026-11-22.md](docs/MAINTAINER_STATUS_2026-11-22.md) for the audit snapshot, PR triage, known failures, branch policy and next steps. Recheck live GitHub state before merging because CI and branch heads can change.
 
 
+## Commands — copy, paste, run
+
+RepoForge is a local CLI. Open a terminal in the repository folder and use these commands in order.
+
+### 1. Install (Windows PowerShell)
+
+```powershell
+git clone https://github.com/Gitcoder12/RepoForge.git
+cd RepoForge
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+```
+
+If PowerShell blocks activation:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+```
+
+### 2. See all commands
+
+```bash
+repoforge --help
+repoforge version
+```
+
+### 3. Safely inspect a repository (read-only)
+
+```bash
+repoforge blacksmith ../ARK
+repoforge validate ../ARK
+```
+
+### 4. Discover tests without running them
+
+```bash
+repoforge test ../ARK
+```
+
+This prints detected test commands; it does not execute them by default.
+
+### 5. Preview the integrated Forge workflow (read-only)
+
+```bash
+repoforge forge ../ARK "Review the repository structure, identify risks, and propose prioritized improvements"
+```
+
+No provider is selected and no files are changed in this default preview.
+
+### 6. Ask a model for a proposal (still do not apply it)
+
+Configure a provider key in your environment first, then check configuration:
+
+```bash
+repoforge providers
+repoforge forge ../ARK "Propose a small documentation improvement" --provider deepseek
+```
+
+Provider names and credentials depend on your setup. Model requests may incur charges. Review the returned proposed paths and changes before considering an apply.
+
+### 7. Apply only explicitly approved paths
+
+Only do this in a disposable test repository or a clean Git branch, after reviewing the proposal. Replace the example path with the exact repository-relative path shown in the proposal:
+
+```bash
+repoforge forge ../ARK "Improve the installation instructions" --provider deepseek --apply --approve README.md
+```
+
+Repeat `--approve PATH` for each exact path you authorize. Forge requires explicit apply approval and a clean working tree. Check the diff immediately afterwards:
+
+```bash
+git -C ../ARK status --short
+git -C ../ARK diff
+```
+
+### 8. Compare model endpoints
+
+```bash
+repoforge model-lab --catalog
+repoforge model-lab --target deepseek:deepseek-flash --output model-lab.json
+```
+
+### 9. Run RepoForge's own tests
+
+```bash
+pytest -q
+```
+
+**Important safety boundary:** TestForge's `--execute` and Forge's `--run-tests` execute target-repository test code. Execution is not OS-sandboxed. Do not run tests from untrusted repositories. Start with the read-only commands above; do not use `--apply` on ARK or another important working tree during your first test.
+
+---
+
 ## Contributor entry point
 
 Start with [START_HERE.md](START_HERE.md) for the canonical source map and
