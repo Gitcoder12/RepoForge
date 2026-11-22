@@ -225,6 +225,8 @@ class MemoryContextStore:
         root = self._repository_path(repository)
         directory = self._directory(root, create=False)
         if not directory.exists():
+            if name is not None:
+                raise ValueError(f"memory context does not exist for this repository: {name}")
             return None
         selected = _validate_context_name(name) if name is not None else self._read_active_name(
             directory
