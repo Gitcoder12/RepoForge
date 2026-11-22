@@ -675,7 +675,10 @@ def random_check_command(
                 raise ValueError("report output must not be a symlink")
             destination.write_text(rendered + "\n", encoding="utf-8")
             typer.echo(f"Report written to {destination}")
-        typer.echo(rendered if output is None else f"Audited {report['selected_count']} repositories.")
+        if output is None:
+            typer.echo(rendered)
+        else:
+            typer.echo(f"Audited {report['selected_count']} repositories.")
     except (OSError, ValueError) as exc:
         typer.echo(f"Random audit failed safely: {exc}", err=True)
         raise typer.Exit(code=2) from exc
