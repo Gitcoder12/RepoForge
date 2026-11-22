@@ -218,13 +218,13 @@ def _register_builtin_adapters() -> None:
             symbol_patterns=(
                 (
                     "function",
-                    r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?(?:unsafe\s+)?fn\s+(?P<name>r#?\w+)",  # noqa: E501
+                    r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?(?:unsafe\s+)?fn\s+(?P<name>(?:r#)?\w+)",  # noqa: E501
                 ),
                 (
                     "type",
-                    r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:struct|enum|trait|type|mod)\s+(?P<name>r#?\w+)",  # noqa: E501
+                    r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:struct|enum|trait|type|mod)\s+(?P<name>(?:r#)?\w+)",  # noqa: E501
                 ),
-                ("constant", r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:const|static)\s+(?P<name>r#?\w+)"),
+                ("constant", r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:const|static)\s+(?P<name>(?:r#)?\w+)"),
             ),
             import_patterns=(r"^\s*(?:pub\s+)?use\s+(?P<module>[^;]+);",),
         ),
