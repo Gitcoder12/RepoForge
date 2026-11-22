@@ -682,4 +682,3 @@ def random_check_command(
     except (OSError, ValueError) as exc:
         typer.echo(f"Random audit failed safely: {exc}", err=True)
         raise typer.Exit(code=2) from exc
-
