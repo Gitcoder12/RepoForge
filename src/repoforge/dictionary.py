@@ -222,7 +222,8 @@ def _register_builtin_adapters() -> None:
                 ),
                 (
                     "type",
-                    r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:struct|enum|trait|type|mod)\s+(?P<name>(?:r#)?\w+)",  # noqa: E501
+                    r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:struct|enum|trait|type|mod)\s+"
+                    r"(?P<name>(?:r#)?\w+)",
                 ),
                 ("constant", r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:const|static)\s+(?P<name>(?:r#)?\w+)"),
             ),
