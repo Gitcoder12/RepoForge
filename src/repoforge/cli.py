@@ -58,7 +58,9 @@ def validate(
 
     typer.echo(f"Validation failed: {result.get('reason')}", err=True)
     for item in result.get("results", []):
-        if not isinstance(item, dict) or item.get("passed") is not False:
+        if not isinstance(item, dict) or item.get("passed") is True:
+            continue
+        if item.get("passed") is not False and not item.get("error") and not item.get("threats"):
             continue
         location = item.get("file", "unknown")
         threats = item.get("threats", [])
