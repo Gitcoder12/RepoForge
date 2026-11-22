@@ -76,6 +76,7 @@ GO_IMPORT_DECL = re.compile(r'(?m)^\s*import\s+(?:\(\s*([\s\S]*?)\s*\)|"([^"]+)"
 GO_QUOTED_IMPORT = re.compile(r'"([^"]+)"')
 GO_MODULE = re.compile(r"(?m)^\s*module\s+([^\s]+)")
 
+
 @dataclass(frozen=True)
 class LanguageAdapter:
     """Pluggable, non-executing source index adapter.
@@ -88,9 +89,9 @@ class LanguageAdapter:
     extensions: tuple[str, ...]
     symbol_patterns: tuple[tuple[str, str], ...] = ()
     import_patterns: tuple[str, ...] = ()
-    extractor: Callable[
-        [str], tuple[list[dict[str, Any]], list[dict[str, Any]], str | None]
-    ] | None = None
+    extractor: (
+        Callable[[str], tuple[list[dict[str, Any]], list[dict[str, Any]], str | None]] | None
+    ) = None
 
 
 LANGUAGE_ADAPTERS: dict[str, LanguageAdapter] = {}
@@ -104,7 +105,9 @@ def register_language_adapter(adapter: LanguageAdapter, *, replace: bool = False
     if not adapter.extensions:
         raise ValueError("adapter must register at least one extension")
     extensions = tuple(dict.fromkeys(ext.casefold() for ext in adapter.extensions))
-    if any(not ext.startswith(".") or ext == "." or "/" in ext or "\\" in ext for ext in extensions):  # noqa: E501
+    if any(
+        not ext.startswith(".") or ext == "." or "/" in ext or "\\" in ext for ext in extensions
+    ):  # noqa: E501
         raise ValueError("adapter extensions must be file suffixes such as '.zig'")
     if language in LANGUAGE_ADAPTERS and not replace:
         raise ValueError(f"language adapter already registered: {language}")
@@ -136,58 +139,98 @@ def _register_builtin_adapters() -> None:
     """Install conservative built-in adapters for common repository languages."""
     adapters = [
         LanguageAdapter(
-            "java", (".java",),
+            "java",
+            (".java",),
             symbol_patterns=(
-                ("type", r"^\s*(?:(?:public|protected|private|abstract|final|static|sealed)\s+)*(?:class|interface|enum|record)\s+(?P<name>[A-Za-z_$][\w$]*)"),  # noqa: E501
-                ("function", r"^\s*(?:(?:public|protected|private|static|final|abstract|synchronized|native|default)\s+)*(?:[\w.$<>\[\],?]+\s+)+(?P<name>[A-Za-z_$][\w$]*)\s*\([^;]*\)\s*(?:throws\s+[\w., ]+)?\s*\{"),  # noqa: E501
+                (
+                    "type",
+                    r"^\s*(?:(?:public|protected|private|abstract|final|static|sealed)\s+)*(?:class|interface|enum|record)\s+(?P<name>[A-Za-z_$][\w$]*)",
+                ),  # noqa: E501
+                (
+                    "function",
+                    r"^\s*(?:(?:public|protected|private|static|final|abstract|synchronized|native|default)\s+)*(?:[\w.$<>\[\],?]+\s+)+(?P<name>[A-Za-z_$][\w$]*)\s*\([^;]*\)\s*(?:throws\s+[\w., ]+)?\s*\{",
+                ),  # noqa: E501
             ),
             import_patterns=(r"^\s*import\s+(?:static\s+)?(?P<module>[\w.*]+)\s*;?",),
         ),
         LanguageAdapter(
-            "kotlin", (".kt", ".kts"),
+            "kotlin",
+            (".kt", ".kts"),
             symbol_patterns=(
-                ("type", r"^\s*(?:(?:public|private|protected|internal|data|sealed|open|abstract|enum|annotation)\s+)*(?:class|interface|object)\s+(?P<name>[A-Za-z_]\w*)"),  # noqa: E501
-                ("function", r"^\s*(?:(?:public|private|protected|internal|inline|suspend|override|open|final|tailrec|operator|infix)\s+)*fun\s+(?:<[^>]+>\s*)?(?P<name>[A-Za-z_]\w*)"),  # noqa: E501
+                (
+                    "type",
+                    r"^\s*(?:(?:public|private|protected|internal|data|sealed|open|abstract|enum|annotation)\s+)*(?:class|interface|object)\s+(?P<name>[A-Za-z_]\w*)",
+                ),  # noqa: E501
+                (
+                    "function",
+                    r"^\s*(?:(?:public|private|protected|internal|inline|suspend|override|open|final|tailrec|operator|infix)\s+)*fun\s+(?:<[^>]+>\s*)?(?P<name>[A-Za-z_]\w*)",
+                ),  # noqa: E501
             ),
             import_patterns=(r"^\s*import\s+(?P<module>[\w.*]+)",),
         ),
         LanguageAdapter(
-            "csharp", (".cs",),
+            "csharp",
+            (".cs",),
             symbol_patterns=(
-                ("type", r"^\s*(?:(?:public|internal|private|protected|abstract|sealed|static|partial)\s+)*(?:class|interface|struct|enum|record)\s+(?P<name>[\w@]+)"),  # noqa: E501
-                ("function", r"^\s*(?:(?:public|private|protected|internal|static|virtual|override|async|sealed|partial|extern|new)\s+)*(?:[\w.<>,?\[\]]+\s+)+(?P<name>[\w@]+)\s*\([^;]*\)\s*(?:where\s+[^{}]+)?\{"),  # noqa: E501
+                (
+                    "type",
+                    r"^\s*(?:(?:public|internal|private|protected|abstract|sealed|static|partial)\s+)*(?:class|interface|struct|enum|record)\s+(?P<name>[\w@]+)",
+                ),  # noqa: E501
+                (
+                    "function",
+                    r"^\s*(?:(?:public|private|protected|internal|static|virtual|override|async|sealed|partial|extern|new)\s+)*(?:[\w.<>,?\[\]]+\s+)+(?P<name>[\w@]+)\s*\([^;]*\)\s*(?:where\s+[^{}]+)?\{",
+                ),  # noqa: E501
             ),
             import_patterns=(r"^\s*using\s+(?:static\s+)?(?P<module>[\w.]+)\s*;",),
         ),
         LanguageAdapter(
-            "c", (".c", ".h"),
+            "c",
+            (".c", ".h"),
             symbol_patterns=(
                 ("type", r"^\s*(?:typedef\s+)?(?:struct|union|enum)\s+(?P<name>\w+)"),
-                ("function", r"^\s*(?:(?:static|inline|extern|const|unsigned|signed|long|short)\s+)*(?:[\w*]+\s+)+(?P<name>\w+)\s*\([^;]*\)\s*\{"),  # noqa: E501
+                (
+                    "function",
+                    r"^\s*(?:(?:static|inline|extern|const|unsigned|signed|long|short)\s+)*(?:[\w*]+\s+)+(?P<name>\w+)\s*\([^;]*\)\s*\{",
+                ),  # noqa: E501
                 ("constant", r"^\s*#\s*define\s+(?P<name>\w+)"),
             ),
             import_patterns=(r'^\s*#\s*include\s*[<"](?P<module>[^>"]+)[>"]',),
         ),
         LanguageAdapter(
-            "cpp", (".cc", ".cpp", ".cxx", ".hh", ".hpp", ".hxx"),
+            "cpp",
+            (".cc", ".cpp", ".cxx", ".hh", ".hpp", ".hxx"),
             symbol_patterns=(
-                ("type", r"^\s*(?:(?:template\s*<[^>]+>\s*)?)(?:class|struct|union|enum)\s+(?:class\s+)?(?P<name>\w+)"),  # noqa: E501
-                ("function", r"^\s*(?:(?:static|inline|virtual|constexpr|friend|explicit|extern)\s+)*(?:[\w:*&<>,]+\s+)+(?P<name>\w+)\s*\([^;]*\)\s*(?:const\s*)?(?:noexcept\s*)?\{"),  # noqa: E501
+                (
+                    "type",
+                    r"^\s*(?:(?:template\s*<[^>]+>\s*)?)(?:class|struct|union|enum)\s+(?:class\s+)?(?P<name>\w+)",
+                ),  # noqa: E501
+                (
+                    "function",
+                    r"^\s*(?:(?:static|inline|virtual|constexpr|friend|explicit|extern)\s+)*(?:[\w:*&<>,]+\s+)+(?P<name>\w+)\s*\([^;]*\)\s*(?:const\s*)?(?:noexcept\s*)?\{",
+                ),  # noqa: E501
                 ("constant", r"^\s*#\s*define\s+(?P<name>\w+)"),
             ),
             import_patterns=(r'^\s*#\s*include\s*[<"](?P<module>[^>"]+)[>"]',),
         ),
         LanguageAdapter(
-            "rust", (".rs",),
+            "rust",
+            (".rs",),
             symbol_patterns=(
-                ("function", r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?(?:unsafe\s+)?fn\s+(?P<name>r#?\w+)"),  # noqa: E501
-                ("type", r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:struct|enum|trait|type|mod)\s+(?P<name>r#?\w+)"),  # noqa: E501
+                (
+                    "function",
+                    r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?(?:unsafe\s+)?fn\s+(?P<name>r#?\w+)",
+                ),  # noqa: E501
+                (
+                    "type",
+                    r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:struct|enum|trait|type|mod)\s+(?P<name>r#?\w+)",
+                ),  # noqa: E501
                 ("constant", r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:const|static)\s+(?P<name>r#?\w+)"),
             ),
             import_patterns=(r"^\s*(?:pub\s+)?use\s+(?P<module>[^;]+);",),
         ),
         LanguageAdapter(
-            "ruby", (".rb", ".rake", ".gemspec"),
+            "ruby",
+            (".rb", ".rake", ".gemspec"),
             symbol_patterns=(
                 ("type", r"^\s*(?:class|module)\s+(?P<name>[\w:]+)"),
                 ("function", r"^\s*def\s+(?P<name>[\w!?=]+)"),
@@ -195,10 +238,17 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r"""^\s*require(?:_relative)?\s*['"](?P<module>[^'"]+)['"]""",),
         ),
         LanguageAdapter(
-            "php", (".php", ".phtml"),
+            "php",
+            (".php", ".phtml"),
             symbol_patterns=(
-                ("type", r"^\s*(?:(?:abstract|final|readonly)\s+)*(?:class|interface|trait|enum)\s+(?P<name>\w+)"),  # noqa: E501
-                ("function", r"^\s*(?:(?:public|protected|private|static|final|abstract)\s+)*function\s*&?\s*(?P<name>\w+)"),  # noqa: E501
+                (
+                    "type",
+                    r"^\s*(?:(?:abstract|final|readonly)\s+)*(?:class|interface|trait|enum)\s+(?P<name>\w+)",
+                ),  # noqa: E501
+                (
+                    "function",
+                    r"^\s*(?:(?:public|protected|private|static|final|abstract)\s+)*function\s*&?\s*(?P<name>\w+)",
+                ),  # noqa: E501
             ),
             import_patterns=(
                 r"^\s*use\s+(?P<module>[\w\\]+)",
@@ -206,55 +256,91 @@ def _register_builtin_adapters() -> None:
             ),
         ),
         LanguageAdapter(
-            "swift", (".swift",),
+            "swift",
+            (".swift",),
             symbol_patterns=(
-                ("type", r"^\s*(?:(?:public|private|internal|open|final|indirect)\s+)*(?:class|struct|enum|protocol|actor)\s+(?P<name>\w+)"),  # noqa: E501
-                ("function", r"^\s*(?:(?:public|private|internal|open|static|class|override|mutating|async|throws|final)\s+)*func\s+(?P<name>\w+)"),  # noqa: E501
+                (
+                    "type",
+                    r"^\s*(?:(?:public|private|internal|open|final|indirect)\s+)*(?:class|struct|enum|protocol|actor)\s+(?P<name>\w+)",
+                ),  # noqa: E501
+                (
+                    "function",
+                    r"^\s*(?:(?:public|private|internal|open|static|class|override|mutating|async|throws|final)\s+)*func\s+(?P<name>\w+)",
+                ),  # noqa: E501
             ),
             import_patterns=(r"^\s*import\s+(?P<module>[\w.]+)",),
         ),
         LanguageAdapter(
-            "dart", (".dart",),
+            "dart",
+            (".dart",),
             symbol_patterns=(
-                ("type", r"^\s*(?:(?:abstract|base|final|interface|sealed|mixin)\s+)*(?:class|enum|mixin|extension|typedef)\s+(?P<name>\w+)"),  # noqa: E501
-                ("function", r"^\s*(?:(?:Future<[^>]+>|void|bool|int|double|String|dynamic|List<[^>]+>|Map<[^>]+>)\s+)+(?P<name>\w+)\s*\([^;]*\)\s*(?:async\s*)?\{"),  # noqa: E501
+                (
+                    "type",
+                    r"^\s*(?:(?:abstract|base|final|interface|sealed|mixin)\s+)*(?:class|enum|mixin|extension|typedef)\s+(?P<name>\w+)",
+                ),  # noqa: E501
+                (
+                    "function",
+                    r"^\s*(?:(?:Future<[^>]+>|void|bool|int|double|String|dynamic|List<[^>]+>|Map<[^>]+>)\s+)+(?P<name>\w+)\s*\([^;]*\)\s*(?:async\s*)?\{",
+                ),  # noqa: E501
             ),
             import_patterns=(r"""^\s*(?:import|export|part)\s+['"](?P<module>[^'"]+)['"]""",),
         ),
         LanguageAdapter(
-            "scala", (".scala", ".sc"),
+            "scala",
+            (".scala", ".sc"),
             symbol_patterns=(
-                ("type", r"^\s*(?:(?:case|sealed|abstract|final)\s+)*(?:class|object|trait|enum)\s+(?P<name>\w+)"),  # noqa: E501
-                ("function", r"^\s*(?:(?:private|protected|override|final|implicit|inline)\s+)*def\s+(?P<name>\w+)"),  # noqa: E501
+                (
+                    "type",
+                    r"^\s*(?:(?:case|sealed|abstract|final)\s+)*(?:class|object|trait|enum)\s+(?P<name>\w+)",
+                ),  # noqa: E501
+                (
+                    "function",
+                    r"^\s*(?:(?:private|protected|override|final|implicit|inline)\s+)*def\s+(?P<name>\w+)",
+                ),  # noqa: E501
                 ("variable", r"^\s*(?:val|var)\s+(?P<name>\w+)"),
             ),
             import_patterns=(r"^\s*import\s+(?P<module>[\w.{},_* ]+)",),
         ),
         LanguageAdapter(
-            "groovy", (".groovy", ".gradle"),
+            "groovy",
+            (".groovy", ".gradle"),
             symbol_patterns=(
-                ("type", r"^\s*(?:(?:public|private|abstract|final)\s+)*(?:class|interface|enum|trait)\s+(?P<name>\w+)"),  # noqa: E501
+                (
+                    "type",
+                    r"^\s*(?:(?:public|private|abstract|final)\s+)*(?:class|interface|enum|trait)\s+(?P<name>\w+)",
+                ),  # noqa: E501
                 ("function", r"^\s*(?:def|void|[\w<>]+\s+)\s+(?P<name>\w+)\s*\([^;]*\)\s*\{"),
             ),
             import_patterns=(r"^\s*import\s+(?P<module>[\w.*]+)",),
         ),
         LanguageAdapter(
-            "shell", (".sh", ".bash", ".zsh", ".ksh"),
+            "shell",
+            (".sh", ".bash", ".zsh", ".ksh"),
             symbol_patterns=(
                 ("function", r"^\s*(?:function\s+)?(?P<name>[A-Za-z_]\w*)\s*(?:\(\s*\))\s*\{"),
                 ("function", r"^\s*function\s+(?P<name>[A-Za-z_]\w*)"),
             ),
-            import_patterns=(r"""^\s*(?:source|\.)\s+['"]?(?P<module>\.{1,2}/[^'"\s;]+|[^'"\s;]+)""",),  # noqa: E501
+            import_patterns=(
+                r"""^\s*(?:source|\.)\s+['"]?(?P<module>\.{1,2}/[^'"\s;]+|[^'"\s;]+)""",
+            ),  # noqa: E501
         ),
         LanguageAdapter(
-            "sql", (".sql",),
+            "sql",
+            (".sql",),
             symbol_patterns=(
-                ("type", r"^\s*create\s+(?:or\s+replace\s+)?(?:temporary\s+)?(?:table|view|schema|database|type)\s+(?:if\s+not\s+exists\s+)?(?P<name>[\w.]+)"),  # noqa: E501
-                ("function", r"^\s*create\s+(?:or\s+replace\s+)?(?:procedure|function|trigger)\s+(?:if\s+not\s+exists\s+)?(?P<name>[\w.]+)"),  # noqa: E501
+                (
+                    "type",
+                    r"^\s*create\s+(?:or\s+replace\s+)?(?:temporary\s+)?(?:table|view|schema|database|type)\s+(?:if\s+not\s+exists\s+)?(?P<name>[\w.]+)",
+                ),  # noqa: E501
+                (
+                    "function",
+                    r"^\s*create\s+(?:or\s+replace\s+)?(?:procedure|function|trigger)\s+(?:if\s+not\s+exists\s+)?(?P<name>[\w.]+)",
+                ),  # noqa: E501
             ),
         ),
         LanguageAdapter(
-            "lua", (".lua",),
+            "lua",
+            (".lua",),
             symbol_patterns=(
                 ("function", r"^\s*(?:local\s+)?function\s+(?P<name>[\w.:]+)"),
                 ("variable", r"^\s*local\s+(?P<name>\w+)\s*="),
@@ -262,7 +348,8 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r"""require\s*[\(]?\s*['"](?P<module>[^'"]+)['"]""",),
         ),
         LanguageAdapter(
-            "elixir", (".ex", ".exs"),
+            "elixir",
+            (".ex", ".exs"),
             symbol_patterns=(
                 ("type", r"^\s*defmodule\s+(?P<name>[\w.]+)"),
                 ("function", r"^\s*defp?\s+(?P<name>\w+)"),
@@ -271,12 +358,14 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r"^\s*(?:import|alias|use|require)\s+(?P<module>[\w.]+)",),
         ),
         LanguageAdapter(
-            "erlang", (".erl", ".hrl"),
+            "erlang",
+            (".erl", ".hrl"),
             symbol_patterns=(("function", r"^\s*(?P<name>[a-z]\w*)\s*\([^)]*\)\s*(?:when\b|->)"),),
             import_patterns=(r"^\s*-include(?:_lib)?\s*\(\s*['\"](?P<module>[^'\"]+)['\"]",),
         ),
         LanguageAdapter(
-            "haskell", (".hs", ".lhs"),
+            "haskell",
+            (".hs", ".lhs"),
             symbol_patterns=(
                 ("type", r"^\s*(?:data|newtype|type|class)\s+(?P<name>[A-Z]\w*)"),
                 ("function", r"^(?P<name>[a-z_]\w*)\s*::"),
@@ -284,12 +373,16 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r"^\s*import\s+(?:qualified\s+)?(?P<module>[A-Z][\w.]+)",),
         ),
         LanguageAdapter(
-            "r", (".r",),
-            symbol_patterns=(("function", r"^\s*(?P<name>[A-Za-z.][\w.]*)\s*(?:<-|=)\s*function\s*\("),),  # noqa: E501
+            "r",
+            (".r",),
+            symbol_patterns=(
+                ("function", r"^\s*(?P<name>[A-Za-z.][\w.]*)\s*(?:<-|=)\s*function\s*\("),
+            ),  # noqa: E501
             import_patterns=(r"^\s*(?:library|require)\s*\(\s*(?P<module>[\w.]+)",),
         ),
         LanguageAdapter(
-            "julia", (".jl",),
+            "julia",
+            (".jl",),
             symbol_patterns=(
                 ("type", r"^\s*(?:mutable\s+)?struct\s+(?P<name>\w+)"),
                 ("type", r"^\s*module\s+(?P<name>\w+)"),
@@ -298,12 +391,14 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r"^\s*(?:using|import)\s+(?P<module>[\w.:]+)",),
         ),
         LanguageAdapter(
-            "perl", (".pl", ".pm", ".t"),
+            "perl",
+            (".pl", ".pm", ".t"),
             symbol_patterns=(("function", r"^\s*sub\s+(?P<name>\w+)"),),
             import_patterns=(r"^\s*(?:use|require)\s+(?P<module>[\w:./]+)",),
         ),
         LanguageAdapter(
-            "powershell", (".ps1", ".psm1", ".psd1"),
+            "powershell",
+            (".ps1", ".psm1", ".psd1"),
             symbol_patterns=(
                 ("type", r"^\s*class\s+(?P<name>[\w-]+)"),
                 ("function", r"^\s*function\s+(?P<name>[\w-]+)"),
@@ -311,7 +406,8 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r"^\s*using\s+module\s+(?P<module>[\w./-]+)",),
         ),
         LanguageAdapter(
-            "terraform", (".tf", ".tfvars", ".hcl"),
+            "terraform",
+            (".tf", ".tfvars", ".hcl"),
             symbol_patterns=(
                 ("resource", r'^\s*resource\s+"[^"]+"\s+"(?P<name>[^"]+)"'),
                 ("module", r'^\s*module\s+"(?P<name>[^"]+)"'),
@@ -322,18 +418,24 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r'^\s*source\s*=\s*"(?P<module>\.{1,2}/[^"]+)"',),
         ),
         LanguageAdapter(
-            "graphql", (".graphql", ".gql"),
+            "graphql",
+            (".graphql", ".gql"),
             symbol_patterns=tuple(
                 (kind, rf"^\s*(?:extend\s+)?{keyword}\s+(?P<name>\w+)")
                 for keyword, kind in (
-                    ("type", "type"), ("interface", "type"), ("input", "type"),
-                    ("enum", "type"), ("union", "type"), ("scalar", "type"),
+                    ("type", "type"),
+                    ("interface", "type"),
+                    ("input", "type"),
+                    ("enum", "type"),
+                    ("union", "type"),
+                    ("scalar", "type"),
                     ("directive", "directive"),
                 )
             ),
         ),
         LanguageAdapter(
-            "proto", (".proto",),
+            "proto",
+            (".proto",),
             symbol_patterns=(
                 ("type", r"^\s*message\s+(?P<name>\w+)"),
                 ("type", r"^\s*enum\s+(?P<name>\w+)"),
@@ -342,7 +444,8 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r'^\s*import\s+"(?P<module>[^"]+)"',),
         ),
         LanguageAdapter(
-            "objective-c", (".m", ".mm"),
+            "objective-c",
+            (".m", ".mm"),
             symbol_patterns=(
                 ("type", r"^\s*@interface\s+(?P<name>\w+)"),
                 ("type", r"^\s*@implementation\s+(?P<name>\w+)"),
@@ -351,7 +454,8 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r'^\s*#\s*import\s*[<"](?P<module>[^>"]+)[>"]',),
         ),
         LanguageAdapter(
-            "fsharp", (".fs", ".fsx", ".fsi"),
+            "fsharp",
+            (".fs", ".fsx", ".fsi"),
             symbol_patterns=(
                 ("type", r"^\s*type\s+(?P<name>\w+)"),
                 ("function", r"^\s*let\s+(?:rec\s+)?(?P<name>\w+)"),
@@ -359,15 +463,23 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r"^\s*open\s+(?P<module>[\w.]+)",),
         ),
         LanguageAdapter(
-            "visual-basic", (".vb",),
+            "visual-basic",
+            (".vb",),
             symbol_patterns=(
-                ("type", r"^\s*(?:(?:Public|Private|Friend|Partial|MustInherit|NotInheritable)\s+)*(?:Class|Module|Structure|Interface|Enum)\s+(?P<name>\w+)"),  # noqa: E501
-                ("function", r"^\s*(?:(?:Public|Private|Friend|Protected|Shared|Overrides)\s+)*(?:Sub|Function)\s+(?P<name>\w+)"),  # noqa: E501
+                (
+                    "type",
+                    r"^\s*(?:(?:Public|Private|Friend|Partial|MustInherit|NotInheritable)\s+)*(?:Class|Module|Structure|Interface|Enum)\s+(?P<name>\w+)",
+                ),  # noqa: E501
+                (
+                    "function",
+                    r"^\s*(?:(?:Public|Private|Friend|Protected|Shared|Overrides)\s+)*(?:Sub|Function)\s+(?P<name>\w+)",
+                ),  # noqa: E501
             ),
             import_patterns=(r"^\s*Imports\s+(?P<module>[\w.]+)",),
         ),
         LanguageAdapter(
-            "ocaml", (".ml", ".mli"),
+            "ocaml",
+            (".ml", ".mli"),
             symbol_patterns=(
                 ("type", r"^\s*type\s+(?P<name>\w+)"),
                 ("function", r"^\s*let\s+(?:rec\s+)?(?P<name>\w+)"),
@@ -376,7 +488,8 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r"^\s*open\s+(?P<module>\w+)",),
         ),
         LanguageAdapter(
-            "clojure", (".clj", ".cljs", ".cljc", ".edn"),
+            "clojure",
+            (".clj", ".cljs", ".cljc", ".edn"),
             symbol_patterns=(
                 ("function", r"^\s*\(defn?-?\s+(?P<name>[\w?!*+.-]+)"),
                 ("type", r"^\s*\(defrecord\s+(?P<name>\w+)"),
@@ -384,7 +497,8 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r"\[\s*(?P<module>[\w.-]+)",),
         ),
         LanguageAdapter(
-            "vue", (".vue",),
+            "vue",
+            (".vue",),
             symbol_patterns=(
                 ("function", r"^\s*(?:export\s+)?(?:async\s+)?function\s+(?P<name>[\w$]+)"),
                 ("class", r"^\s*(?:export\s+)?class\s+(?P<name>[\w$]+)"),
@@ -393,7 +507,8 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r"""^\s*import\s+[^;\n]*?\s+from\s+['"](?P<module>[^'"]+)['"]""",),
         ),
         LanguageAdapter(
-            "svelte", (".svelte",),
+            "svelte",
+            (".svelte",),
             symbol_patterns=(
                 ("function", r"^\s*(?:export\s+)?(?:async\s+)?function\s+(?P<name>[\w$]+)"),
                 ("class", r"^\s*(?:export\s+)?class\s+(?P<name>[\w$]+)"),
@@ -402,7 +517,8 @@ def _register_builtin_adapters() -> None:
             import_patterns=(r"""^\s*import\s+[^;\n]*?\s+from\s+['"](?P<module>[^'"]+)['"]""",),
         ),
         LanguageAdapter(
-            "elm", (".elm",),
+            "elm",
+            (".elm",),
             symbol_patterns=(
                 ("type", r"^\s*(?:type|module)\s+(?P<name>[A-Z]\w*)"),
                 ("function", r"^(?P<name>[a-z]\w*)\s*:\s*"),
@@ -415,7 +531,6 @@ def _register_builtin_adapters() -> None:
 
 
 _register_builtin_adapters()
-
 
 
 class CodebaseIndexer:
@@ -667,8 +782,6 @@ class CodebaseIndexer:
                 )
         return self._sort_symbols(symbols), self._sort_imports(imports), None
 
-
-
     def _extract_with_adapter(
         self, adapter: LanguageAdapter, source: str
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], str | None]:
@@ -795,8 +908,6 @@ class CodebaseIndexer:
         package = PurePosixPath(suffix).as_posix() if suffix else "."
         return set(package_files.get(package, []))
 
-
-
     @staticmethod
     def _resolve_generic_import(
         current: str,
@@ -835,12 +946,54 @@ class CodebaseIndexer:
             bases.add(posixpath.normpath(value))
 
         common_suffixes = {
-            ".py", ".pyi", ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".go",
-            ".rs", ".java", ".kt", ".kts", ".cs", ".c", ".h", ".cc", ".cpp",
-            ".cxx", ".hh", ".hpp", ".rb", ".php", ".swift", ".dart", ".scala",
-            ".groovy", ".sh", ".sql", ".lua", ".ex", ".exs", ".erl", ".hs",
-            ".r", ".jl", ".pl", ".ps1", ".tf", ".proto", ".graphql", ".vue",
-            ".svelte", ".elm", ".fs", ".vb", ".ml", ".clj",
+            ".py",
+            ".pyi",
+            ".js",
+            ".jsx",
+            ".mjs",
+            ".cjs",
+            ".ts",
+            ".tsx",
+            ".go",
+            ".rs",
+            ".java",
+            ".kt",
+            ".kts",
+            ".cs",
+            ".c",
+            ".h",
+            ".cc",
+            ".cpp",
+            ".cxx",
+            ".hh",
+            ".hpp",
+            ".rb",
+            ".php",
+            ".swift",
+            ".dart",
+            ".scala",
+            ".groovy",
+            ".sh",
+            ".sql",
+            ".lua",
+            ".ex",
+            ".exs",
+            ".erl",
+            ".hs",
+            ".r",
+            ".jl",
+            ".pl",
+            ".ps1",
+            ".tf",
+            ".proto",
+            ".graphql",
+            ".vue",
+            ".svelte",
+            ".elm",
+            ".fs",
+            ".vb",
+            ".ml",
+            ".clj",
         }
         resolved: set[str] = set()
         for base in bases:
