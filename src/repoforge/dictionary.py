@@ -144,12 +144,12 @@ def _register_builtin_adapters() -> None:
             symbol_patterns=(
                 (
                     "type",
-                    r"^\s*(?:(?:public|protected|private|abstract|final|static|sealed)\s+)*(?:class|interface|enum|record)\s+(?P<name>[A-Za-z_$][\w$]*)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:public|protected|private|abstract|final|static|sealed)\s+)*(?:class|interface|enum|record)\s+(?P<name>[A-Za-z_$][\w$]*)",  # noqa: E501
+                ),
                 (
                     "function",
-                    r"^\s*(?:(?:public|protected|private|static|final|abstract|synchronized|native|default)\s+)*(?:[\w.$<>\[\],?]+\s+)+(?P<name>[A-Za-z_$][\w$]*)\s*\([^;]*\)\s*(?:throws\s+[\w., ]+)?\s*\{",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:public|protected|private|static|final|abstract|synchronized|native|default)\s+)*(?:[\w.$<>\[\],?]+\s+)+(?P<name>[A-Za-z_$][\w$]*)\s*\([^;]*\)\s*(?:throws\s+[\w., ]+)?\s*\{",  # noqa: E501
+                ),
             ),
             import_patterns=(r"^\s*import\s+(?:static\s+)?(?P<module>[\w.*]+)\s*;?",),
         ),
@@ -159,12 +159,12 @@ def _register_builtin_adapters() -> None:
             symbol_patterns=(
                 (
                     "type",
-                    r"^\s*(?:(?:public|private|protected|internal|data|sealed|open|abstract|enum|annotation)\s+)*(?:class|interface|object)\s+(?P<name>[A-Za-z_]\w*)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:public|private|protected|internal|data|sealed|open|abstract|enum|annotation)\s+)*(?:class|interface|object)\s+(?P<name>[A-Za-z_]\w*)",  # noqa: E501
+                ),
                 (
                     "function",
-                    r"^\s*(?:(?:public|private|protected|internal|inline|suspend|override|open|final|tailrec|operator|infix)\s+)*fun\s+(?:<[^>]+>\s*)?(?P<name>[A-Za-z_]\w*)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:public|private|protected|internal|inline|suspend|override|open|final|tailrec|operator|infix)\s+)*fun\s+(?:<[^>]+>\s*)?(?P<name>[A-Za-z_]\w*)",  # noqa: E501
+                ),
             ),
             import_patterns=(r"^\s*import\s+(?P<module>[\w.*]+)",),
         ),
@@ -174,12 +174,12 @@ def _register_builtin_adapters() -> None:
             symbol_patterns=(
                 (
                     "type",
-                    r"^\s*(?:(?:public|internal|private|protected|abstract|sealed|static|partial)\s+)*(?:class|interface|struct|enum|record)\s+(?P<name>[\w@]+)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:public|internal|private|protected|abstract|sealed|static|partial)\s+)*(?:class|interface|struct|enum|record)\s+(?P<name>[\w@]+)",  # noqa: E501
+                ),
                 (
                     "function",
-                    r"^\s*(?:(?:public|private|protected|internal|static|virtual|override|async|sealed|partial|extern|new)\s+)*(?:[\w.<>,?\[\]]+\s+)+(?P<name>[\w@]+)\s*\([^;]*\)\s*(?:where\s+[^{}]+)?\{",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:public|private|protected|internal|static|virtual|override|async|sealed|partial|extern|new)\s+)*(?:[\w.<>,?\[\]]+\s+)+(?P<name>[\w@]+)\s*\([^;]*\)\s*(?:where\s+[^{}]+)?\{",  # noqa: E501
+                ),
             ),
             import_patterns=(r"^\s*using\s+(?:static\s+)?(?P<module>[\w.]+)\s*;",),
         ),
@@ -190,8 +190,8 @@ def _register_builtin_adapters() -> None:
                 ("type", r"^\s*(?:typedef\s+)?(?:struct|union|enum)\s+(?P<name>\w+)"),
                 (
                     "function",
-                    r"^\s*(?:(?:static|inline|extern|const|unsigned|signed|long|short)\s+)*(?:[\w*]+\s+)+(?P<name>\w+)\s*\([^;]*\)\s*\{",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:static|inline|extern|const|unsigned|signed|long|short)\s+)*(?:[\w*]+\s+)+(?P<name>\w+)\s*\([^;]*\)\s*\{",  # noqa: E501
+                ),
                 ("constant", r"^\s*#\s*define\s+(?P<name>\w+)"),
             ),
             import_patterns=(r'^\s*#\s*include\s*[<"](?P<module>[^>"]+)[>"]',),
@@ -202,12 +202,12 @@ def _register_builtin_adapters() -> None:
             symbol_patterns=(
                 (
                     "type",
-                    r"^\s*(?:(?:template\s*<[^>]+>\s*)?)(?:class|struct|union|enum)\s+(?:class\s+)?(?P<name>\w+)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:template\s*<[^>]+>\s*)?)(?:class|struct|union|enum)\s+(?:class\s+)?(?P<name>\w+)",  # noqa: E501
+                ),
                 (
                     "function",
-                    r"^\s*(?:(?:static|inline|virtual|constexpr|friend|explicit|extern)\s+)*(?:[\w:*&<>,]+\s+)+(?P<name>\w+)\s*\([^;]*\)\s*(?:const\s*)?(?:noexcept\s*)?\{",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:static|inline|virtual|constexpr|friend|explicit|extern)\s+)*(?:[\w:*&<>,]+\s+)+(?P<name>\w+)\s*\([^;]*\)\s*(?:const\s*)?(?:noexcept\s*)?\{",  # noqa: E501
+                ),
                 ("constant", r"^\s*#\s*define\s+(?P<name>\w+)"),
             ),
             import_patterns=(r'^\s*#\s*include\s*[<"](?P<module>[^>"]+)[>"]',),
@@ -218,12 +218,12 @@ def _register_builtin_adapters() -> None:
             symbol_patterns=(
                 (
                     "function",
-                    r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?(?:unsafe\s+)?fn\s+(?P<name>r#?\w+)",
-                ),  # noqa: E501
+                    r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?(?:unsafe\s+)?fn\s+(?P<name>r#?\w+)",  # noqa: E501
+                ),
                 (
                     "type",
-                    r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:struct|enum|trait|type|mod)\s+(?P<name>r#?\w+)",
-                ),  # noqa: E501
+                    r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:struct|enum|trait|type|mod)\s+(?P<name>r#?\w+)",  # noqa: E501
+                ),
                 ("constant", r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:const|static)\s+(?P<name>r#?\w+)"),
             ),
             import_patterns=(r"^\s*(?:pub\s+)?use\s+(?P<module>[^;]+);",),
@@ -243,12 +243,12 @@ def _register_builtin_adapters() -> None:
             symbol_patterns=(
                 (
                     "type",
-                    r"^\s*(?:(?:abstract|final|readonly)\s+)*(?:class|interface|trait|enum)\s+(?P<name>\w+)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:abstract|final|readonly)\s+)*(?:class|interface|trait|enum)\s+(?P<name>\w+)",  # noqa: E501
+                ),
                 (
                     "function",
-                    r"^\s*(?:(?:public|protected|private|static|final|abstract)\s+)*function\s*&?\s*(?P<name>\w+)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:public|protected|private|static|final|abstract)\s+)*function\s*&?\s*(?P<name>\w+)",  # noqa: E501
+                ),
             ),
             import_patterns=(
                 r"^\s*use\s+(?P<module>[\w\\]+)",
@@ -261,12 +261,12 @@ def _register_builtin_adapters() -> None:
             symbol_patterns=(
                 (
                     "type",
-                    r"^\s*(?:(?:public|private|internal|open|final|indirect)\s+)*(?:class|struct|enum|protocol|actor)\s+(?P<name>\w+)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:public|private|internal|open|final|indirect)\s+)*(?:class|struct|enum|protocol|actor)\s+(?P<name>\w+)",  # noqa: E501
+                ),
                 (
                     "function",
-                    r"^\s*(?:(?:public|private|internal|open|static|class|override|mutating|async|throws|final)\s+)*func\s+(?P<name>\w+)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:public|private|internal|open|static|class|override|mutating|async|throws|final)\s+)*func\s+(?P<name>\w+)",  # noqa: E501
+                ),
             ),
             import_patterns=(r"^\s*import\s+(?P<module>[\w.]+)",),
         ),
@@ -276,12 +276,12 @@ def _register_builtin_adapters() -> None:
             symbol_patterns=(
                 (
                     "type",
-                    r"^\s*(?:(?:abstract|base|final|interface|sealed|mixin)\s+)*(?:class|enum|mixin|extension|typedef)\s+(?P<name>\w+)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:abstract|base|final|interface|sealed|mixin)\s+)*(?:class|enum|mixin|extension|typedef)\s+(?P<name>\w+)",  # noqa: E501
+                ),
                 (
                     "function",
-                    r"^\s*(?:(?:Future<[^>]+>|void|bool|int|double|String|dynamic|List<[^>]+>|Map<[^>]+>)\s+)+(?P<name>\w+)\s*\([^;]*\)\s*(?:async\s*)?\{",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:Future<[^>]+>|void|bool|int|double|String|dynamic|List<[^>]+>|Map<[^>]+>)\s+)+(?P<name>\w+)\s*\([^;]*\)\s*(?:async\s*)?\{",  # noqa: E501
+                ),
             ),
             import_patterns=(r"""^\s*(?:import|export|part)\s+['"](?P<module>[^'"]+)['"]""",),
         ),
@@ -291,12 +291,12 @@ def _register_builtin_adapters() -> None:
             symbol_patterns=(
                 (
                     "type",
-                    r"^\s*(?:(?:case|sealed|abstract|final)\s+)*(?:class|object|trait|enum)\s+(?P<name>\w+)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:case|sealed|abstract|final)\s+)*(?:class|object|trait|enum)\s+(?P<name>\w+)",  # noqa: E501
+                ),
                 (
                     "function",
-                    r"^\s*(?:(?:private|protected|override|final|implicit|inline)\s+)*def\s+(?P<name>\w+)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:private|protected|override|final|implicit|inline)\s+)*def\s+(?P<name>\w+)",  # noqa: E501
+                ),
                 ("variable", r"^\s*(?:val|var)\s+(?P<name>\w+)"),
             ),
             import_patterns=(r"^\s*import\s+(?P<module>[\w.{},_* ]+)",),
@@ -307,8 +307,8 @@ def _register_builtin_adapters() -> None:
             symbol_patterns=(
                 (
                     "type",
-                    r"^\s*(?:(?:public|private|abstract|final)\s+)*(?:class|interface|enum|trait)\s+(?P<name>\w+)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:public|private|abstract|final)\s+)*(?:class|interface|enum|trait)\s+(?P<name>\w+)",  # noqa: E501
+                ),
                 ("function", r"^\s*(?:def|void|[\w<>]+\s+)\s+(?P<name>\w+)\s*\([^;]*\)\s*\{"),
             ),
             import_patterns=(r"^\s*import\s+(?P<module>[\w.*]+)",),
@@ -330,12 +330,12 @@ def _register_builtin_adapters() -> None:
             symbol_patterns=(
                 (
                     "type",
-                    r"^\s*create\s+(?:or\s+replace\s+)?(?:temporary\s+)?(?:table|view|schema|database|type)\s+(?:if\s+not\s+exists\s+)?(?P<name>[\w.]+)",
-                ),  # noqa: E501
+                    r"^\s*create\s+(?:or\s+replace\s+)?(?:temporary\s+)?(?:table|view|schema|database|type)\s+(?:if\s+not\s+exists\s+)?(?P<name>[\w.]+)",  # noqa: E501
+                ),
                 (
                     "function",
-                    r"^\s*create\s+(?:or\s+replace\s+)?(?:procedure|function|trigger)\s+(?:if\s+not\s+exists\s+)?(?P<name>[\w.]+)",
-                ),  # noqa: E501
+                    r"^\s*create\s+(?:or\s+replace\s+)?(?:procedure|function|trigger)\s+(?:if\s+not\s+exists\s+)?(?P<name>[\w.]+)",  # noqa: E501
+                ),
             ),
         ),
         LanguageAdapter(
@@ -468,12 +468,12 @@ def _register_builtin_adapters() -> None:
             symbol_patterns=(
                 (
                     "type",
-                    r"^\s*(?:(?:Public|Private|Friend|Partial|MustInherit|NotInheritable)\s+)*(?:Class|Module|Structure|Interface|Enum)\s+(?P<name>\w+)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:Public|Private|Friend|Partial|MustInherit|NotInheritable)\s+)*(?:Class|Module|Structure|Interface|Enum)\s+(?P<name>\w+)",  # noqa: E501
+                ),
                 (
                     "function",
-                    r"^\s*(?:(?:Public|Private|Friend|Protected|Shared|Overrides)\s+)*(?:Sub|Function)\s+(?P<name>\w+)",
-                ),  # noqa: E501
+                    r"^\s*(?:(?:Public|Private|Friend|Protected|Shared|Overrides)\s+)*(?:Sub|Function)\s+(?P<name>\w+)",  # noqa: E501
+                ),
             ),
             import_patterns=(r"^\s*Imports\s+(?P<module>[\w.]+)",),
         ),
