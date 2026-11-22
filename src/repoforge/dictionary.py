@@ -808,16 +808,21 @@ class CodebaseIndexer:
         value = value.split("?", 1)[0].split("#", 1)[0]
         if not value or value.startswith(("http://", "https://", "data:", "node:")):
             return set()
-        if value.startswith("crate::"):
-            value = value[len("crate::") :].replace("::", "/")
-        if value.startswith("self::"):
-            value = value[len("self::") :].replace("::", "/")
+        rust_module = value.startswith(("crate::", "self::", "super::"))
+        if rust_module:
+            value = value.split("::", 1)[1] if "::" in value else value
         if "::" in value and not value.startswith(":"):
             value = value.replace("::", "/")
+        dotted_module = bool(re.fullmatch(r"[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+", value))
+        if dotted_module:
+            value = value.replace(".", "/")
+        indexed_suffixes = {Path(path).suffix.casefold() for path in indexed_paths}
         has_path_shape = (
-            value.startswith((".", "/"))
+            rust_module
+            or dotted_module
+            or value.startswith((".", "/"))
             or "/" in value
-            or Path(value).suffix.casefold() in {Path(path).suffix.casefold() for path in indexed_paths}
+            or Path(value).suffix.casefold() in indexed_suffixes
         )
         if not has_path_shape:
             return set()
@@ -848,7 +853,15 @@ class CodebaseIndexer:
                 candidates.update(
                     posixpath.join(normalized, "index" + suffix) for suffix in common_suffixes
                 )
-                candidates.update(posixpath.join(normalized, "mod.rs") for _ in (0,))
+                candidates.add(posixpath.join(normalized, "mod.rs"))
+                if rust_module:
+                    parts = normalized.split("/")
+                    for end in range(1, len(parts)):
+                        prefix = "/".join(parts[:end])
+                        candidates.add(prefix + ".rs")
+                        candidates.add(posixpath.join(prefix, "mod.rs"))
+                prefix = normalized.rstrip("/") + "/"
+                candidates.update(path for path in indexed_paths if path.startswith(prefix))
             resolved.update(candidates.intersection(indexed_paths))
         return resolved
 
