@@ -34,7 +34,11 @@ def main():
     )
     _write(tmp_path / "src/helper.ts", "export function helper() { return 1; }\n")
     _write(tmp_path / "go.mod", "module example.com/demo\n\ngo 1.22\n")
-    _write(tmp_path / "cmd/single.go", 'package main\nimport "fmt"\nfunc Print() { fmt.Println("single") }\n')
+    single_go_source = """package main
+import "fmt"
+func Print() { fmt.Println("single") }
+"""
+    _write(tmp_path / "cmd/single.go", single_go_source)
     go_source = (
         "\n".join(
             [
