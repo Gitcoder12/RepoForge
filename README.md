@@ -5,7 +5,7 @@
 
 **Development — no verified release tag recorded**
 
-**Implemented according to current documentation:** repository scanning and analysis; quality/difficulty scoring; planning/orchestration and action execution pipeline; validation, Git checkpointing and reporting; TestForge test-command discovery; Blacksmith bounded create-only repair workflow; Megazords repository comparison.
+**Implemented according to current documentation:** repository scanning and analysis; quality/difficulty scoring; planning/orchestration and action execution pipeline; validation, Git checkpointing and reporting; TestForge test-command discovery; Blacksmith bounded create-only repair workflow; Megazords repository comparison; RepoDictionary structural indexing for Python, JavaScript/TypeScript, and Go.
 
 **Known limitations:** TestForge execution is not OS-sandboxed and must not be used on untrusted repositories. Blacksmith does not implement arbitrary semantic code repair. A documented pipeline or example output is not proof of successful end-to-end execution on arbitrary repositories.
 
@@ -67,6 +67,16 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 repoforge --help
 repoforge version
 ```
+
+### Build a repository dictionary
+
+```powershell
+repoforge index ..\flask
+```
+
+This writes `repo_dictionary.json` into the target repository. The index records supported source files, symbol names and line ranges, imports, and resolvable local dependencies for Python, JavaScript/TypeScript, and Go. It does not execute or modify source files. Use `--output <path>` to choose another destination.
+
+Forge checks an existing dictionary against the current source-file inventory before reusing it. If it is missing or stale, Forge builds a fresh in-memory index for that run instead of silently trusting old metadata. The index guides file and symbol discovery; Forge must still inspect the actual source before proposing a patch.
 
 ### 3. Safely inspect a repository (read-only)
 
