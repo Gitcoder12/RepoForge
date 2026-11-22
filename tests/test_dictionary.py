@@ -34,22 +34,25 @@ def main():
     )
     _write(tmp_path / "src/helper.ts", "export function helper() { return 1; }\n")
     _write(tmp_path / "go.mod", "module example.com/demo\n\ngo 1.22\n")
-    go_source = "\n".join(
-        [
-            "package main",
-            "",
-            "import (",
-            '    "fmt"',
-            '    "example.com/demo/internal/util"',
-            ")",
-            'const AppName = "RepoForge"',
-            "const (",
-            '    BuildVersion = "dev"',
-            "    DefaultPort = 8080",
-            ")",
-            "func main() { fmt.Println(util.Lookup()) }",
-        ]
-    ) + "\n"
+    go_source = (
+        "\n".join(
+            [
+                "package main",
+                "",
+                "import (",
+                '    "fmt"',
+                '    "example.com/demo/internal/util"',
+                ")",
+                'const AppName = "RepoForge"',
+                "const (",
+                '    BuildVersion = "dev"',
+                "    DefaultPort = 8080",
+                ")",
+                "func main() { fmt.Println(util.Lookup()) }",
+            ]
+        )
+        + "\n"
+    )
     _write(tmp_path / "cmd/main.go", go_source)
     _write(
         tmp_path / "internal/util/util.go",
@@ -82,7 +85,8 @@ def main():
     assert index["dependencies"]["src/index.ts"] == ["src/helper.ts"]
     assert index["dependencies"]["cmd/main.go"] == ["internal/util/util.go"]
     go_import = next(
-        item for item in files["cmd/main.go"]["imports"]
+        item
+        for item in files["cmd/main.go"]["imports"]
         if item["module"] == "example.com/demo/internal/util"
     )
     assert go_import["line"] == 5
