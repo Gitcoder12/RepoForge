@@ -6,9 +6,8 @@ or silently grant permission to apply changes.
 
 from __future__ import annotations
 
-from typing import Any
-
 from dataclasses import asdict, dataclass
+from typing import Any
 
 
 STAGES = ("inspect", "plan", "patch", "validate", "iterate", "release_ready")
