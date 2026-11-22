@@ -36,8 +36,12 @@ class GPUObservation:
         if not self.device_id.strip():
             raise ValueError("device_id must not be empty")
         for name in (
-            "temperature_c", "utilization_pct", "memory_used_mb",
-            "memory_total_mb", "power_w", "power_limit_w",
+            "temperature_c",
+            "utilization_pct",
+            "memory_used_mb",
+            "memory_total_mb",
+            "power_w",
+            "power_limit_w",
         ):
             value = getattr(self, name)
             if value is not None and (not math.isfinite(value) or value < 0):
@@ -97,16 +101,22 @@ class RuntimeResourceGovernor:
 
         if temp is None and ratio is None and observation.utilization_pct is None:
             return ResourceDecision(
-                observation.device_id, ResourceState.UNKNOWN,
-                ("collect_telemetry",), ("insufficient telemetry",), True,
+                observation.device_id,
+                ResourceState.UNKNOWN,
+                ("collect_telemetry",),
+                ("insufficient telemetry",),
+                True,
             )
 
         if temp is not None and temp >= self.policy.critical_temperature_c:
             actions.extend(("pause_new_gpu_work", "allow_in_flight_work_to_drain"))
             reasons.append("critical_temperature")
             return ResourceDecision(
-                observation.device_id, ResourceState.THERMAL_PAUSE,
-                tuple(actions), tuple(reasons), False,
+                observation.device_id,
+                ResourceState.THERMAL_PAUSE,
+                tuple(actions),
+                tuple(reasons),
+                False,
             )
 
         if observation.throttling is True:
@@ -127,14 +137,20 @@ class RuntimeResourceGovernor:
 
         if not actions:
             return ResourceDecision(
-                observation.device_id, ResourceState.NORMAL,
-                ("continue_and_monitor",), (), True,
+                observation.device_id,
+                ResourceState.NORMAL,
+                ("continue_and_monitor",),
+                (),
+                True,
             )
 
         unique_actions = tuple(dict.fromkeys(actions))
         return ResourceDecision(
-            observation.device_id, ResourceState.PRESSURE,
-            unique_actions, tuple(reasons), True,
+            observation.device_id,
+            ResourceState.PRESSURE,
+            unique_actions,
+            tuple(reasons),
+            True,
         )
 
     def evaluate_many(self, observations: Iterable[GPUObservation]) -> tuple[ResourceDecision, ...]:
