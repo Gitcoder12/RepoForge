@@ -99,7 +99,11 @@ class ForgeWorkflow:
 
     @staticmethod
     def _read_repository_context(
-        root: Path, *, max_files: int = 16, max_chars: int = 36_000
+        root: Path,
+        *,
+        max_files: int = 16,
+        max_chars: int = 36_000,
+        preferred_paths: list[str] | None = None,
     ) -> list[dict[str, str]]:
         """Read a small, safe source sample without following symlinks or reading secrets."""
         ignored_dirs = {
@@ -180,8 +184,12 @@ class ForgeWorkflow:
                     continue
                 candidates.append(resolved)
 
+        preferred = set(preferred_paths or [])
+
         def priority(candidate: Path) -> tuple[int, str]:
             relative = candidate.relative_to(root).as_posix()
+            if relative in preferred:
+                return -1, relative
             name = candidate.name.casefold()
             if name.startswith("readme") or name in {"pyproject.toml", "package.json", "go.mod"}:
                 rank = 0
@@ -216,6 +224,34 @@ class ForgeWorkflow:
             context.append({"path": candidate.relative_to(root).as_posix(), "content": excerpt})
             used_chars += len(excerpt)
         return context
+
+    @staticmethod
+    def _rank_dictionary_paths(
+        request: str, repository_dictionary: dict[str, Any], *, limit: int = 16
+    ) -> list[str]:
+        """Prioritize indexed files whose paths or symbols resemble the requested task."""
+        terms = set(re.findall(r"[a-zA-Z_][a-zA-Z0-9_]+", request.casefold()))
+        if "route" in terms:
+            terms.add("router")
+        if "router" in terms:
+            terms.add("route")
+        ranked: list[tuple[int, str]] = []
+        for item in repository_dictionary.get("files", []):
+            path = item.get("path", "")
+            path_terms = set(re.findall(r"[a-zA-Z_][a-zA-Z0-9_]+", path.casefold()))
+            symbol_terms = {
+                token
+                for symbol in item.get("symbols", [])
+                for token in re.findall(
+                    r"[a-zA-Z_][a-zA-Z0-9_]+", symbol.get("name", "").casefold()
+                )
+            }
+            score = len(terms.intersection(path_terms)) * 3
+            score += len(terms.intersection(symbol_terms))
+            if score:
+                ranked.append((score, path))
+        ranked.sort(key=lambda item: (-item[0], item[1]))
+        return [path for _, path in ranked[:limit]]
 
     @staticmethod
     def _model_prompt(
@@ -305,7 +341,10 @@ class ForgeWorkflow:
         snapshot = Blacksmith(root).inspect()
         test_plan = TestForge(root).plan()
         validation = asyncio.run(Validator(root).validate())
-        repository_context = self._read_repository_context(root)
+        preferred_paths = self._rank_dictionary_paths(request, repository_dictionary)
+        repository_context = self._read_repository_context(
+            root, preferred_paths=preferred_paths
+        )
         report: dict[str, Any] = {
             "engine": "RepoForge Forge",
             "repository": str(root),
