@@ -57,3 +57,12 @@ credential filenames, environment files, and lockfiles; it redacts common
 credential-style assignments. This reduces accidental exposure but is not a
 guarantee that source context contains no secrets. Review the repository and
 provider policy before using a remote model.
+
+
+## Apply and failure semantics
+
+ActionRunner preflights the proposed batch and checks the clean working tree,
+branch policy, and exact approved paths before writing. The filesystem writes
+are not a transaction, and RepoForge does not automatically roll back a patch
+if post-validation or target tests fail. A failed post-check is reported
+explicitly; inspect `git diff` and revert or repair the changes yourself.
