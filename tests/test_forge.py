@@ -142,7 +142,6 @@ def test_forge_prompt_places_repo_dictionary_before_source_context():
     assert "untrusted structural evidence" in prompt
 
 
-
 def test_forge_prompt_keeps_relevant_index_entries_ahead_of_large_repositories():
     files = [
         {
