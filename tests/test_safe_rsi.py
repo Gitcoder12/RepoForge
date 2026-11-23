@@ -5,7 +5,12 @@ from repoforge.safe_rsi import safe_rsi_step
 
 
 def _git_repo(path):
-    subprocess.run(["git", "init", "-b", "feature/safe-rsi"], cwd=path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "init", "-b", "feature/safe-rsi"],
+        cwd=path,
+        check=True,
+        capture_output=True,
+    )
     subprocess.run(["git", "config", "user.email", "tests@example.invalid"], cwd=path, check=True)
     subprocess.run(["git", "config", "user.name", "RepoForge Tests"], cwd=path, check=True)
     (path / "baseline.py").write_text("VALUE = 1\n", encoding="utf-8")
