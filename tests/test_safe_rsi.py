@@ -79,7 +79,7 @@ def test_safe_rsi_step_rejects_invalid_or_flagged_python_before_apply(tmp_path):
             {
                 "type": "create",
                 "file": "unsafe.py",
-                "content": "import os\\nos.system('echo unsafe')\\n",
+                "content": "import os" + chr(10) + "os.system('echo unsafe')" + chr(10),
             }
         ],
         approved_paths={"unsafe.py"},
