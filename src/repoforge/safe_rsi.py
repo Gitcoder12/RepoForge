@@ -61,9 +61,7 @@ def _normalize_actions(
         except (OSError, RuntimeError, ValueError) as exc:
             raise ValueError(f"target escapes repository root: {normalized_path}") from exc
 
-        normalized.append(
-            {"type": action_type, "file": normalized_path, "content": content}
-        )
+        normalized.append({"type": action_type, "file": normalized_path, "content": content})
         paths.append(normalized_path)
 
     if approved_paths != set(paths):
