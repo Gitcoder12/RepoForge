@@ -229,11 +229,7 @@ def safe_rsi_step(
         report["mutation"] = mutation
         if mutation.get("status") != "completed":
             report["rollback"] = _restore_paths(root, normalized, snapshots)
-            report["status"] = (
-                "rolled_back"
-                if report["rollback"]["status"] == "restored"
-                else "rollback_conflict"
-            )
+            report["status"] = ("rolled_back" if report["rollback"]["status"] == "restored" else "rollback_conflict")
             report["reason"] = "apply did not complete; path-scoped recovery attempted"
             return report
 
