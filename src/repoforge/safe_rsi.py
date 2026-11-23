@@ -237,11 +237,7 @@ def safe_rsi_step(
         report["post_validation"] = post_validation
         if not post_validation.get("passed"):
             report["rollback"] = _restore_paths(root, normalized, snapshots)
-            report["status"] = (
-                "rolled_back"
-                if report["rollback"]["status"] == "restored"
-                else "rollback_conflict"
-            )
+            report["status"] = ("rolled_back" if report["rollback"]["status"] == "restored" else "rollback_conflict")
             report["reason"] = "post-validation failed; path-scoped recovery attempted"
             return report
 
