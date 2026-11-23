@@ -88,6 +88,8 @@ def test_safe_rsi_step_rejects_invalid_or_flagged_python_before_apply(tmp_path):
     assert report["status"] == "blocked"
     assert report["pre_validation"]["passed"] is False
     assert not (tmp_path / "unsafe.py").exists()
+
+
 def test_safe_rsi_step_restores_only_approved_path_after_partial_apply(tmp_path, monkeypatch):
     _git_repo(tmp_path)
     target = tmp_path / "baseline.py"
