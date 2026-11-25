@@ -185,6 +185,10 @@ pytest -q
 
 ---
 
+## Interview demo
+
+See [docs/INTERVIEW_DEMO.md](docs/INTERVIEW_DEMO.md) for a five-minute CLI walkthrough, approval boundaries, safety limitations, and likely interview questions.
+
 ## Contributor entry point
 
 Start with [START_HERE.md](START_HERE.md) for the canonical source map and
