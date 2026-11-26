@@ -200,7 +200,9 @@ class ActionRunner:
                 raise FileNotFoundError(f"modify action target does not exist: {filepath}")
         elif action_type == "delete":
             if not target.is_file():
-                raise FileNotFoundError(f"delete action target must be an existing regular file: {filepath}")
+                raise FileNotFoundError(
+                    f"delete action target must be an existing regular file: {filepath}"
+                )
         else:
             raise ValueError(f"unsupported or incomplete action type: {action_type!r}")
 
