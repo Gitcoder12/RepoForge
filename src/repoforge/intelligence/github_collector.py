@@ -48,7 +48,11 @@ class GitHubRepositoryCollector:
 
     def _get(self, url: str, *, params: dict[str, Any] | None = None) -> dict[str, Any]:
         parsed = urlparse(url)
-        if parsed.scheme != "https" or parsed.hostname != ALLOWED_HOST or parsed.port not in (None, 443):
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname != ALLOWED_HOST
+            or parsed.port not in (None, 443)
+        ):
             raise ValueError("collector only permits HTTPS requests to api.github.com:443")
         try:
             # Redirects are disabled: validate every network destination, not only the first URL.
@@ -72,7 +76,9 @@ class GitHubRepositoryCollector:
             response.raise_for_status()
             payload = response.json()
         except (requests.HTTPError, ValueError) as exc:
-            raise GitHubAPIError(f"GitHub returned an invalid response: {type(exc).__name__}") from exc
+            raise GitHubAPIError(
+                f"GitHub returned an invalid response: {type(exc).__name__}"
+            ) from exc
         if not isinstance(payload, dict):
             raise GitHubAPIError("GitHub returned an unexpected response shape")
         return payload
