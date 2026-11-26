@@ -35,9 +35,24 @@ def test_archived_and_forks_are_excluded_by_default():
 
 def test_fastest_never_mixes_benchmark_cohorts():
     rows = [
-        {"full_name": "a/fast", "benchmark_score": 99, "benchmark_id": "suite-a", "benchmark_environment": "linux-x86"},
-        {"full_name": "b/slow", "benchmark_score": 20, "benchmark_id": "suite-a", "benchmark_environment": "linux-x86"},
-        {"full_name": "c/different", "benchmark_score": 100, "benchmark_id": "suite-b", "benchmark_environment": "mac-arm"},
+        {
+            "full_name": "a/fast",
+            "benchmark_score": 99,
+            "benchmark_id": "suite-a",
+            "benchmark_environment": "linux-x86",
+        },
+        {
+            "full_name": "b/slow",
+            "benchmark_score": 20,
+            "benchmark_id": "suite-a",
+            "benchmark_environment": "linux-x86",
+        },
+        {
+            "full_name": "c/different",
+            "benchmark_score": 100,
+            "benchmark_id": "suite-b",
+            "benchmark_environment": "mac-arm",
+        },
         {"full_name": "d/unverified", "benchmark_score": 100},
     ]
     ranked = rank_repositories(rows, "fastest")
