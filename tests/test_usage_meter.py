@@ -39,9 +39,7 @@ def test_key_snapshot_flags_exhausted_budget(monkeypatch):
     monkeypatch.setattr(
         write_usage_meter,
         "urlopen",
-        lambda *_args, **_kwargs: FakeResponse(
-            {"data": {"limit": 5, "limit_remaining": 0}}
-        ),
+        lambda *_args, **_kwargs: FakeResponse({"data": {"limit": 5, "limit_remaining": 0}}),
     )
     assert write_usage_meter.openrouter_key_snapshot("test")["status"] == "limit_exhausted"
 
