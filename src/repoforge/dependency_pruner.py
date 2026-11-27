@@ -24,13 +24,36 @@ IMPORT_TO_DISTRIBUTION = {
 def _canonical(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
 
-def _requirements(path: Path) -> list[str]:
+def _requirements(path: Path) -> list[tuple[str, str]]:
+    """Read direct runtime dependencies from requirements.txt or PEP 621 pyproject.toml."""
+    if path.name.casefold() == "pyproject.toml":
+        try:
+            import tomllib
+        except ImportError:
+            try:
+                import tomli as tomllib
+            except ImportError as exc:
+                raise ValueError("Python 3.10 requires tomli to parse pyproject.toml") from exc
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+        dependencies = data.get("project", {}).get("dependencies", [])
+        if not isinstance(dependencies, list) or not all(isinstance(item, str) for item in dependencies):
+            raise ValueError("pyproject.toml project.dependencies must be an array of strings")
+        entries = []
+        for requirement in dependencies:
+            match = re.match(r"\\s*([A-Za-z0-9][A-Za-z0-9_.-]*)", requirement)
+            if not match:
+                raise ValueError(f"Unsupported PEP 508 requirement: {requirement}")
+            entries.append((match.group(1), requirement))
+        return entries
+
     entries = []
     for raw in path.read_text(encoding="utf-8").splitlines():
         line = raw.strip()
-        if not line or line.startswith(("#", "-r ", "--")):
+        if not line or line.startswith("#"):
             continue
-        if line.startswith(("-e ", ".", "/")) or " @ " in line:
+        if line.startswith("-"):
+            raise ValueError("Requirements directives/includes require full dependency retention.")
+        if line.startswith((".", "/")) or " @ " in line:
             raise ValueError("Editable, local, and direct-URL requirements require full retention.")
         match = re.match(r"([A-Za-z0-9][A-Za-z0-9_.-]*)", line)
         if not match:
