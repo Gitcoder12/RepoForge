@@ -33,6 +33,7 @@ SKIP_DIRS = {
 }
 DEFAULT_MAX_FILES = 20_000
 MAX_OUTPUT_BYTES = 8_000
+MAX_EXECUTION_TIMEOUT_SECONDS = 120
 
 
 class TestForge:
@@ -404,8 +405,11 @@ class TestForge:
         """Plan tests, or run detected commands after explicit opt-in."""
         if not isinstance(execute, bool):
             raise ValueError("execute must be a boolean")
-        if isinstance(timeout, bool) or not isinstance(timeout, int) or not 1 <= timeout <= 1800:
-            raise ValueError("timeout must be an integer between 1 and 1800 seconds")
+        if (isinstance(timeout, bool) or not isinstance(timeout, int)
+                or not 1 <= timeout <= MAX_EXECUTION_TIMEOUT_SECONDS):
+            raise ValueError(
+                f"timeout must be an integer between 1 and {MAX_EXECUTION_TIMEOUT_SECONDS} seconds"
+            )
 
         report = self.plan()
         if not report["scan"]["complete"]:
