@@ -51,3 +51,25 @@ def test_non_gpt_62_models_keep_temperature_parameter():
     assert provider.generate("Return ok", temperature=0.0) == "ok"
     assert completions.request is not None
     assert completions.request["temperature"] == 0.0
+
+
+def test_http_402_is_reported_as_a_quota_limit():
+    from repoforge.providers.errors import ProviderRateLimitError
+
+    class FakeAPIError(Exception):
+        status_code = 402
+
+    class RaisingCompletions:
+        def create(self, **kwargs):
+            raise FakeAPIError("credit limit exhausted")
+
+    provider = OpenAICompatibleProvider(
+        provider_name="openrouter",
+        api_key="test-key",
+        base_url="https://openrouter.ai/api/v1",
+        model="test-model",
+        client=SimpleNamespace(chat=SimpleNamespace(completions=RaisingCompletions())),
+    )
+
+    with pytest.raises(ProviderRateLimitError):
+        provider.generate("Return ok")
