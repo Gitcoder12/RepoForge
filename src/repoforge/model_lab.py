@@ -80,6 +80,12 @@ SUGGESTED_MODELS = (
         "Paid API; pricing and quotas are controlled by DeepSeek.",
     ),
     ModelSuggestion(
+        "Mistral Small — balanced reasoning and coding via OpenRouter",
+        "openrouter:mistralai/mistral-small-4",
+        "A current Mistral model-family comparison without a separate Mistral API key.",
+        "OpenRouter routed pricing applies; check the live model page before running.",
+    ),
+    ModelSuggestion(
         "Local / privacy-oriented baseline",
         "ollama:llama3.2",
         "Local endpoint comparison for teams prioritizing local execution.",
