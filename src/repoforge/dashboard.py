@@ -145,8 +145,7 @@ def discover_repositories(
             directories[:] = sorted(
                 name
                 for name in directories
-                if name not in IGNORED_DIRECTORIES
-                and not (current_path / name).is_symlink()
+                if name not in IGNORED_DIRECTORIES and not (current_path / name).is_symlink()
             )
 
         for name in list(directories):
@@ -251,9 +250,7 @@ def render_app() -> None:
             except (OSError, ValueError) as exc:
                 st.error(str(exc))
 
-        all_repositories = [
-            Path(item) for item in st.session_state.repoforge_repositories
-        ]
+        all_repositories = [Path(item) for item in st.session_state.repoforge_repositories]
         st.caption(f"{len(all_repositories)} repositories indexed in this session.")
         repo_query = st.text_input("🔎 Search repositories", placeholder="Name or folder path")
         filtered = filter_repositories(all_repositories, repo_query)
@@ -329,7 +326,7 @@ def render_app() -> None:
                     inspection = report["inspection"]
                     dimensions = inspection["rank"]["dimensions"]
                     metrics = st.columns(4)
-                    metrics[0].metric("RepoRank", f'{inspection["rank"]["score"]}/100')
+                    metrics[0].metric("RepoRank", f"{inspection['rank']['score']}/100")
                     metrics[1].metric("Files scanned", inspection["files_scanned"])
                     metrics[2].metric("Languages", len(inspection["languages"]))
                     metrics[3].metric("Capabilities", len(inspection["capabilities"]))
@@ -357,7 +354,8 @@ def render_app() -> None:
             "🔎 Search agents", placeholder="Architecture, testing, security…"
         )
         matching_agents = [
-            name for name, item in AGENT_FOCUSES.items()
+            name
+            for name, item in AGENT_FOCUSES.items()
             if agent_query.casefold() in name.casefold()
             or agent_query.casefold() in item["description"].casefold()
         ]
@@ -398,7 +396,7 @@ def render_app() -> None:
 
             agent_report = st.session_state.get("repoforge_agent_report")
             if agent_report:
-                st.write(f'**Workflow status:** {agent_report.get("status", "unknown")}')
+                st.write(f"**Workflow status:** {agent_report.get('status', 'unknown')}")
                 if use_ollama:
                     st.caption("Model output is a proposal only. No changes are applied.")
                 elif agent_report.get("status") == "plan_only":
