@@ -42,39 +42,39 @@ IGNORED_DIRECTORIES = {
 AGENT_FOCUSES: dict[str, dict[str, str]] = {
     "Architect": {
         "description": "Structure, modules, boundaries, interfaces, and design trade-offs.",
-        "request": "Review the repository architecture and propose the highest-value structural improvements.",
+        "request": (\n            "Review the repository architecture and propose the highest-value "\n            "structural improvements."\n        ),
     },
     "Testing": {
         "description": "Test discovery, coverage gaps, edge cases, and regression strategy.",
-        "request": "Review testing strategy, discover existing tests, and identify important behavior-based test gaps.",
+        "request": (\n            "Review testing strategy, discover existing tests, and identify " \n            "important behavior-based test gaps."\n        ),
     },
     "Security": {
-        "description": "Static risk signals, secrets hygiene, permissions, and dependency exposure.",
-        "request": "Review security posture and identify evidence-backed risks without executing repository code.",
+        "description": (\n            "Static risk signals, secrets hygiene, permissions, and dependency exposure."\n        ),
+        "request": (\n            "Review security posture and identify evidence-backed risks without " \n            "executing repository code."\n        ),
     },
     "Documentation": {
         "description": "README accuracy, setup instructions, examples, and developer onboarding.",
-        "request": "Review documentation quality and propose specific improvements grounded in the repository.",
+        "request": (\n            "Review documentation quality and propose specific improvements " \n            "grounded in the repository."\n        ),
     },
     "Performance": {
         "description": "Potential bottlenecks, complexity hotspots, and measurement strategy.",
-        "request": "Review likely performance risks and propose measurable profiling or optimization steps.",
+        "request": (\n            "Review likely performance risks and propose measurable profiling " \n            "or optimization steps."\n        ),
     },
     "Dependencies": {
         "description": "Manifests, dependency consistency, versions, and supply-chain hygiene.",
-        "request": "Review dependency and package configuration; identify consistency and maintenance risks.",
+        "request": (\n            "Review dependency and package configuration; identify consistency " \n            "and maintenance risks."\n        ),
     },
     "Quality": {
         "description": "Formatting, linting, typing, maintainability, and code quality workflows.",
-        "request": "Review code-quality tooling and recommend language-appropriate validation steps.",
+        "request": (\n            "Review code-quality tooling and recommend language-appropriate " \n            "validation steps."\n        ),
     },
     "CI/CD": {
-        "description": "Build checks, continuous integration, release workflows, and deployment safety.",
-        "request": "Review CI/CD configuration and propose checks based on the actual project stack.",
+        "description": (\n            "Build checks, continuous integration, release workflows, and deployment safety."\n        ),
+        "request": (\n            "Review CI/CD configuration and propose checks based on the actual " \n            "project stack."\n        ),
     },
     "Code Review": {
         "description": "Focused change review, failure modes, correctness, and maintainability.",
-        "request": "Perform a cautious engineering review and identify the most consequential issues with evidence.",
+        "request": (\n            "Perform a cautious engineering review and identify the most consequential " \n            "issues with evidence."\n        ),
     },
 }
 
@@ -124,7 +124,7 @@ def discover_repositories(
                 discovered.append(candidate.resolve())
                 directories.remove(name)
                 if len(discovered) >= max_results:
-                    return sorted(discovered, key=lambda item: (item.name.casefold(), str(item).casefold()))
+                    return sorted(\n                        discovered,\n                        key=lambda item: (item.name.casefold(), str(item).casefold()),\n                    )
 
     return sorted(discovered, key=lambda item: (item.name.casefold(), str(item).casefold()))
 
@@ -185,7 +185,7 @@ def render_app() -> None:
 
     st.set_page_config(page_title="RepoForge Workspace", page_icon="🛠️", layout="wide")
     st.title("RepoForge Workspace")
-    st.caption("Find local repositories, inspect engineering health, and route work through focused agent presets.")
+    st.caption(\n        "Find local repositories, inspect engineering health, and route work " \n        "through focused agent presets."\n    )
 
     if "repoforge_repositories" not in st.session_state:
         st.session_state.repoforge_repositories = []
@@ -233,7 +233,7 @@ def render_app() -> None:
             st.session_state.repoforge_selected_repo = selected_value
             selected_repo = Path(selected_value)
         st.divider()
-        st.caption("Default mode: local inspection only. No model calls, test execution, or file edits.")
+        st.caption(\n            "Default mode: local inspection only. No model calls, test execution, " \n            "or file edits."\n        )
 
     workspace_tab, agents_tab, megazords_tab = st.tabs(
         ["Repository workspace", "Agent workbench", "Megazords"]
@@ -241,7 +241,7 @@ def render_app() -> None:
 
     with workspace_tab:
         if selected_repo is None:
-            st.info("Choose a workspace folder in the sidebar and search for a repository to begin.")
+            st.info(\n                "Choose a workspace folder in the sidebar and search for a " \n                "repository to begin."\n            )
         else:
             st.subheader(selected_repo.name)
             st.caption(str(selected_repo))
@@ -271,7 +271,7 @@ def render_app() -> None:
                             Validator(str(selected_repo)).validate(run_tests=False)
                         )
                 except Exception as exc:  # report errors without interrupting the workspace
-                    st.session_state.repoforge_action_report = {"status": "error", "message": str(exc)}
+                    st.session_state.repoforge_action_report = {\n                        "status": "error",\n                        "message": str(exc),\n                    }
 
             report = st.session_state.get("repoforge_action_report")
             if report:
@@ -292,12 +292,12 @@ def render_app() -> None:
                 else:
                     st.json(report)
             else:
-                st.write("Select an action above. Checks are read-only and do not execute the target project's tests.")
+                st.write(\n                    "Select an action above. Checks are read-only and do not " \n                    "execute the target project's tests."\n                )
 
     with agents_tab:
         st.subheader("Agent workbench")
-        st.caption("Search a specialist role, select a focus, and request a read-only plan or a local Ollama proposal.")
-        agent_query = st.text_input("🔎 Search agents", placeholder="Architecture, testing, security…")
+        st.caption(\n            "Search a specialist role, select a focus, and request a read-only " \n            "plan or a local Ollama proposal."\n        )
+        agent_query = st.text_input(\n            "🔎 Search agents", placeholder="Architecture, testing, security…"\n        )
         matching_agents = [
             name for name, item in AGENT_FOCUSES.items()
             if agent_query.casefold() in name.casefold()
@@ -333,7 +333,7 @@ def render_app() -> None:
                         )
                     st.session_state.repoforge_agent_report = result
                 except Exception as exc:
-                    st.session_state.repoforge_agent_report = {"status": "error", "message": str(exc)}
+                    st.session_state.repoforge_agent_report = {\n                        "status": "error",\n                        "message": str(exc),\n                    }
 
             agent_report = st.session_state.get("repoforge_agent_report")
             if agent_report:
@@ -341,12 +341,12 @@ def render_app() -> None:
                 if use_ollama:
                     st.caption("Model output is a proposal only. No changes are applied.")
                 elif agent_report.get("status") == "plan_only":
-                    st.caption("Read-only inspection completed. Enable local Ollama to request a model-generated patch proposal.")
+                    st.caption(\n                        "Read-only inspection completed. Enable local Ollama to " \n                        "request a model-generated patch proposal."\n                    )
                 st.json(agent_report)
 
     with megazords_tab:
         st.subheader("Repository combinations")
-        st.caption("Compare two or more discovered repositories. Fit scores are heuristic hypotheses, not compatibility guarantees.")
+        st.caption(\n            "Compare two or more discovered repositories. Fit scores are " \n            "heuristic hypotheses, not compatibility guarantees."\n        )
         if len(all_repositories) < 2:
             st.info("Scan a workspace containing at least two Git repositories.")
         else:
@@ -356,12 +356,12 @@ def render_app() -> None:
                 format_func=lambda value: f"{Path(value).name}  ·  {value}",
             )
             top_k = st.slider("Suggestions", min_value=1, max_value=30, value=10)
-            if st.button("Find complementary projects", type="primary", disabled=len(selected_paths) < 2):
+            if st.button(\n                "Find complementary projects",\n                type="primary",\n                disabled=len(selected_paths) < 2,\n            ):
                 try:
                     result = MegazordEngine().suggest(selected_paths, top_k=top_k)
                     st.session_state.repoforge_megazord_report = result
                 except Exception as exc:
-                    st.session_state.repoforge_megazord_report = {"status": "error", "message": str(exc)}
+                    st.session_state.repoforge_megazord_report = {\n                        "status": "error",\n                        "message": str(exc),\n                    }
             megazord_report = st.session_state.get("repoforge_megazord_report")
             if megazord_report:
                 st.metric("Pairings evaluated", megazord_report.get("pairings_evaluated", 0))
