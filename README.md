@@ -1,3 +1,11 @@
+# RepoForge Omega 1.0 — release preparation
+
+This branch is the dedicated stabilization track for **RepoForge Omega 1.0**. It is not a published release. No release guarantee is implied until the clean-install, test, CLI, approved-write, and security acceptance gates in [docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md) are complete and evidenced against the final commit.
+
+Scope is frozen: correctness fixes, regression tests, reproducibility, documentation, safe cleanup, and release packaging only. Test execution against a target repository is not OS-sandboxed; do not run untrusted repository tests.
+
+---
+
 # RepoForge
 
 
