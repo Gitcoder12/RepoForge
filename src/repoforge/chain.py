@@ -234,14 +234,23 @@ class HookChain:
                 "langfix_apply_requested": False,
                 "repository_defined_hooks_loaded": False,
                 "notes": [
-                    "LangFix runs in preview-only mode and its cache is isolated in a temporary directory.",
+                    (
+                        "LangFix runs in preview-only mode and its cache is isolated "
+                        "in a temporary directory."
+                    ),
                     "Only safe create-if-absent repairs can be applied after explicit selection.",
-                    "Upgrade options and Megazord complements are recommendations, never executable repairs.",
+                    (
+                        "Upgrade options and Megazord complements are recommendations, "
+                        "never executable repairs."
+                    ),
                     "Target build scripts, test suites, and project hooks are not executed.",
                 ],
             },
         }
-        self._emit("chain.completed", {"repository_count": len(paths), "selection_count": len(selection_items)})
+        self._emit(
+            "chain.completed",
+            {"repository_count": len(paths), "selection_count": len(selection_items)},
+        )
         report["hook_trace"] = list(self._event_trace)
         return report
 
@@ -263,13 +272,21 @@ class HookChain:
                     {
                         "id": item_id,
                         "status": "review_only",
-                        "reason": "Selected item is a recommendation, not an automatic safe repair.",
+                        "reason": (
+                            "Selected item is a recommendation, not an automatic safe repair."
+                        ),
                     }
                 )
                 continue
             payload = self._repair_payloads.get(item_id)
             if payload is None:
-                outcomes.append({"id": item_id, "status": "unavailable", "reason": "Repair payload is not present in this chain instance."})
+                outcomes.append(
+                    {
+                        "id": item_id,
+                        "status": "unavailable",
+                        "reason": "Repair payload is not present in this chain instance.",
+                    }
+                )
                 continue
             path, repair = payload
             applied = Blacksmith(path).apply_repairs([repair])
