@@ -29,7 +29,11 @@ def test_discover_repositories_finds_nested_git_worktrees(tmp_path: Path):
 
     found = discover_repositories(tmp_path)
 
-    assert found == sorted([first.resolve(), second.resolve()], key=lambda p: (p.name.casefold(), str(p).casefold()))
+    expected = sorted(
+        [first.resolve(), second.resolve()],
+        key=lambda path: (path.name.casefold(), str(path).casefold()),
+    )
+    assert found == expected
 
 
 def test_discover_returns_workspace_itself_when_it_is_a_repository(tmp_path: Path):
