@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from scripts import write_usage_meter
+from repoforge import usage_meter
 
 
 class FakeResponse:
@@ -23,13 +23,13 @@ class FakeResponse:
 
 def test_key_snapshot_reports_remaining_budget(monkeypatch):
     monkeypatch.setattr(
-        write_usage_meter,
+        usage_meter,
         "urlopen",
         lambda *_args, **_kwargs: FakeResponse(
             {"data": {"limit": 5, "limit_remaining": 4.25, "limit_reset": "monthly", "usage": 0.75}}
         ),
     )
-    result = write_usage_meter.openrouter_key_snapshot("not-a-real-key")
+    result = usage_meter.openrouter_key_snapshot("not-a-real-key")
     assert result["status"] == "available"
     assert result["limit_remaining"] == 4.25
     assert "not-a-real-key" not in json.dumps(result)
@@ -37,12 +37,12 @@ def test_key_snapshot_reports_remaining_budget(monkeypatch):
 
 def test_key_snapshot_flags_exhausted_budget(monkeypatch):
     monkeypatch.setattr(
-        write_usage_meter,
+        usage_meter,
         "urlopen",
         lambda *_args, **_kwargs: FakeResponse({"data": {"limit": 5, "limit_remaining": 0}}),
     )
-    assert write_usage_meter.openrouter_key_snapshot("test")["status"] == "limit_exhausted"
+    assert usage_meter.openrouter_key_snapshot("test")["status"] == "limit_exhausted"
 
 
 def test_key_snapshot_does_not_claim_provider_quota_without_key():
-    assert write_usage_meter.openrouter_key_snapshot("") == {"status": "missing_credential"}
+    assert usage_meter.openrouter_key_snapshot("") == {"status": "missing_credential"}
