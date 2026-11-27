@@ -335,7 +335,9 @@ def chain_command(
     apply_safe: bool = typer.Option(
         False,
         "--apply-safe",
-        help="Apply only selected safe create-if-absent repairs; never applies upgrades or pairings.",
+        help=(
+            "Apply only selected safe create-if-absent repairs; never applies upgrades or pairings."
+        ),
     ),
     output: Path | None = typer.Option(
         None,
@@ -416,13 +418,19 @@ def chain_command(
             for token in tokens:
                 selected = by_id.get(token, by_row.get(token))
                 if selected is None:
-                    typer.echo(f"Unknown selection '{token}'. Use a row number or item ID.", err=True)
+                    typer.echo(
+                        f"Unknown selection '{token}'. Use a row number or item ID.",
+                        err=True,
+                    )
                     raise typer.Exit(code=2)
                 selected_ids.append(selected)
             selected_ids = list(dict.fromkeys(selected_ids))
 
     if apply_safe and not selected_ids:
-        typer.echo("--apply-safe requires at least one selected item; use --select safe or --interactive.", err=True)
+        typer.echo(
+            "--apply-safe requires at least one selected item; use --select safe or --interactive.",
+            err=True,
+        )
         raise typer.Exit(code=2)
 
     selected_set = set(selected_ids)
@@ -451,7 +459,10 @@ def chain_command(
     }
     report["safety"]["target_files_modified"] = applied["applied_count"] > 0
     report["safety"]["notes"].append(
-        "Only checked create-if-absent repairs are eligible for application; review-only items remain unchanged."
+        (
+            "Only checked create-if-absent repairs are eligible for application; "
+            "review-only items remain unchanged."
+        )
     )
 
     rendered = json.dumps(report, indent=2, ensure_ascii=False)
