@@ -1,4 +1,4 @@
-""""Resilience tests for OpenRouter budget snapshots; no live network or credentials."""
+"""Resilience tests for OpenRouter budget snapshots; no live network or credentials."""
 
 from __future__ import annotations
 
