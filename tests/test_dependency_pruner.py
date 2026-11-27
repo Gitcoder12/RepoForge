@@ -40,3 +40,19 @@ def test_writer_emits_candidate_manifest(tmp_path: Path):
     result = write_pruned_requirements(tmp_path)
     assert result["output"] == "requirements.pruned.txt"
     assert (tmp_path / "requirements.pruned.txt").read_text() == "requests>=2\n"
+
+
+def test_pruner_reads_pep621_pyproject_runtime_dependencies(tmp_path: Path):
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\\ndependencies = ["requests>=2", "pyyaml>=6"]\\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "app.py").write_text("import requests\\nimport yaml\\n", encoding="utf-8")
+    result = prune_requirements(tmp_path, manifest="pyproject.toml")
+    assert result["retained"] == ["requests>=2", "pyyaml>=6"]
+
+def test_pruner_refuses_requirements_includes(tmp_path: Path):
+    (tmp_path / "requirements.txt").write_text("-r base.txt\\n", encoding="utf-8")
+    (tmp_path / "app.py").write_text("", encoding="utf-8")
+    with pytest.raises(ValueError):
+        prune_requirements(tmp_path)
