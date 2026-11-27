@@ -124,7 +124,7 @@ class OpenAICompatibleProvider(BaseProvider):
         except Exception as exc:
             error_name = type(exc).__name__
             status_code = getattr(exc, "status_code", None)
-            if error_name == "RateLimitError" or status_code == 429:
+            if error_name == "RateLimitError" or status_code in (402, 429):
                 raise ProviderRateLimitError(
                     f"{self.provider_name} rate limit or quota exhausted. "
                     "No automatic provider switch or retry was attempted."
