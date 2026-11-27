@@ -1,0 +1,163 @@
+name: Real Repository Blacksmith and Megazords Matrix
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/real-repo-readonly-matrix.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-real-repositories:
+    name: Read-only multi-repository inspection
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout RepoForge
+        uses: actions/checkout@v4
+        with:
+          path: RepoForge
+
+      - name: Checkout Hardware-Box
+        uses: actions/checkout@v4
+        with:
+          repository: Gitcoder12/Hardware-Box
+          ref: main
+          path: targets/Hardware-Box
+
+      - name: Checkout Civicshield
+        uses: actions/checkout@v4
+        with:
+          repository: Gitcoder12/Civicshield
+          ref: main
+          path: targets/Civicshield
+
+      - name: Checkout Poke-Switch
+        uses: actions/checkout@v4
+        with:
+          repository: Gitcoder12/Poke-Switch
+          ref: main
+          path: targets/Poke-Switch
+
+      - name: Checkout Overdrive
+        uses: actions/checkout@v4
+        with:
+          repository: Gitcoder12/Overdrive
+          ref: main
+          path: targets/Overdrive
+
+      - name: Checkout Ember
+        uses: actions/checkout@v4
+        with:
+          repository: Gitcoder12/Ember
+          ref: main
+          path: targets/Ember
+
+      - name: Checkout ARK
+        uses: actions/checkout@v4
+        with:
+          repository: Gitcoder12/ARK
+          ref: main
+          path: targets/ARK
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install RepoForge only
+        working-directory: RepoForge
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Run Blacksmith inspection and Megazords comparison
+        working-directory: RepoForge
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          from repoforge.blacksmith import Blacksmith
+          from repoforge.megazord import MegazordEngine
+
+          repo_names = [
+              "Hardware-Box",
+              "Civicshield",
+              "Poke-Switch",
+              "Overdrive",
+              "Ember",
+              "ARK",
+          ]
+          paths = [Path("../targets") / name for name in repo_names]
+          missing = [str(path) for path in paths if not path.is_dir()]
+          if missing:
+              raise SystemExit(f"Missing repository checkouts: {missing}")
+
+          profiles = []
+          for path in paths:
+              profile = Blacksmith(path).inspect()
+              profiles.append({
+                  "name": profile["name"],
+                  "files_scanned": profile["files_scanned"],
+                  "scan_incomplete": profile["scan_incomplete"],
+                  "languages": profile["languages"],
+                  "manifests": profile["manifests"],
+                  "capabilities": profile["capabilities"],
+                  "rank": profile["rank"],
+                  "signals": profile["signals"],
+                  "findings": profile["findings"],
+              })
+
+          pairing_report = MegazordEngine().suggest(paths, top_k=15)
+          report = {
+              "mode": "read_only",
+              "repositories_inspected": len(profiles),
+              "profiles": profiles,
+              "megazords": pairing_report,
+              "execution_policy": {
+                  "target_project_code_executed": False,
+                  "dependencies_from_target_repositories_installed": False,
+                  "target_files_modified": False,
+                  "recommendations_applied": False,
+              },
+          }
+
+          output = Path("../real-repository-blacksmith-megazords.json")
+          output.write_text(json.dumps(report, indent=2), encoding="utf-8")
+
+          for profile in profiles:
+              print(
+                  f"{profile['name']}: languages={profile['languages']} "
+                  f"capabilities={profile['capabilities']} "
+                  f"RepoRank={profile['rank']['score']}/100"
+              )
+          print(
+              f"Megazords: {pairing_report['pairings_evaluated']} pairings; "
+              f"{len(pairing_report['suggestions'])} top suggestions"
+          )
+
+          # Verify that the scanner and pairing engine left each checkout clean.
+          for path in paths:
+              result = subprocess.run(
+                  ["git", "-C", str(path), "status", "--porcelain"],
+                  check=True,
+                  capture_output=True,
+                  text=True,
+              )
+              if result.stdout.strip():
+                  raise SystemExit(f"Unexpected target changes in {path}: {result.stdout}")
+          print("Read-only verification: all six target worktrees remain clean.")
+          PY
+
+      - name: Upload Blacksmith and Megazords report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-repository-blacksmith-megazords-report
+          path: real-repository-blacksmith-megazords.json
+          if-no-files-found: ignore
