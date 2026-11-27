@@ -6,7 +6,7 @@ Run from an editable installation with:
 Repository discovery is metadata-only. No target project is executed or modified.
 """
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: I001
 
 import os
 from pathlib import Path
