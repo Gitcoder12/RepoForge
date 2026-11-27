@@ -114,11 +114,10 @@ def test_megazords_suggests_cross_language_frontend_backend_pairing(tmp_path: Pa
     pairing = report["suggestions"][0]
     assert pairing["fit_score"] > 0
     assert pairing["shared_languages"] == []
-    assert any(set(item["capabilities"]) == {"backend", "frontend"} for item in pairing["complementarity"])
-    assert any(
-        item["pattern"] == "Product interface + service"
-        for item in pairing["integration_blueprint"]
-    )
+    complementary_pairs = [set(item["capabilities"]) for item in pairing["complementarity"]]
+    integration_patterns = [item["pattern"] for item in pairing["integration_blueprint"]]
+    assert {"backend", "frontend"} in complementary_pairs
+    assert "Product interface + service" in integration_patterns
     after = {
         project.name: sorted(item.relative_to(project).as_posix() for item in project.rglob("*"))
         for project in (frontend, backend)
@@ -148,8 +147,10 @@ def test_megazords_suggests_ai_evaluation_pair_across_python_and_rust(tmp_path: 
     pairing = report["suggestions"][0]
 
     assert set(pairing["shared_languages"]) == set()
-    assert any(set(item["capabilities"]) == {"ai_ml", "evaluation"} for item in pairing["complementarity"])
-    assert any(item["pattern"] == "Model + evaluation harness" for item in pairing["integration_blueprint"])
+    complementary_pairs = [set(item["capabilities"]) for item in pairing["complementarity"]]
+    integration_patterns = [item["pattern"] for item in pairing["integration_blueprint"]]
+    assert {"ai_ml", "evaluation"} in complementary_pairs
+    assert "Model + evaluation harness" in integration_patterns
 
 
 def test_blacksmith_gitignore_repair_is_safe_but_not_language_specific(tmp_path: Path):
