@@ -379,11 +379,7 @@ class Blacksmith:
         if not snapshot["signals"]["gitignore"]:
             ignore_content = GENERIC_GITIGNORE
             if "Rust" in snapshot.get("languages", {}):
-                ignore_content += (
-                    "\n# Rust\n"
-                    "/target/\n"
-                    "**/*.rs.bk\n"
-                )
+                ignore_content += "\n# Rust\n/target/\n**/*.rs.bk\n"
             repairs.append(
                 {
                     "path": ".gitignore",
