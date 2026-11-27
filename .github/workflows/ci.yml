@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, release/omega-1.0]
   pull_request:
-    branches: [main, fix/canonical-package-layout]
+    branches: [main, fix/canonical-package-layout, release/omega-1.0]
   workflow_dispatch:
 
 permissions:
