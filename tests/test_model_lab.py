@@ -111,6 +111,7 @@ def test_model_suggestions_have_explicit_roles_and_cost_notes():
     assert "openrouter:google/gemini-3.8-flash" in targets
     assert "deepseek:deepseek-flash" in targets
     assert "ollama:llama3.2" in targets
+    assert "openrouter:mistralai/mistral-small-4" in targets
     assert all(item["role"] and item["reason"] and item["cost_note"] for item in models)
 
 
