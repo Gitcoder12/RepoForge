@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       targets:
-        description: "Comma-separated provider:model targets (maximum 4), e.g. openai:MODEL_ID,deepseek:MODEL_ID"
+        description: "Comma-separated provider:model targets (maximum 4); Mistral via openrouter:mistralai/mistral-small-4"
         required: true
         type: string
       timeout_seconds:
@@ -111,10 +111,21 @@ jobs:
               raise SystemExit("One or more model targets did not pass the Model Lab smoke suite.")
           PY
 
-      - name: Upload Model Lab report
+      - name: Build usage and quota meter
+        if: always()
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          python scripts/write_usage_meter.py \
+            --results "$RUNNER_TEMP/model-lab.json" \
+            --output "$RUNNER_TEMP/usage-meter.json"
+
+      - name: Upload Model Lab and usage reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: repoforge-model-lab-report
-          path: ${{ runner.temp }}/model-lab.json
+          path: |
+            ${{ runner.temp }}/model-lab.json
+            ${{ runner.temp }}/usage-meter.json
           if-no-files-found: ignore
