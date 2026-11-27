@@ -191,6 +191,9 @@ def test_testforge_rejects_invalid_timeout_and_execute_type(tmp_path: Path):
 
     with pytest.raises(ValueError, match="timeout"):
         runner.run(timeout=0)
+    with pytest.raises(ValueError, match="120"):
+        runner.run(timeout=121)
+    assert runner.run(timeout=120)["mode"] == "plan_only"
     with pytest.raises(ValueError, match="execute"):
         runner.run(execute="yes")
 
