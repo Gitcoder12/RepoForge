@@ -387,8 +387,7 @@ def chain_command(
         marker = "[ ]"
         safe_label = "safe" if item["safe_to_apply"] else "review only"
         typer.echo(
-            f"{marker} {index:02d}. {item['id']}  "
-            f"[{item['kind']} | {safe_label}]  {item['title']}"
+            f"{marker} {index:02d}. {item['id']}  [{item['kind']} | {safe_label}]  {item['title']}"
         )
         if item.get("detail"):
             typer.echo(f"      {item['detail']}")
@@ -407,8 +406,7 @@ def chain_command(
             selected_ids = []
         elif len(tokens) == 1 and tokens[0].casefold() in {"safe", "safe-repairs"}:
             selected_ids = [
-                item["id"] for item in items
-                if item["kind"] == "repair" and item["safe_to_apply"]
+                item["id"] for item in items if item["kind"] == "repair" and item["safe_to_apply"]
             ]
         elif len(tokens) == 1 and tokens[0].casefold() == "all":
             selected_ids = [item["id"] for item in items]
