@@ -85,13 +85,23 @@ class LangFixBridge:
 
         files = report["files"]
         languages: dict[str, int] = {}
+        extension_languages = {
+            ".py": "python", ".pyw": "python", ".js": "javascript",
+            ".mjs": "javascript", ".cjs": "javascript", ".jsx": "javascript",
+            ".ts": "typescript", ".tsx": "typescript", ".java": "java",
+            ".c": "c", ".h": "c", ".cc": "cpp", ".cpp": "cpp",
+            ".cxx": "cpp", ".hpp": "cpp", ".go": "go", ".rs": "rust",
+            ".sql": "sql", ".html": "html", ".htm": "html", ".css": "css",
+            ".json": "json", ".yaml": "yaml", ".yml": "yaml", ".rb": "ruby",
+            ".php": "php", ".sh": "shell", ".bash": "shell",
+            ".kt": "kotlin", ".kts": "kotlin", ".swift": "swift",
+        }
         for item in files:
             if not isinstance(item, dict):
                 continue
-            fix_info = item.get("fix")
-            detection = fix_info.get("detection") if isinstance(fix_info, dict) else None
-            language = detection.get("language") if isinstance(detection, dict) else None
-            if isinstance(language, str):
+            suffix = Path(str(item.get("file", ""))).suffix.lower()
+            language = extension_languages.get(suffix)
+            if language:
                 languages[language] = languages.get(language, 0) + 1
 
         return {
