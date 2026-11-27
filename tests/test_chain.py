@@ -20,8 +20,13 @@ def _repo(path: Path, *, rust: bool = False, readme: str = "# Demo\n") -> Path:
     (path / "README.md").write_text(readme, encoding="utf-8")
     if rust:
         (path / "src").mkdir()
-        (path / "src" / "main.rs").write_text('fn main() { println!("hello"); }\n', encoding="utf-8")
-        (path / "Cargo.toml").write_text('[package]\nname = "demo"\nversion = "0.1.0"\nedition = "2021"\n', encoding="utf-8")
+        (path / "src" / "main.rs").write_text(
+            'fn main() { println!("hello"); }\n', encoding="utf-8"
+        )
+        (path / "Cargo.toml").write_text(
+            '[package]\nname = "demo"\nversion = "0.1.0"\nedition = "2021"\n',
+            encoding="utf-8",
+        )
     else:
         (path / "main.py").write_text("VALUE = 1\n", encoding="utf-8")
     return path
@@ -48,7 +53,10 @@ def test_hook_chain_emits_lifecycle_events_in_order(tmp_path: Path):
     two = _repo(tmp_path / "two")
     seen: list[str] = []
     chain = HookChain()
-    chain.register_hook("repository.inspect.completed", lambda payload: seen.append(payload["repo_id"]))
+    chain.register_hook(
+        "repository.inspect.completed",
+        lambda payload: seen.append(payload["repo_id"]),
+    )
     report = chain.inspect([one, two])
 
     assert seen == ["r1-one", "r2-two"]
@@ -80,7 +88,11 @@ def test_selection_board_never_applies_upgrade_or_megazord_items(tmp_path: Path)
     chain = HookChain()
     report = chain.inspect([one, two])
 
-    repair = next(item for item in report["selection_items"] if item["kind"] == "repair" and item["repository"] == "frontend")
+    repair = next(
+        item
+        for item in report["selection_items"]
+        if item["kind"] == "repair" and item["repository"] == "frontend"
+    )
     upgrade = next(item for item in report["selection_items"] if item["kind"] == "upgrade")
     complement = next(item for item in report["selection_items"] if item["kind"] == "complement")
     outcomes = chain.apply_selected(report, [repair["id"], upgrade["id"], complement["id"]])
