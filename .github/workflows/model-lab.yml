@@ -1,0 +1,120 @@
+name: Model Lab (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: "Comma-separated provider:model targets (maximum 4), e.g. openai:MODEL_ID,deepseek:MODEL_ID"
+        required: true
+        type: string
+      timeout_seconds:
+        description: "Per-request timeout in seconds (1-180)"
+        required: true
+        default: "45"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  model-lab:
+    name: Live provider smoke evaluation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out RepoForge
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install RepoForge provider dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[providers]"
+
+      - name: Run selected live models
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          MODEL_LAB_TARGETS: ${{ inputs.targets }}
+          MODEL_LAB_TIMEOUT: ${{ inputs.timeout_seconds }}
+          MODEL_LAB_OUTPUT: ${{ runner.temp }}/model-lab.json
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          from repoforge.model_lab import ModelTarget
+
+          secret_names = {
+              "openai": "OPENAI_API_KEY",
+              "deepseek": "DEEPSEEK_API_KEY",
+              "openrouter": "OPENROUTER_API_KEY",
+              "groq": "GROQ_API_KEY",
+          }
+          raw_targets = os.environ.get("MODEL_LAB_TARGETS", "")
+          targets = [item.strip() for item in raw_targets.split(",") if item.strip()]
+          if not targets:
+              raise SystemExit("Provide at least one provider:model target.")
+          if len(targets) > 4:
+              raise SystemExit("Select at most 4 models per run to limit API spend.")
+
+          parsed = [ModelTarget.parse(item) for item in targets]
+          missing = []
+          for target in parsed:
+              if target.provider not in secret_names:
+                  raise SystemExit(
+                      f"Provider '{target.provider}' is not supported by this hosted workflow. "
+                      "Choose openai, deepseek, openrouter, or groq."
+                  )
+              variable = secret_names[target.provider]
+              if not os.environ.get(variable, "").strip():
+                  missing.append(variable)
+          if missing:
+              raise SystemExit("Missing GitHub Actions repository secret(s): " + ", ".join(sorted(set(missing))))
+
+          timeout = int(os.environ.get("MODEL_LAB_TIMEOUT", "45"))
+          if not 1 <= timeout <= 180:
+              raise SystemExit("timeout_seconds must be between 1 and 180.")
+
+          output = Path(os.environ["MODEL_LAB_OUTPUT"])
+          command = ["repoforge", "model-lab", "--timeout", str(timeout), "--output", str(output)]
+          for target in targets:
+              command.extend(["--target", target])
+
+          completed = subprocess.run(command, check=False)
+          if completed.returncode:
+              raise SystemExit(completed.returncode)
+
+          report = json.loads(output.read_text(encoding="utf-8"))
+          print("\nModel Lab result summary")
+          failed = False
+          for result in report.get("results", []):
+              print(
+                  f"{result['provider']}:{result['model']} "
+                  f"status={result['status']} "
+                  f"passed={result['passed']}/{result['total_cases']} "
+                  f"errors={result['errors']} "
+                  f"avg_latency_ms={result['average_latency_ms']}"
+              )
+              failed |= result["status"] != "passed"
+          if failed:
+              raise SystemExit("One or more model targets did not pass the Model Lab smoke suite.")
+          PY
+
+      - name: Upload Model Lab report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: repoforge-model-lab-report
+          path: ${{ runner.temp }}/model-lab.json
+          if-no-files-found: ignore
