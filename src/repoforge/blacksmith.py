@@ -377,13 +377,19 @@ class Blacksmith:
         snapshot = self.inspect() if snapshot is None else snapshot
         repairs: list[dict[str, Any]] = []
         if not snapshot["signals"]["gitignore"]:
+            ignore_content = GENERIC_GITIGNORE
+            if "Rust" in snapshot.get("languages", {}):
+                ignore_content += "\n# Rust\n/target/\n**/*.rs.bk\n"
             repairs.append(
                 {
                     "path": ".gitignore",
                     "operation": "create_if_absent",
-                    "reason": ("Add ignores for local environments, caches, and build output"),
+                    "reason": (
+                        "Add local environment, cache, build-output, and detected-stack "
+                        "ignore rules"
+                    ),
                     "safe_to_apply": True,
-                    "content": GENERIC_GITIGNORE,
+                    "content": ignore_content,
                 }
             )
         if not snapshot["signals"]["ci"] and snapshot["languages"]:

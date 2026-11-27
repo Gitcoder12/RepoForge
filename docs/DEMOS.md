@@ -1,6 +1,6 @@
 # RepoForge demos
 
-These examples exercise the current local mutation boundary. Use a disposable repository. RepoForge does not yet provide the planned cross-repository hook/chain workflow or an OS-level sandbox for repository-controlled code.
+These examples exercise the current local mutation boundary. Use a disposable repository. The experimental HookChain selection workflow is documented in [HOOK_CHAIN.md](HOOK_CHAIN.md); it does not provide an OS-level sandbox for repository-controlled code.
 
 ## 1. Install and inspect the CLI
 
@@ -94,4 +94,4 @@ The demo creates one new file only. It does not modify existing files, delete fi
 
 ## Current boundary
 
-This is a local `ActionRunner` example, not the future autonomous cross-repository workflow. The installable CLI does not yet expose the full repository-mutation pipeline. Test execution against untrusted repositories is not sandboxed. Do not point this demo at valuable working trees.
+This is a local `ActionRunner` example rather than the multi-repository HookChain. The installable CLI's HookChain is still an experimental inspect/select flow and only applies create-only safe repairs. Test execution against untrusted repositories is not sandboxed. Do not point this demo at valuable working trees.
