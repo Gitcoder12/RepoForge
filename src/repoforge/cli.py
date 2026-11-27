@@ -307,6 +307,171 @@ def blacksmith_command(
     typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
 
 
+@app.command("chain")
+def chain_command(
+    repo_paths: list[Path] = typer.Argument(
+        ...,
+        exists=True,
+        file_okay=False,
+        readable=True,
+        help="One or more local repositories to inspect and compose (maximum 30).",
+    ),
+    with_langfix: bool = typer.Option(
+        False,
+        "--with-langfix",
+        help="Run the optional LangFix CLI in preview-only mode.",
+    ),
+    top: int = typer.Option(15, "--top", min=1, max=100),
+    select: str | None = typer.Option(
+        None,
+        "--select",
+        help="Selection: safe, all, none, comma-separated item IDs, or row numbers.",
+    ),
+    interactive: bool = typer.Option(
+        False,
+        "--interactive",
+        help="Prompt to check selection-board rows.",
+    ),
+    apply_safe: bool = typer.Option(
+        False,
+        "--apply-safe",
+        help="Apply only selected safe create-if-absent repairs; never applies upgrades or pairings.",
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        help="Write the complete JSON report outside every scanned repository.",
+    ),
+) -> None:
+    """Run the multi-repository hook chain and show a selectable repair/complement board."""
+    from repoforge.chain import HookChain
+
+    if select is not None and interactive:
+        typer.echo("Use either --select or --interactive, not both.", err=True)
+        raise typer.Exit(code=2)
+
+    resolved_paths = [path.expanduser().resolve() for path in repo_paths]
+    destination = None
+    if output is not None:
+        destination = output.expanduser()
+        if destination.is_symlink():
+            typer.echo("Report output must not be a symlink.", err=True)
+            raise typer.Exit(code=2)
+        destination = destination.resolve(strict=False)
+        for repository in resolved_paths:
+            try:
+                destination.relative_to(repository)
+            except ValueError:
+                continue
+            typer.echo("Report output must be outside every scanned repository.", err=True)
+            raise typer.Exit(code=2)
+
+    try:
+        chain = HookChain()
+        report = chain.inspect(
+            resolved_paths,
+            with_langfix=with_langfix,
+            top_k=top,
+        )
+    except (OSError, ValueError, RuntimeError) as exc:
+        typer.echo(f"HookChain failed safely: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+
+    items = report["selection_items"]
+    typer.echo("\nRepoForge HookChain — selection board")
+    typer.echo("Safe repairs can be applied only after explicit selection.")
+    typer.echo("Upgrade options and Megazord complements are review-only.\n")
+    for index, item in enumerate(items, start=1):
+        marker = "[ ]"
+        safe_label = "safe" if item["safe_to_apply"] else "review only"
+        typer.echo(
+            f"{marker} {index:02d}. {item['id']}  "
+            f"[{item['kind']} | {safe_label}]  {item['title']}"
+        )
+        if item.get("detail"):
+            typer.echo(f"      {item['detail']}")
+
+    selected_ids: list[str] = []
+    if interactive:
+        answer = typer.prompt(
+            "\nEnter row numbers or item IDs separated by commas (or 'safe', 'all', 'none')",
+            default="none",
+        ).strip()
+        select = answer
+
+    if select is not None:
+        tokens = [item.strip() for item in select.split(",") if item.strip()]
+        if len(tokens) == 1 and tokens[0].casefold() in {"none", "no"}:
+            selected_ids = []
+        elif len(tokens) == 1 and tokens[0].casefold() in {"safe", "safe-repairs"}:
+            selected_ids = [
+                item["id"] for item in items
+                if item["kind"] == "repair" and item["safe_to_apply"]
+            ]
+        elif len(tokens) == 1 and tokens[0].casefold() == "all":
+            selected_ids = [item["id"] for item in items]
+        else:
+            by_id = {item["id"]: item["id"] for item in items}
+            by_row = {str(index): item["id"] for index, item in enumerate(items, start=1)}
+            for token in tokens:
+                selected = by_id.get(token, by_row.get(token))
+                if selected is None:
+                    typer.echo(f"Unknown selection '{token}'. Use a row number or item ID.", err=True)
+                    raise typer.Exit(code=2)
+                selected_ids.append(selected)
+            selected_ids = list(dict.fromkeys(selected_ids))
+
+    if apply_safe and not selected_ids:
+        typer.echo("--apply-safe requires at least one selected item; use --select safe or --interactive.", err=True)
+        raise typer.Exit(code=2)
+
+    selected_set = set(selected_ids)
+    typer.echo("\nSelection:")
+    for index, item in enumerate(items, start=1):
+        marker = "[x]" if item["id"] in selected_set else "[ ]"
+        typer.echo(f"{marker} {index:02d}. {item['id']}")
+
+    applied = {
+        "selected_ids": selected_ids,
+        "outcomes": [],
+        "applied_count": 0,
+        "review_only_count": 0,
+    }
+    if apply_safe:
+        try:
+            applied = chain.apply_selected(report, selected_ids)
+        except (OSError, ValueError, RuntimeError) as exc:
+            typer.echo(f"Safe repair application failed: {exc}", err=True)
+            raise typer.Exit(code=2) from exc
+
+    report["selection"] = {
+        "selected_ids": selected_ids,
+        "applied": applied,
+        "apply_requested": apply_safe,
+    }
+    report["safety"]["target_files_modified"] = applied["applied_count"] > 0
+    report["safety"]["notes"].append(
+        "Only checked create-if-absent repairs are eligible for application; review-only items remain unchanged."
+    )
+
+    rendered = json.dumps(report, indent=2, ensure_ascii=False)
+    if destination is not None:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if destination.exists() and destination.is_symlink():
+            typer.echo("Report output must not be a symlink.", err=True)
+            raise typer.Exit(code=2)
+        destination.write_text(rendered + "\n", encoding="utf-8")
+        typer.echo(f"\nJSON report written: {destination}")
+    else:
+        typer.echo("\nJSON report:")
+        typer.echo(rendered)
+
+    typer.echo(
+        f"\nCompleted: {len(resolved_paths)} repositories, "
+        f"{len(items)} selectable items, {applied['applied_count']} safe repairs applied."
+    )
+
+
 @app.command("upgrade")
 def upgrade_command(
     repo_path: Path = typer.Argument(
