@@ -1,4 +1,4 @@
-"""Resilience tests for OpenRouter budget snapshots; no live network or credentials."""
+""""Resilience tests for OpenRouter budget snapshots; no live network or credentials."""
 
 from __future__ import annotations
 
@@ -27,9 +27,7 @@ def test_key_snapshot_flags_near_limit_at_ten_percent(monkeypatch):
     monkeypatch.setattr(
         usage_meter,
         "urlopen",
-        lambda *_args, **_kwargs: FakeResponse(
-            {"data": {"limit": 5, "limit_remaining": 0.5}}
-        ),
+        lambda *_args, **_kwargs: FakeResponse({"data": {"limit": 5, "limit_remaining": 0.5}}),
     )
     result = usage_meter.openrouter_key_snapshot("test-secret")
     assert result["status"] == "near_limit"
