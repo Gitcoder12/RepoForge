@@ -196,7 +196,11 @@ def run_local_agent_review(
         raise ValueError("model name must not be empty")
 
     focus_request = AGENT_FOCUSES[focus]["request"]
-    full_request = f"{focus_request}\nAdditional request: {request.strip()}" if request.strip() else focus_request
+    full_request = (
+        f"{focus_request}\nAdditional request: {request.strip()}"
+        if request.strip()
+        else focus_request
+    )
     return ForgeWorkflow().run(
         repo_path,
         full_request,
