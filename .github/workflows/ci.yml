@@ -2,9 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, release/omega-1.0]
   pull_request:
     branches: [main, fix/canonical-package-layout]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -38,3 +39,35 @@ jobs:
           repoforge version
           repoforge providers
           repoforge generate --help
+
+  functional-demo:
+    name: Blacksmith and Megazords real-repository demo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Gitcoder12/ARK
+          ref: release/alpha-1.0
+          path: ARK
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install RepoForge
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Execute Blacksmith and Megazords against real checkouts
+        run: |
+          python scripts/release_functional_smoke.py \
+            --ark-path ARK \
+            --repoforge-path . \
+            --output "$RUNNER_TEMP/repoforge-functional-smoke.json"
+      - name: Upload functional report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: repoforge-omega-functional-smoke
+          path: ${{ runner.temp }}/repoforge-functional-smoke.json
+          if-no-files-found: ignore
