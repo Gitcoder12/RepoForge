@@ -19,13 +19,25 @@ def openrouter_key_snapshot(api_key: str) -> dict:
     try:
         with urlopen(request, timeout=15) as response:
             payload = json.loads(response.read().decode("utf-8"))
-        data = payload.get("data", {})
+        if not isinstance(payload, dict):
+            return {"status": "malformed_response"}
+        data = payload.get("data")
+        if not isinstance(data, dict):
+            return {"status": "malformed_response"}
+
         limit = data.get("limit")
         remaining = data.get("limit_remaining")
+        numeric_limit = isinstance(limit, (int, float)) and not isinstance(limit, bool)
+        numeric_remaining = isinstance(remaining, (int, float)) and not isinstance(remaining, bool)
+        if (limit is not None and not numeric_limit) or (
+            remaining is not None and not numeric_remaining
+        ):
+            return {"status": "invalid_quota_metadata"}
+
         status = "available"
-        if isinstance(remaining, (int, float)) and remaining <= 0:
+        if numeric_remaining and remaining <= 0:
             status = "limit_exhausted"
-        elif isinstance(limit, (int, float)) and limit > 0 and isinstance(remaining, (int, float)):
+        elif numeric_limit and limit > 0 and numeric_remaining:
             if remaining / limit <= 0.1:
                 status = "near_limit"
         return {
