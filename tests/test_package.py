@@ -168,6 +168,8 @@ def test_validator_rejects_invalid_target_and_timeout(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="test_timeout"):
         asyncio.run(validator.validate(test_timeout=0))
+    with pytest.raises(ValueError, match="120"):
+        asyncio.run(validator.validate(test_timeout=121))
 
 
 def test_orchestrator_registers_and_enables_explicit_real_provider():
