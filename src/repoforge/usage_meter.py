@@ -1,4 +1,4 @@
-""""Safe usage and budget snapshots for hosted model evaluation."""
+"""Safe usage and budget snapshots for hosted model evaluation."""
 
 from __future__ import annotations
 
