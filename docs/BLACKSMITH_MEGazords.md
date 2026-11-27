@@ -53,6 +53,16 @@ The `rank_points_available` value represents the hygiene points attached to miss
 ### Current implementation boundary
 
 UpgradeForge currently generates and filters a ranked recommendation catalogue. It does not yet implement the recommended test suites, CI workflows, security policies or language-specific refactors. Those require separate approved implementation adapters, validation and rollback. Do not present recommendations as completed upgrades.
+## LangFix language-aware inspection
+
+RepoForge can optionally call the separate LangFix CLI from HookChain with `--with-langfix`. LangFix supplies per-file language detection, syntax validation where a local validator is available, and preview-only repair diffs. The bridge never passes `--fix` and runs the scanner from a temporary working directory so its cache does not modify the target repository.
+
+Rust source files were already included in Blacksmith's language inventory. The Rust-specific addition is a create-only `.gitignore` block for `/target/` and `**/*.rs.bk` when a Rust repository has no `.gitignore`. Existing ignore files are preserved. LangFix PR #11 adds Rust syntax validation with `rustfmt` and temporary-file formatting; this is not a Cargo type-check or project test.
+
+## HookChain selection board
+
+See [HOOK_CHAIN.md](HOOK_CHAIN.md) for the multi-repository inspect → LangFix → UpgradeForge → Megazords → selection flow, CLI examples, lifecycle hooks, and the safety contract. The board can select repairs, recommendations, and complements, but only selected safe create-only repairs are eligible for application.
+
 ## Megazords
 
 Megazords compares two to thirty local repository paths and ranks combinations by inferred capability complementarity and shared languages.
