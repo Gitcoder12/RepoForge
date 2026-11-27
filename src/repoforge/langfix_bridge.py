@@ -30,7 +30,10 @@ class LangFixBridge:
             return {
                 "engine": "LangFix",
                 "status": "unavailable",
-                "message": "LangFix CLI was not found on PATH; install the LangFix package to enable this hook.",
+                "message": (
+                    "LangFix CLI was not found on PATH; install the LangFix package "
+                    "to enable this hook."
+                ),
                 "files_scanned": 0,
             }
 
