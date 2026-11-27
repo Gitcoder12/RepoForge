@@ -80,8 +80,8 @@ def validate(
         120,
         "--test-timeout",
         min=1,
-        max=1800,
-        help="Maximum seconds to wait when --run-tests is enabled.",
+        max=120,
+        help="Maximum seconds to wait when --run-tests is enabled (hard cap: 120).",
     ),
 ) -> None:
     """Run static validation; target tests require explicit --run-tests opt-in."""
