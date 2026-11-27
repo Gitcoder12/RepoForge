@@ -86,13 +86,13 @@ AGENT_FOCUSES: dict[str, dict[str, str]] = {
     },
     "Quality": {
         "description": "Formatting, linting, typing, maintainability, and code quality workflows.",
-        "request": "Review code-quality tooling and recommend language-appropriate validation steps.",
+        "request": "Review quality tools and recommend validation steps for the detected languages.",
     },
     "CI/CD": {
         "description": (
             "Build checks, continuous integration, release workflows, and deployment safety."
         ),
-        "request": "Review CI/CD configuration and propose checks based on the actual project stack.",
+        "request": "Review CI/CD and recommend checks for the detected project stack.",
     },
     "Code Review": {
         "description": "Focused change review, failure modes, correctness, and maintainability.",
