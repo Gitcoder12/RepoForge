@@ -61,6 +61,21 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate.ps1
 ```
 
+### Visual workspace (recommended for browsing repositories)
+
+Install the optional UI dependency and launch the local dashboard:
+
+```powershell
+python -m pip install -e ".[ui]"
+streamlit run dashboard.py
+```
+
+The workspace includes repository discovery/search, Blacksmith inspection, UpgradeForge recommendations, test-command discovery, static validation, a searchable agent-focus workbench, and Megazords comparisons. Select a local folder that contains Git repositories in the sidebar.
+
+The default workflows are read-only. The agent workbench does not call a hosted model unless you explicitly enable local Ollama; that option requires Ollama to be running on your computer. Model-generated changes are proposals only and are not applied by the dashboard. The interface does not execute target project tests or load repository-defined hooks.
+
+See [docs/WORKSPACE_DASHBOARD.md](docs/WORKSPACE_DASHBOARD.md) for the interface guide and safety boundaries.
+
 ### 2. See all commands
 
 ```bash
