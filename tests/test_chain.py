@@ -30,9 +30,6 @@ def _repo(path: Path, *, rust: bool = False, readme: str = "# Demo\n") -> Path:
 def test_rust_blacksmith_repair_plan_adds_stack_specific_ignore_rules(tmp_path: Path):
     repo = _repo(tmp_path / "rust-app", rust=True)
 
-    result = HookChain().inspect([repo])
-    repair = next(item for item in result["selection_items"] if item["kind"] == "repair")
-
     chain = HookChain()
     report = chain.inspect([repo])
     repair = next(item for item in report["selection_items"] if item["kind"] == "repair")
