@@ -1,4 +1,4 @@
-"""Safe usage and budget snapshots for hosted model evaluation."""
+""""Safe usage and budget snapshots for hosted model evaluation."""
 
 from __future__ import annotations
 
@@ -28,9 +28,7 @@ def openrouter_key_snapshot(api_key: str) -> dict:
         limit = data.get("limit")
         remaining = data.get("limit_remaining")
         numeric_limit = isinstance(limit, (int, float)) and not isinstance(limit, bool)
-        numeric_remaining = isinstance(remaining, (int, float)) and not isinstance(
-            remaining, bool
-        )
+        numeric_remaining = isinstance(remaining, (int, float)) and not isinstance(remaining, bool)
         if (limit is not None and not numeric_limit) or (
             remaining is not None and not numeric_remaining
         ):
