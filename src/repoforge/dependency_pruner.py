@@ -9,7 +9,6 @@ from __future__ import annotations
 import ast
 import re
 from pathlib import Path
-from typing import Iterable
 
 IMPORT_TO_DISTRIBUTION = {
     "yaml": "pyyaml",
@@ -79,7 +78,6 @@ def prune_requirements(repository: str | Path, manifest: str = "requirements.txt
     retained = []
     removed = []
     for distribution, original in requirements:
-        mapped = IMPORT_TO_DISTRIBUTION.get(distribution, distribution)
         # Distribution names are not always import names. Unknown mapping is retained.
         import_name = next((key for key, value in IMPORT_TO_DISTRIBUTION.items()
                             if _canonical(value) == _canonical(distribution)), distribution)
@@ -96,7 +94,7 @@ def prune_requirements(repository: str | Path, manifest: str = "requirements.txt
         "dynamic_imports_detected": uncertain,
         "retained": retained,
         "removal_candidates": removed,
-        "safe_to_prune": not uncertain and not removed is False,
+        "requires_human_review": True,
         "warning": "Review candidate output and run clean-image tests; static imports miss plugins and runtime-loaded dependencies.",
     }
 
