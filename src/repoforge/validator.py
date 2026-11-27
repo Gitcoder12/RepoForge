@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger("RepoForge.Validator")
+MAX_TEST_TIMEOUT_SECONDS = 120
 
 
 class ThreatVisitor(ast.NodeVisitor):
@@ -129,9 +130,9 @@ class Validator:
         if (
             isinstance(test_timeout, bool)
             or not isinstance(test_timeout, (int, float))
-            or test_timeout <= 0
+            or not 0 < test_timeout <= MAX_TEST_TIMEOUT_SECONDS
         ):
-            raise ValueError("test_timeout must be a positive number")
+            raise ValueError(f"test_timeout must be greater than 0 and at most {MAX_TEST_TIMEOUT_SECONDS} seconds")
 
         logger.info(
             "Validating Python files (targets=%s)",
