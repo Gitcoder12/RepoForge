@@ -50,7 +50,7 @@ AGENT_FOCUSES: dict[str, dict[str, str]] = {
     "Testing": {
         "description": "Test discovery, coverage gaps, edge cases, and regression strategy.",
         "request": (
-            "Review testing strategy, discover existing tests, and identify " 
+            "Review testing strategy, discover existing tests, and identify "
             "important behavior-based test gaps."
         ),
     },
@@ -59,51 +59,45 @@ AGENT_FOCUSES: dict[str, dict[str, str]] = {
             "Static risk signals, secrets hygiene, permissions, and dependency exposure."
         ),
         "request": (
-            "Review security posture and identify evidence-backed risks without " 
+            "Review security posture and identify evidence-backed risks without "
             "executing repository code."
         ),
     },
     "Documentation": {
         "description": "README accuracy, setup instructions, examples, and developer onboarding.",
         "request": (
-            "Review documentation quality and propose specific improvements " 
+            "Review documentation quality and propose specific improvements "
             "grounded in the repository."
         ),
     },
     "Performance": {
         "description": "Potential bottlenecks, complexity hotspots, and measurement strategy.",
         "request": (
-            "Review likely performance risks and propose measurable profiling " 
+            "Review likely performance risks and propose measurable profiling "
             "or optimization steps."
         ),
     },
     "Dependencies": {
         "description": "Manifests, dependency consistency, versions, and supply-chain hygiene.",
         "request": (
-            "Review dependency and package configuration; identify consistency " 
+            "Review dependency and package configuration; identify consistency "
             "and maintenance risks."
         ),
     },
     "Quality": {
         "description": "Formatting, linting, typing, maintainability, and code quality workflows.",
-        "request": (
-            "Review code-quality tooling and recommend language-appropriate " 
-            "validation steps."
-        ),
+        "request": "Review code-quality tooling and recommend language-appropriate validation steps.",
     },
     "CI/CD": {
         "description": (
             "Build checks, continuous integration, release workflows, and deployment safety."
         ),
-        "request": (
-            "Review CI/CD configuration and propose checks based on the actual " 
-            "project stack."
-        ),
+        "request": "Review CI/CD configuration and propose checks based on the actual project stack.",
     },
     "Code Review": {
         "description": "Focused change review, failure modes, correctness, and maintainability.",
         "request": (
-            "Perform a cautious engineering review and identify the most consequential " 
+            "Perform a cautious engineering review and identify the most consequential "
             "issues with evidence."
         ),
     },
@@ -223,7 +217,7 @@ def render_app() -> None:
     st.set_page_config(page_title="RepoForge Workspace", page_icon="🛠️", layout="wide")
     st.title("RepoForge Workspace")
     st.caption(
-        "Find local repositories, inspect engineering health, and route work " 
+        "Find local repositories, inspect engineering health, and route work "
         "through focused agent presets."
     )
 
@@ -272,8 +266,7 @@ def render_app() -> None:
             selected_repo = Path(selected_value)
         st.divider()
         st.caption(
-            "Default mode: local inspection only. No model calls, test execution, " 
-            "or file edits."
+            "Default mode: local inspection only. No model calls, test execution, or file edits."
         )
 
     workspace_tab, agents_tab, megazords_tab = st.tabs(
@@ -283,8 +276,7 @@ def render_app() -> None:
     with workspace_tab:
         if selected_repo is None:
             st.info(
-                "Choose a workspace folder in the sidebar and search for a " 
-                "repository to begin."
+                "Choose a workspace folder in the sidebar and search for a repository to begin."
             )
         else:
             st.subheader(selected_repo.name)
@@ -340,14 +332,14 @@ def render_app() -> None:
                     st.json(report)
             else:
                 st.write(
-                    "Select an action above. Checks are read-only and do not " 
+                    "Select an action above. Checks are read-only and do not "
                     "execute the target project's tests."
                 )
 
     with agents_tab:
         st.subheader("Agent workbench")
         st.caption(
-            "Search a specialist role, select a focus, and request a read-only " 
+            "Search a specialist role, select a focus, and request a read-only "
             "plan or a local Ollama proposal."
         )
         agent_query = st.text_input(
@@ -401,7 +393,7 @@ def render_app() -> None:
                     st.caption("Model output is a proposal only. No changes are applied.")
                 elif agent_report.get("status") == "plan_only":
                     st.caption(
-                        "Read-only inspection completed. Enable local Ollama to " 
+                        "Read-only inspection completed. Enable local Ollama to "
                         "request a model-generated patch proposal."
                     )
                 st.json(agent_report)
@@ -409,7 +401,7 @@ def render_app() -> None:
     with megazords_tab:
         st.subheader("Repository combinations")
         st.caption(
-            "Compare two or more discovered repositories. Fit scores are " 
+            "Compare two or more discovered repositories. Fit scores are "
             "heuristic hypotheses, not compatibility guarantees."
         )
         if len(all_repositories) < 2:
