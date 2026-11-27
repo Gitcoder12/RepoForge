@@ -682,3 +682,28 @@ def random_check_command(
     except (OSError, ValueError) as exc:
         typer.echo(f"Random audit failed safely: {exc}", err=True)
         raise typer.Exit(code=2) from exc
+
+
+@app.command("prune-dependencies")
+def prune_dependencies_command(
+    repo_path: Path = typer.Argument(
+        Path("."), exists=True, file_okay=False, readable=True,
+        help="Repository whose Python dependencies should be analyzed.",
+    ),
+    manifest: str = typer.Option("requirements.txt", "--manifest"),
+    output: str = typer.Option("requirements.pruned.txt", "--output"),
+    write: bool = typer.Option(False, "--write", help="Write the candidate manifest; default is report-only."),
+) -> None:
+    """Generate a conservative, review-required dependency-pruning candidate."""
+    from repoforge.dependency_pruner import prune_requirements, write_pruned_requirements
+
+    try:
+        result = (
+            write_pruned_requirements(repo_path, output=output, manifest=manifest)
+            if write
+            else prune_requirements(repo_path, manifest=manifest)
+        )
+    except (OSError, ValueError) as exc:
+        typer.echo(f"Dependency pruning analysis failed: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    typer.echo(json.dumps(result, indent=2, ensure_ascii=False))
