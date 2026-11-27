@@ -38,3 +38,84 @@ jobs:
           repoforge version
           repoforge providers
           repoforge generate --help
+
+  external-clone-smoke:
+    name: External clone smoke (Rust, Go, Python, JS, C++)
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Clone independent public repositories
+        run: |
+          mkdir -p external
+          git clone --depth 1 https://github.com/rust-lang/rustlings.git external/rustlings
+          git clone --depth 1 https://github.com/go-chi/chi.git external/chi
+          git clone --depth 1 https://github.com/pallets/click.git external/click
+          git clone --depth 1 https://github.com/sindresorhus/is.git external/is
+          git clone --depth 1 https://github.com/fmtlib/fmt.git external/fmt
+          git clone --depth 1 --branch feat/rustfmt-validated-repair https://github.com/Gitcoder12/Langfix.git external/langfix
+      - name: Install RepoForge and LangFix only
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+          python -m pip install -e ./external/langfix
+      - name: Run cross-language read-only chain
+        run: |
+          repoforge chain \
+            external/rustlings external/chi external/click external/is external/fmt \
+            --with-langfix --select none --output "$RUNNER_TEMP/external-chain-report.json"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report = json.loads(
+              Path(os.environ["RUNNER_TEMP"], "external-chain-report.json").read_text(encoding="utf-8")
+          )
+          assert len(report["repositories"]) == 5, report["repositories"]
+          assert report["megazords"]["pairings_evaluated"] == 10
+          assert report["safety"]["target_code_executed"] is False
+          assert report["safety"]["target_dependencies_installed"] is False
+          assert report["safety"]["target_files_modified"] is False
+          by_name = {item["name"]: item for item in report["repositories"]}
+          rust = by_name["rustlings"]
+          assert rust["blacksmith"]["languages"].get("Rust", 0) > 0, rust["blacksmith"]["languages"]
+          assert rust["langfix"]["status"] == "completed", rust["langfix"]
+          assert rust["langfix"]["languages"].get("rust", 0) > 0, rust["langfix"]
+          for item in report["repositories"]:
+              assert item["langfix"]["status"] == "completed", (item["name"], item["langfix"])
+          print("Cross-language external clone scan passed for:", ", ".join(sorted(by_name)))
+          PY
+      - name: Verify source checkouts remained clean
+        run: |
+          for repo in rustlings chi click is fmt; do
+            test -z "$(git -C "external/$repo" status --porcelain)"
+          done
+      - name: Test Rust create-only repair in a throwaway local clone
+        run: |
+          git clone --quiet --no-hardlinks external/rustlings "$RUNNER_TEMP/rustlings-repair"
+          git -C "$RUNNER_TEMP/rustlings-repair" switch --create repoforge/repair-smoke
+          rm -f "$RUNNER_TEMP/rustlings-repair/.gitignore"
+          repoforge chain "$RUNNER_TEMP/rustlings-repair" \
+            --select safe --apply-safe \
+            --output "$RUNNER_TEMP/rust-repair-report.json"
+          grep -Fx "/target/" "$RUNNER_TEMP/rustlings-repair/.gitignore"
+          grep -Fx "**/*.rs.bk" "$RUNNER_TEMP/rustlings-repair/.gitignore"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report = json.loads(
+              Path(os.environ["RUNNER_TEMP"], "rust-repair-report.json").read_text(encoding="utf-8")
+          )
+          assert report["selection"]["applied"]["applied_count"] == 1, report["selection"]
+          assert report["safety"]["target_files_modified"] is True
+          print("Rust repair was applied only inside the throwaway local clone.")
+          PY
