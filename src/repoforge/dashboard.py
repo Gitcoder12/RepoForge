@@ -184,8 +184,10 @@ def run_local_agent_review(
     """
     from repoforge.forge import ForgeWorkflow
 
-    if focus not in AGENT_FOCUSES:
+    if not isinstance(focus, str) or focus not in AGENT_FOCUSES:
         raise ValueError(f"Unknown agent focus: {focus}")
+    if not isinstance(request, str):
+        raise ValueError("additional request must be text")
     if not isinstance(model, str) or not model.strip():
         raise ValueError("model name must not be empty")
 
