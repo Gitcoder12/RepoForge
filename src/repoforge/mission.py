@@ -93,6 +93,5 @@ def render_why_we_build(st: Any) -> None:
         "on another black box."
     )
     st.caption(
-        "North star: build for people · share capability · keep agency · "
-        "make time for discovery."
+        "North star: build for people · share capability · keep agency · make time for discovery."
     )
