@@ -17,7 +17,8 @@ ABUNDANCE_ASPIRATION = (
     "healthcare, education, energy, knowledge, and the tools to create is not dependent "
     "on earning money. As clean energy, automation, robotics, manufacturing, and open "
     "knowledge grow, money could lose its role as the gatekeeper to basic opportunity. "
-    "This is a social goal, not a technical guarantee or overnight transition; fair governance, access, and ecological stewardship are essential."
+    "This is a social goal, not a technical guarantee or overnight transition; "
+    "fair governance, equitable access, and ecological stewardship are essential."
 )
 MISSION_PILLARS = (
     (
