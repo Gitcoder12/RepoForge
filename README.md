@@ -1,5 +1,10 @@
 # RepoForge
 
+## Why we build
+
+RepoForge exists to make software creation and maintenance more accessible by reducing repetitive engineering work while keeping builders informed and in control. Its long-range north star is to make useful technology easier to create and its benefits more widely shared—freeing more human effort for learning, care, science, creativity, and exploration.
+
+Read the full [Why We Build RepoForge mission](docs/WHY_WE_BUILD.md) in the workspace's **Why we build** tab.
 
 ## Current Status / Current Version
 
@@ -60,6 +65,21 @@ pip install -e ".[dev]"
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate.ps1
 ```
+
+### Visual workspace (recommended for browsing repositories)
+
+Install the optional UI dependency and launch the local dashboard:
+
+```powershell
+python -m pip install -e ".[ui]"
+streamlit run dashboard.py
+```
+
+The workspace includes repository discovery/search, Blacksmith inspection, UpgradeForge recommendations, test-command discovery, static validation, a searchable agent-focus workbench, and Megazords comparisons. Select a local folder that contains Git repositories in the sidebar.
+
+The default workflows are read-only. The agent workbench does not call a hosted model unless you explicitly enable local Ollama; that option requires Ollama to be running on your computer. Model-generated changes are proposals only and are not applied by the dashboard. The interface does not execute target project tests or load repository-defined hooks.
+
+See [docs/WORKSPACE_DASHBOARD.md](docs/WORKSPACE_DASHBOARD.md) for the interface guide and safety boundaries.
 
 ### 2. See all commands
 
@@ -336,6 +356,10 @@ Extreme
 ```
 
 ---
+
+## Crucible — supplementary provider filtering
+
+Crucible redacts selected common secret patterns from both prompt channels and inspects complete bounded streamed responses for a small set of dangerous-command signatures. It is a heuristic filter, not a sandbox or a guarantee against prompt injection or unsafe output. See [docs/CRUCIBLE.md](docs/CRUCIBLE.md) for its scope and limitations.
 
 ## TestForge — fast test discovery
 

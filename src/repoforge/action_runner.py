@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any
 
 from repoforge.policy import PolicyEngine
@@ -89,17 +89,38 @@ class ActionRunner:
         }
 
     def _resolve_target(self, filepath: str) -> Path:
-        """Resolve a relative path and reject traversal or symlink escapes."""
+        """Resolve a canonical relative path and reject aliases outside approval scope."""
         if not isinstance(filepath, str) or not filepath.strip():
             raise ValueError("action file path must be a non-empty string")
-        relative = Path(filepath)
-        if relative.is_absolute():
+        windows_path = PureWindowsPath(filepath)
+        if windows_path.is_absolute() or windows_path.drive:
             raise ValueError("absolute paths are not allowed")
-        target = (self.repo_path / relative).resolve()
+        normalized = filepath.replace("\\", "/")
+        parts = normalized.split("/")
+        if normalized.startswith("/") or any(part in {"", ".", ".."} for part in parts):
+            raise ValueError("invalid or traversal path is not allowed")
+        if ":" in parts[0]:
+            raise ValueError("drive-qualified paths are not allowed")
+
+        candidate = self.repo_path.joinpath(*parts)
+        cursor = self.repo_path
+        for part in parts:
+            cursor = cursor / part
+            if cursor.is_symlink():
+                raise ValueError("symlink path components are denied")
+
+        try:
+            target = candidate.resolve()
+        except (OSError, RuntimeError) as exc:
+            raise ValueError("action path could not be resolved safely") from exc
         try:
             target.relative_to(self.repo_path)
         except ValueError as exc:
             raise ValueError("action path escapes the repository root") from exc
+
+        if target.is_file() and getattr(target.stat(), "st_nlink", 1) > 1:
+            raise ValueError("hard-linked target files are denied")
+
         return target
 
     def _preflight_file_action(self, action: dict[str, Any]) -> None:

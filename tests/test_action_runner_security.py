@@ -1,3 +1,4 @@
+import os
 import subprocess
 from pathlib import Path
 
@@ -98,3 +99,67 @@ def test_modify_requires_existing_file(tmp_path: Path) -> None:
     assert result["completed"] == 0
     assert result["status"] == "blocked"
     assert result["errors"]
+
+
+def test_write_rejects_internal_symlink_alias(tmp_path: Path) -> None:
+    _git_repo(tmp_path)
+    source = tmp_path / "source.txt"
+    source.write_text("original", encoding="utf-8")
+    alias = tmp_path / "alias.txt"
+    try:
+        alias.symlink_to(source)
+    except OSError:
+        pytest.skip("Symlink creation is unavailable on this platform")
+    subprocess.run(["git", "add", "source.txt", "alias.txt"], cwd=tmp_path, check=True)
+    subprocess.run(
+        ["git", "commit", "-m", "track internal symlink"],
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+    )
+
+    result = ActionRunner(str(tmp_path)).run(
+        [{"type": "modify", "file": "alias.txt", "content": "changed"}],
+        approved_paths={"alias.txt"},
+    )
+
+    assert result["status"] == "blocked"
+    assert source.read_text(encoding="utf-8") == "original"
+
+
+def test_write_rejects_hard_link_target(tmp_path: Path) -> None:
+    _git_repo(tmp_path)
+    outside = tmp_path.parent / f"{tmp_path.name}-outside.txt"
+    outside.write_text("original", encoding="utf-8")
+    linked = tmp_path / "linked.txt"
+    try:
+        os.link(outside, linked)
+    except OSError:
+        pytest.skip("Hard-link creation is unavailable on this platform")
+    subprocess.run(["git", "add", "linked.txt"], cwd=tmp_path, check=True)
+    subprocess.run(
+        ["git", "commit", "-m", "track hard link"],
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+    )
+
+    result = ActionRunner(str(tmp_path)).run(
+        [{"type": "modify", "file": "linked.txt", "content": "changed"}],
+        approved_paths={"linked.txt"},
+    )
+
+    assert result["status"] == "blocked"
+    assert outside.read_text(encoding="utf-8") == "original"
+
+
+def test_windows_separators_resolve_to_repository_relative_paths(tmp_path: Path) -> None:
+    _git_repo(tmp_path)
+    runner = ActionRunner(str(tmp_path))
+    result = runner.run(
+        [{"type": "create", "file": "docs\\notes.md", "content": "safe"}],
+        approved_paths={"docs/notes.md"},
+    )
+
+    assert result["status"] == "completed"
+    assert (tmp_path / "docs" / "notes.md").read_text(encoding="utf-8") == "safe"

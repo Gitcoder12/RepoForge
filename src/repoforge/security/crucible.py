@@ -10,6 +10,8 @@ logger = logging.getLogger("RepoForge.Security.Crucible")
 
 
 class Crucible(BaseProvider):
+    MAX_STREAM_INSPECTION_BYTES = 1_000_000
+
     def __init__(self, wrapped_provider: BaseProvider) -> None:
         self.wrapped = wrapped_provider
         super().__init__(api_key=self.wrapped.api_key, **self.wrapped.config)
@@ -45,7 +47,8 @@ class Crucible(BaseProvider):
 
     def generate(self, prompt: str, system_prompt: str = "", **kwargs: Any) -> str:
         safe_prompt = self._sanitize_outbound(prompt)
-        response = self.wrapped.generate(safe_prompt, system_prompt, **kwargs)
+        safe_system_prompt = self._sanitize_outbound(system_prompt)
+        response = self.wrapped.generate(safe_prompt, safe_system_prompt, **kwargs)
         if not self._inspect_inbound(response):
             return "ERROR: Response blocked by RepoForge Crucible due to malicious content."
         return response
@@ -53,11 +56,33 @@ class Crucible(BaseProvider):
     async def stream(
         self, prompt: str, system_prompt: str = "", **kwargs: Any
     ) -> AsyncGenerator[str, None]:
+        """Buffer and inspect a bounded complete response before exposing any chunk.
+
+        Inspecting each chunk independently is unsafe because a blocked pattern
+        can be split across chunk boundaries. Buffering prevents partial disclosure
+        before the full response has passed the heuristic inspection.
+        """
         safe_prompt = self._sanitize_outbound(prompt)
-        async for chunk in self.wrapped.stream(safe_prompt, system_prompt, **kwargs):
-            if not self._inspect_inbound(chunk):
-                yield "ERROR: Stream blocked by Crucible."
-                break
+        safe_system_prompt = self._sanitize_outbound(system_prompt)
+        chunks: list[str] = []
+        total_bytes = 0
+        async for chunk in self.wrapped.stream(safe_prompt, safe_system_prompt, **kwargs):
+            if not isinstance(chunk, str):
+                yield "ERROR: Stream blocked by Crucible due to invalid chunk type."
+                return
+            total_bytes += len(chunk.encode("utf-8"))
+            if total_bytes > self.MAX_STREAM_INSPECTION_BYTES:
+                yield "ERROR: Stream blocked by Crucible due to inspection size limit."
+                return
+            chunks.append(chunk)
+
+        complete_response = "".join(chunks)
+        if not self._inspect_inbound(complete_response):
+            logger.warning("Crucible blocked a streamed response after full-response inspection")
+            yield "ERROR: Stream blocked by Crucible."
+            return
+
+        for chunk in chunks:
             yield chunk
 
     def get_capabilities(self) -> dict[str, Any]:
