@@ -109,7 +109,10 @@ class ActionRunner:
             if cursor.is_symlink():
                 raise ValueError("symlink path components are denied")
 
-        target = candidate.resolve()
+        try:
+            target = candidate.resolve()
+        except (OSError, RuntimeError) as exc:
+            raise ValueError("action path could not be resolved safely") from exc
         try:
             target.relative_to(self.repo_path)
         except ValueError as exc:
