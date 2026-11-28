@@ -357,6 +357,10 @@ Extreme
 
 ---
 
+## Crucible — supplementary provider filtering
+
+Crucible redacts selected common secret patterns from both prompt channels and inspects complete bounded streamed responses for a small set of dangerous-command signatures. It is a heuristic filter, not a sandbox or a guarantee against prompt injection or unsafe output. See [docs/CRUCIBLE.md](docs/CRUCIBLE.md) for its scope and limitations.
+
 ## TestForge — fast test discovery
 
 TestForge detects conventional test entry points across Python, JavaScript/TypeScript, Go, Rust, Java, and .NET. It prints a test plan without executing repository code by default.
