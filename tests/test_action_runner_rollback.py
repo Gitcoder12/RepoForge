@@ -4,7 +4,12 @@ from repoforge.action_runner import ActionRunner
 
 
 def _git_repo(path):
-    subprocess.run(["git", "init", "-b", "feature/rollback-test"], cwd=path, check=True, capture_output=True)
+    subprocess.run(
+        ["git", "init", "-b", "feature/rollback-test"],
+        cwd=path,
+        check=True,
+        capture_output=True,
+    )
     subprocess.run(["git", "config", "user.email", "tests@example.invalid"], cwd=path, check=True)
     subprocess.run(["git", "config", "user.name", "RepoForge Tests"], cwd=path, check=True)
     (path / "tracked.txt").write_text("baseline", encoding="utf-8")
