@@ -81,3 +81,14 @@ def test_agent_catalog_is_searchable_and_has_named_focus_prompts():
 def test_agent_focus_rejects_unknown_roles(tmp_path: Path):
     with pytest.raises(ValueError, match="Unknown agent focus"):
         run_local_agent_review(tmp_path, "Unlisted Agent")
+
+
+
+def test_agent_review_rejects_non_string_focus(tmp_path: Path):
+    with pytest.raises(ValueError, match="Unknown agent focus"):
+        run_local_agent_review(tmp_path, ["Security"])
+
+
+def test_agent_review_rejects_non_string_additional_request(tmp_path: Path):
+    with pytest.raises(ValueError, match="additional request must be text"):
+        run_local_agent_review(tmp_path, "Security", request=123)
