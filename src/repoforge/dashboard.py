@@ -14,6 +14,7 @@ from typing import Any
 
 from repoforge.blacksmith import Blacksmith
 from repoforge.megazord import MegazordEngine
+from repoforge.mission import render_why_we_build
 from repoforge.testing import TestForge
 from repoforge.upgrades import UpgradePlanner
 from repoforge.validator import Validator
@@ -269,8 +270,8 @@ def render_app() -> None:
             "Default mode: local inspection only. No model calls, test execution, or file edits."
         )
 
-    workspace_tab, agents_tab, megazords_tab = st.tabs(
-        ["Repository workspace", "Agent workbench", "Megazords"]
+    workspace_tab, agents_tab, megazords_tab, mission_tab = st.tabs(
+        ["Repository workspace", "Agent workbench", "Megazords", "Why we build"]
     )
 
     with workspace_tab:
@@ -430,6 +431,9 @@ def render_app() -> None:
             if megazord_report:
                 st.metric("Pairings evaluated", megazord_report.get("pairings_evaluated", 0))
                 st.json(megazord_report)
+
+    with mission_tab:
+        render_why_we_build(st)
 
 
 def main() -> None:
