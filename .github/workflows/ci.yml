@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "tower/**"]
   pull_request:
     branches: [main, fix/canonical-package-layout]
 
@@ -30,8 +30,18 @@ jobs:
         run: ruff check src/repoforge tests
       - name: Check formatting
         run: ruff format --check src/repoforge tests
+      - name: Prepare evidence directory
+        run: mkdir -p test-results
       - name: Run unit tests
-        run: pytest -q
+        run: pytest -q --junitxml=test-results/junit-py${{ matrix.python-version }}.xml
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: repoforge-test-evidence-py${{ matrix.python-version }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 30
       - name: Verify installed CLI
         run: |
           repoforge --help
