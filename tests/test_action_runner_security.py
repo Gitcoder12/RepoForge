@@ -101,7 +101,6 @@ def test_modify_requires_existing_file(tmp_path: Path) -> None:
     assert result["errors"]
 
 
-
 def test_write_rejects_internal_symlink_alias(tmp_path: Path) -> None:
     _git_repo(tmp_path)
     source = tmp_path / "source.txt"
