@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import logging
+import os
+import stat
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -67,14 +70,84 @@ class ActionRunner:
         if self.errors:
             return self._result("blocked")
 
+        if dry_run:
+            for action in actions:
+                try:
+                    self._execute_dict_action(action, True)
+                except (OSError, TypeError, ValueError) as exc:
+                    logger.error("Dry-run action failed: %s", exc)
+                    self.errors.append({"action": str(action)[:200], "error": str(exc)})
+            return self._result("completed" if not self.errors else "partial")
+
+        # Snapshot every distinct target before the first mutation. If any
+        # operation fails, restore the original bytes (or remove newly-created
+        # files) so a failed batch does not silently leave a partial repair.
+        snapshots: dict[Path, tuple[bytes, int] | None] = {}
+        try:
+            for action in actions:
+                target = self._resolve_target(action["file"])
+                if target not in snapshots:
+                    snapshots[target] = (
+                        (target.read_bytes(), stat.S_IMODE(target.stat().st_mode))
+                        if target.is_file()
+                        else None
+                    )
+        except (OSError, TypeError, ValueError, KeyError) as exc:
+            self.errors.append({"error": f"could not snapshot mutation targets: {exc}"})
+            return self._result("blocked")
+
         for action in actions:
             try:
-                self._execute_dict_action(action, dry_run)
+                self._execute_dict_action(action, False)
             except (OSError, TypeError, ValueError) as exc:
-                logger.error("Action failed: %s", exc)
+                logger.error("Action failed; rolling back batch: %s", exc)
                 self.errors.append({"action": str(action)[:200], "error": str(exc)})
+                rollback_errors = self._restore_snapshot(snapshots)
+                for item in self.executed:
+                    if item.get("status") in ("created", "modified", "ok"):
+                        item["status"] = "rolled_back"
+                if rollback_errors:
+                    self.errors.extend(rollback_errors)
+                    return self._result("rollback_failed")
+                return self._result("rolled_back")
 
-        return self._result("completed" if not self.errors else "partial")
+        return self._result("completed")
+
+    def _restore_snapshot(
+        self, snapshots: dict[Path, tuple[bytes, int] | None]
+    ) -> list[dict[str, str]]:
+        """Restore original file contents after a failed mutation batch."""
+        failures: list[dict[str, str]] = []
+        for target, snapshot in reversed(list(snapshots.items())):
+            temporary_path: str | None = None
+            try:
+                if snapshot is None:
+                    target.unlink(missing_ok=True)
+                    continue
+                content, mode = snapshot
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with tempfile.NamedTemporaryFile(
+                    mode="wb",
+                    dir=target.parent,
+                    prefix=f".{target.name}.repoforge-rollback-",
+                    delete=False,
+                ) as stream:
+                    stream.write(content)
+                    temporary_path = stream.name
+                os.chmod(temporary_path, mode)
+                os.replace(temporary_path, target)
+                temporary_path = None
+            except OSError as exc:
+                failures.append(
+                    {"path": str(target), "rollback_error": f"{type(exc).__name__}: {exc}"}
+                )
+            finally:
+                if temporary_path:
+                    try:
+                        Path(temporary_path).unlink(missing_ok=True)
+                    except OSError:
+                        pass
+        return failures
 
     def _result(self, status: str) -> dict[str, Any]:
         completed = sum(
