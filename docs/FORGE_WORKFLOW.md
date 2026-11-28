@@ -38,7 +38,12 @@ repoforge forge ./repo "add focused unit tests" \
 
 Application requires a clean Git working tree, a non-protected branch, and
 approval for every exact target path. Deletions are disabled. The action runner
-preflights the full batch before writing. A blocked action batch is not applied.
+preflights the full batch before writing. It canonicalizes path separators,
+rejects traversal and absolute/drive-qualified paths, denies symlink path
+components (including internal aliases), and denies existing hard-linked file
+targets so an approved repository path cannot silently mutate another hard
+link. These are path-confinement safeguards, not a substitute for OS isolation
+or race-free execution.
 
 Add `--run-tests` only for repositories you trust. Target tests execute
 repository-controlled code and are **not OS-sandboxed**. This command is not
