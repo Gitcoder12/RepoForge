@@ -1,5 +1,10 @@
 # RepoForge
 
+## Why we build
+
+RepoForge exists to make software creation and maintenance more accessible by reducing repetitive engineering work while keeping builders informed and in control. Its long-range north star is to make useful technology easier to create and its benefits more widely shared—freeing more human effort for learning, care, science, creativity, and exploration.
+
+Read the full [Why We Build RepoForge mission](docs/WHY_WE_BUILD.md) in the workspace's **Why we build** tab.
 
 ## Current Status / Current Version
 
